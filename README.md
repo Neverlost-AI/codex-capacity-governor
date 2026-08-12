@@ -1,2 +1,84 @@
-# codex-capacity-governor
-Codex-first resource-governance layer that forecasts AI coding capacity, optimizes development tranches, and reserves budget for correction, validation, and recovery.
+# Codex Capacity Governor
+
+Codex Capacity Governor is a Codex-first resource-governance layer for AI-assisted software development. It evaluates a project or bounded development tranche before execution, forecasts likely capacity needs, protects correction and validation reserves, and recommends the safest operating policy for the available budget.
+
+> Given the available Codex budget, reset timing, project state, task complexity, risk, and validation requirements, what is the safest and most efficient way to complete this work?
+
+The Governor treats AI coding capacity as a finite development budget to plan before execution—not merely usage to measure afterward.
+
+## Repository status
+
+This repository is in foundation setup. It currently contains architecture context, development rules, package boundaries, and draft domain contracts. It does **not** contain a working application or finalized Governor policy rules.
+
+## Core loop
+
+The MVP is intended to prove one complete learning loop:
+
+1. Create or open a project.
+2. Describe a product brief or bounded development tranche.
+3. Enter an available or allocated budget, reset timing, and optional reserve preferences.
+4. Review task decomposition, complexity, risk, and forecast confidence.
+5. Receive low, expected, and high forecasts plus an operating mode, allocations, optimization guidance, and explicit stop conditions.
+6. Receive one primary policy decision: `PROCEED`, `NARROW`, `DEFER`, or `STOP / PRESERVE`.
+7. Execute the work outside the Governor or through a later integration.
+8. Record actual consumption, corrections, validation, failures, and deferred work.
+9. Compare forecast with actual usage to improve future calibration.
+
+A tranche is affordable only when implementation, reasonable correction, and required validation all fit within the permitted budget.
+
+## Operating modes
+
+- **FULL** — budget comfortably supports implementation, correction, and validation.
+- **CONSERVATION** — reduce scope and unnecessary parallelism while protecting validation reserve.
+- **LOW** — complete only the smallest coherent unit, avoid expansion, and verify before continuing.
+- **CRITICAL** — begin no new feature work; preserve state, record unresolved work, prepare a precise handoff, and stop.
+
+AI-assisted analysis may classify work and uncertainty. A deterministic, auditable policy engine decides what the available budget permits. The two responsibilities must remain separable.
+
+## Intended users and planning levers
+
+Initial users include AI-heavy developers, technical founders working within constrained development budgets, developers coordinating multiple repositories, and small teams that need explicit agent-usage policies. The product is also intended to make costly sessions more predictable for people whose time, energy, or cognitive capacity is limited.
+
+Depending on evidence and approved policy, the Governor may optimize scope, context loaded for a tranche, model strategy, parallelism, dependencies, validation reserve, correction/recovery reserve, and reset timing.
+
+## Proposed MVP stack
+
+- TypeScript monorepo managed with pnpm
+- Next.js and React for the web application and server-side application layer
+- PostgreSQL with Drizzle ORM for durable project, preflight, plan, and outcome records
+- Zod schemas at process and transport boundaries
+- Vitest and Testing Library for unit/component tests; Playwright for critical browser flows
+- Official, documented AI APIs behind an optional analysis adapter; manual analysis and budget entry remain supported
+- A container-compatible Node deployment with no required hosting vendor
+
+Exact versions and deployment providers should be selected when the first application tranche is bootstrapped and committed with a lockfile.
+
+## Repository map
+
+```text
+apps/
+  web/                    Future Next.js application
+packages/
+  contracts/              Portable domain vocabulary and boundary types
+  application/            Framework-independent use-case coordination
+  policy-engine/          Deterministic founder-owned policy rules
+  forecast-engine/        Forecasting and calibration logic
+  ai-analysis/            Optional AI classification behind a port
+  platform-adapters/      Normalization of coding-agent capacity state
+docs/
+  ARCHITECTURE_CONTEXT.md Architecture, boundaries, and open decisions
+  DEVELOPMENT_WORKFLOW.md Bounded-tranche and review workflow
+  decisions/              Future architecture decision records
+```
+
+See [Architecture context](docs/ARCHITECTURE_CONTEXT.md) and [Development workflow](docs/DEVELOPMENT_WORKFLOW.md) before beginning substantive work. The accepted first assignment is [Tranche 001: Manual Preflight Draft](docs/TRANCHE_001_MANUAL_PREFLIGHT_DRAFT.md). Repository-wide agent guidance is in [AGENTS.md](AGENTS.md).
+
+## MVP boundaries
+
+The initial MVP does not require automatic access to private Codex balances, authentication cookies, undocumented endpoints, billing, enterprise deployment, multiple coding-agent integrations, or Claude Code support. It must not claim demonstrated savings, productivity gains, forecast accuracy, or commercial validation without pilot evidence.
+
+Forecast-versus-actual history—including poor forecasts and negative outcomes—is product evidence and should be preserved.
+
+## Collaboration boundary
+
+The founder owns product meaning, policy rules, operating modes, reserve philosophy, forecasting method, prioritization, and acceptance. Collaborators work in explicitly bounded implementation tranches through branches and pull requests. The accepted first collaborator assignment is [Tranche 001: Manual Preflight Draft](docs/TRANCHE_001_MANUAL_PREFLIGHT_DRAFT.md).
