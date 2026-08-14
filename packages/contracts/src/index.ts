@@ -1,60 +1,109 @@
-/** Transport-neutral draft contracts for the Governor MVP. */
+import { z } from "zod";
+
+/** Transport-neutral contracts for the Governor. */
 
 export type ISODateTime = string;
 export type Identifier = string;
 
-export type InputSource = "manual" | "platform_adapter";
+const requiredText = z.string().trim().min(1, "Required");
+const optionalText = z.string().trim().optional();
+
+export const identifierSchema = z.uuid();
+export const isoDateTimeSchema = z.iso.datetime({ offset: true });
+
+export const inputSourceSchema = z.enum(["manual", "platform_adapter"]);
+export type InputSource = z.infer<typeof inputSourceSchema>;
 
 /**
  * A capacity value retains its source unit. Values are comparable only after an
  * approved adapter or policy configuration establishes compatible semantics.
  */
-export interface CapacityQuantity {
-  amount: number;
-  unit: string;
-  source: InputSource;
-}
+export const capacityQuantitySchema = z.object({
+  amount: z.number().finite().nonnegative(),
+  unit: requiredText,
+  source: inputSourceSchema,
+});
+export type CapacityQuantity = z.infer<typeof capacityQuantitySchema>;
 
-export interface ResetContext {
-  resetsAt?: ISODateTime;
-  timezone: string;
-  notes?: string;
-}
+export const manualCapacityQuantitySchema = capacityQuantitySchema.extend({
+  source: z.literal("manual"),
+});
 
-export interface ReservePreference {
-  minimum?: CapacityQuantity;
-  targetShare?: number;
-}
+const isTimeZone = (value: string): boolean => {
+  try {
+    new Intl.DateTimeFormat("en-US", { timeZone: value }).format();
+    return true;
+  } catch {
+    return false;
+  }
+};
 
-export interface Project {
-  id: Identifier;
-  name: string;
-  description?: string;
-  createdAt: ISODateTime;
-  updatedAt: ISODateTime;
-}
+export const resetContextSchema = z.object({
+  resetsAt: isoDateTimeSchema.optional(),
+  timezone: requiredText.refine(isTimeZone, "Use a valid IANA timezone"),
+  notes: optionalText,
+});
+export type ResetContext = z.infer<typeof resetContextSchema>;
 
-export interface TrancheDraft {
-  id: Identifier;
-  projectId: Identifier;
-  title: string;
-  brief: string;
-  explicitExclusions: string[];
-  acceptanceCriteria: string[];
-}
+export const reservePreferenceSchema = z.object({
+  minimum: manualCapacityQuantitySchema.optional(),
+  targetShare: z.number().finite().min(0).max(1).optional(),
+});
+export type ReservePreference = z.infer<typeof reservePreferenceSchema>;
 
-export interface PreflightDraft {
-  id: Identifier;
-  projectId: Identifier;
-  tranche: TrancheDraft;
-  availableBudget: CapacityQuantity;
-  reset: ResetContext;
-  correctionReserve?: ReservePreference;
-  validationReserve?: ReservePreference;
-  assumptions: string[];
-  openQuestions: string[];
-}
+export const projectSchema = z.object({
+  id: identifierSchema,
+  name: requiredText,
+  description: optionalText,
+  createdAt: isoDateTimeSchema,
+  updatedAt: isoDateTimeSchema,
+});
+export type Project = z.infer<typeof projectSchema>;
 
+export const createProjectInputSchema = projectSchema.pick({
+  name: true,
+  description: true,
+});
+export type CreateProjectInput = z.infer<typeof createProjectInputSchema>;
+
+export const trancheDraftSchema = z.object({
+  id: identifierSchema,
+  projectId: identifierSchema,
+  title: requiredText,
+  brief: requiredText,
+  explicitExclusions: z.array(requiredText),
+  acceptanceCriteria: z.array(requiredText),
+});
+export type TrancheDraft = z.infer<typeof trancheDraftSchema>;
+
+export const trancheDraftInputSchema = trancheDraftSchema.omit({
+  id: true,
+  projectId: true,
+});
+export type TrancheDraftInput = z.infer<typeof trancheDraftInputSchema>;
+
+export const preflightDraftSchema = z.object({
+  id: identifierSchema,
+  projectId: identifierSchema,
+  tranche: trancheDraftSchema,
+  availableBudget: manualCapacityQuantitySchema,
+  reset: resetContextSchema,
+  correctionReserve: reservePreferenceSchema.optional(),
+  validationReserve: reservePreferenceSchema.optional(),
+  assumptions: z.array(requiredText),
+  openQuestions: z.array(requiredText),
+});
+export type PreflightDraft = z.infer<typeof preflightDraftSchema>;
+
+export const savePreflightDraftInputSchema = preflightDraftSchema
+  .omit({ id: true })
+  .extend({ tranche: trancheDraftInputSchema });
+export type SavePreflightDraftInput = z.infer<
+  typeof savePreflightDraftInputSchema
+>;
+
+// Later-tranche vocabulary remains compile-time-only. Its presence is not
+// implementation authority and does not settle founder-controlled semantics.
 export type Complexity = "LOW" | "MEDIUM" | "HIGH" | "UNKNOWN";
 export type RiskLevel = "LOW" | "MEDIUM" | "HIGH" | "UNKNOWN";
 export type ForecastConfidence = "LOW" | "MEDIUM" | "HIGH";
