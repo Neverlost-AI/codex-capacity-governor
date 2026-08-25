@@ -1,6 +1,8 @@
 # Web application
 
-The Next.js application composes Tranche 001 UI and server actions with the framework-independent application package and an outward Drizzle persistence adapter.
+The Next.js application composes the Tranche 001 manual-preflight flow and the
+Tranche 002 unguided run/outcome-history flow with the framework-independent
+application package and an outward Drizzle persistence adapter.
 
 ## Boundaries
 
@@ -8,6 +10,22 @@ The Next.js application composes Tranche 001 UI and server actions with the fram
 - `packages/application` owns use cases and repository ports.
 - `src/server/db` implements those ports with Drizzle.
 - `packages/contracts` owns shared runtime schemas and types.
-- Only `Project` and `PreflightDraft` are persisted.
+- T002 additionally persists `DevelopmentRun`, immutable
+  `RunOutcomeObservation`, and categorized `ActualCapacityConsumption` records.
 
-The application does not forecast, calculate reserves, or issue Governor decisions.
+The application does not forecast, calculate reserves, calibrate, or issue
+Governor decisions.
+
+## Run-history persistence
+
+Committed migrations create the accepted T001 tables first and add the three
+T002 tables without rewriting T001 data. Project run lists use newest
+`createdAt`, then run ID, as their deterministic order. Outcome history follows
+the linear predecessor chain from the original observation to the current one.
+An amendment and all of its consumption records commit in one transaction; a
+stale predecessor is rejected and no prior row is updated or deleted.
+
+`pnpm db:migrate` applies the forward migrations. Rolling T002 back by dropping
+its tables would permanently delete run and outcome evidence, so no automatic
+rollback is provided. Preserve or export that evidence before any separately
+reviewed destructive rollback.

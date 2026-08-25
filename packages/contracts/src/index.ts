@@ -102,6 +102,145 @@ export type SavePreflightDraftInput = z.infer<
   typeof savePreflightDraftInputSchema
 >;
 
+export const guidanceKindSchema = z.literal("UNGUIDED");
+export type GuidanceKind = z.infer<typeof guidanceKindSchema>;
+
+export const runOutcomeSchema = z.enum(["COMPLETED", "PARTIAL", "FAILED"]);
+export type RunOutcome = z.infer<typeof runOutcomeSchema>;
+
+export const validationResultSchema = z.enum([
+  "NOT_RUN",
+  "PASSED",
+  "PARTIAL",
+  "FAILED",
+  "INCONCLUSIVE",
+]);
+export type ValidationResult = z.infer<typeof validationResultSchema>;
+
+export const actualConsumptionCategorySchema = z.enum([
+  "IMPLEMENTATION",
+  "CORRECTION",
+  "VALIDATION",
+  "OTHER",
+]);
+export type ActualConsumptionCategory = z.infer<
+  typeof actualConsumptionCategorySchema
+>;
+
+export const developmentRunSchema = z.object({
+  id: identifierSchema,
+  projectId: identifierSchema,
+  preflightDraftId: identifierSchema,
+  guidanceKind: guidanceKindSchema,
+  createdAt: isoDateTimeSchema,
+});
+export type DevelopmentRun = z.infer<typeof developmentRunSchema>;
+
+export const createDevelopmentRunInputSchema = developmentRunSchema.pick({
+  projectId: true,
+  preflightDraftId: true,
+});
+export type CreateDevelopmentRunInput = z.infer<
+  typeof createDevelopmentRunInputSchema
+>;
+
+export const remainingCapacitySnapshotSchema = z.object({
+  amount: z.number().finite().nonnegative(),
+  unit: requiredText,
+  observedAt: isoDateTimeSchema,
+  source: z.literal("manual"),
+});
+export type RemainingCapacitySnapshot = z.infer<
+  typeof remainingCapacitySnapshotSchema
+>;
+
+export const actualCapacityConsumptionInputSchema = z.object({
+  category: actualConsumptionCategorySchema,
+  amount: z.number().finite().nonnegative(),
+  unit: requiredText,
+  source: z.literal("manual"),
+});
+export type ActualCapacityConsumptionInput = z.infer<
+  typeof actualCapacityConsumptionInputSchema
+>;
+
+export const actualCapacityConsumptionSchema =
+  actualCapacityConsumptionInputSchema.extend({
+    id: identifierSchema,
+    outcomeObservationId: identifierSchema,
+    recordedAt: isoDateTimeSchema,
+  });
+export type ActualCapacityConsumption = z.infer<
+  typeof actualCapacityConsumptionSchema
+>;
+
+const outcomeEvidenceSchema = z.object({
+  runOutcome: runOutcomeSchema,
+  validationResult: validationResultSchema,
+  unexpectedFailures: z.array(requiredText),
+  deferredWork: z.array(requiredText),
+  notes: optionalText,
+  remainingCapacity: remainingCapacitySnapshotSchema.optional(),
+  actualConsumption: z
+    .array(actualCapacityConsumptionInputSchema)
+    .max(4)
+    .superRefine((entries, context) => {
+      const seen = new Set<ActualConsumptionCategory>();
+      entries.forEach((entry, index) => {
+        if (seen.has(entry.category)) {
+          context.addIssue({
+            code: "custom",
+            message: "Each consumption category may be recorded only once",
+            path: [index, "category"],
+          });
+        }
+        seen.add(entry.category);
+      });
+    }),
+});
+
+export const recordRunOutcomeInputSchema = outcomeEvidenceSchema.extend({
+  runId: identifierSchema,
+});
+export type RecordRunOutcomeInput = z.infer<typeof recordRunOutcomeInputSchema>;
+
+export const amendRunOutcomeInputSchema = outcomeEvidenceSchema.extend({
+  runId: identifierSchema,
+  expectedCurrentObservationId: identifierSchema,
+  amendmentReason: requiredText,
+});
+export type AmendRunOutcomeInput = z.infer<typeof amendRunOutcomeInputSchema>;
+
+export const runOutcomeObservationSchema = outcomeEvidenceSchema
+  .omit({ actualConsumption: true })
+  .extend({
+    id: identifierSchema,
+    runId: identifierSchema,
+    supersedesObservationId: identifierSchema.optional(),
+    amendmentReason: requiredText.optional(),
+    recordedAt: isoDateTimeSchema,
+  })
+  .superRefine((observation, context) => {
+    const isAmendment = observation.supersedesObservationId !== undefined;
+    if (isAmendment !== (observation.amendmentReason !== undefined)) {
+      context.addIssue({
+        code: "custom",
+        message:
+          "An amendment must include both a predecessor and an amendment reason",
+        path: ["amendmentReason"],
+      });
+    }
+  });
+export type RunOutcomeObservation = z.infer<typeof runOutcomeObservationSchema>;
+
+export const outcomeObservationWithConsumptionSchema = z.object({
+  observation: runOutcomeObservationSchema,
+  actualConsumption: z.array(actualCapacityConsumptionSchema),
+});
+export type OutcomeObservationWithConsumption = z.infer<
+  typeof outcomeObservationWithConsumptionSchema
+>;
+
 // Later-tranche vocabulary remains compile-time-only. Its presence is not
 // implementation authority and does not settle founder-controlled semantics.
 export type Complexity = "LOW" | "MEDIUM" | "HIGH" | "UNKNOWN";
@@ -151,20 +290,7 @@ export interface GovernedExecutionPlan {
   createdAt: ISODateTime;
 }
 
-export type ValidationResult = "PASSED" | "FAILED" | "PARTIAL" | "NOT_RUN";
-
-export interface ExecutionOutcome {
-  id: Identifier;
-  governedPlanId: Identifier;
-  actualImplementation?: CapacityQuantity;
-  actualCorrection?: CapacityQuantity;
-  actualValidation?: CapacityQuantity;
-  validationResult: ValidationResult;
-  failures: string[];
-  deferredWork: string[];
-  notes?: string;
-  recordedAt: ISODateTime;
-}
+export type ExecutionOutcome = RunOutcomeObservation;
 
 export interface CalibrationObservation {
   id: Identifier;

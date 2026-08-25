@@ -2,6 +2,7 @@ import { ProjectNotFoundError } from "@capacity-governor/application";
 import { identifierSchema } from "@capacity-governor/contracts";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { CreateRunForm } from "../../../components/create-run-form";
 import { PreflightForm } from "../../../components/preflight-form";
 import { getApplicationService } from "../../../server/application";
 
@@ -16,8 +17,13 @@ export default async function ProjectPage({
   if (!identifierSchema.safeParse(projectId).success) notFound();
 
   let result;
+  let runs;
   try {
-    result = await (await getApplicationService()).getProject(projectId);
+    const service = await getApplicationService();
+    [result, runs] = await Promise.all([
+      service.getProject(projectId),
+      service.listProjectRuns(projectId),
+    ]);
   } catch (error) {
     if (error instanceof ProjectNotFoundError) notFound();
     return (
@@ -53,6 +59,50 @@ export default async function ProjectPage({
         </span>
       </header>
       <PreflightForm draft={result.preflightDraft} projectId={projectId} />
+      <section
+        aria-labelledby="run-history-heading"
+        className="run-history-section"
+      >
+        <div className="section-heading">
+          <p className="eyebrow">Factual execution evidence</p>
+          <h2 id="run-history-heading">Development run history</h2>
+          <p>
+            Runs recorded here are unguided. They contain no forecast,
+            affordability result, operating mode, or Governor decision.
+          </p>
+        </div>
+        {result.preflightDraft ? (
+          <CreateRunForm
+            preflightDraftId={result.preflightDraft.id}
+            projectId={projectId}
+          />
+        ) : (
+          <p className="notice">
+            Save the manual preflight draft before creating a development run.
+          </p>
+        )}
+        {runs.length ? (
+          <ol className="run-list">
+            {runs.map(({ run, latestOutcome }) => (
+              <li key={run.id}>
+                <Link href={`/projects/${projectId}/runs/${run.id}`}>
+                  <span>
+                    <strong>UNGUIDED run</strong>
+                    <small>{new Date(run.createdAt).toLocaleString()}</small>
+                  </span>
+                  <span className="run-status">
+                    {latestOutcome
+                      ? `${latestOutcome.observation.runOutcome} · ${latestOutcome.observation.validationResult}`
+                      : "Outcome not recorded"}
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ol>
+        ) : (
+          <p className="empty-state">No development runs recorded yet.</p>
+        )}
+      </section>
     </div>
   );
 }

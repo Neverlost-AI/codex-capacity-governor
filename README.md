@@ -8,7 +8,11 @@ The Governor treats AI coding capacity as a finite development budget to plan be
 
 ## Repository status
 
-The founder-approved baseline contains architecture context, development rules, package boundaries, and the Tranche 001 assignment. The independent shadow branch implements only the Manual Preflight Draft vertical slice for later founder comparison. Governor policy and forecasting remain unimplemented.
+The application implements the founder-approved Tranche 001 manual preflight
+workflow and Tranche 002 factual run/outcome history. Tranche 002 records only
+explicitly `UNGUIDED` runs, manual evidence, and append-only amendments. Governor
+policy, forecasting, calibration, AI analysis, and automatic capacity retrieval
+remain unimplemented.
 
 ## Local development
 
@@ -88,7 +92,7 @@ Exact versions and deployment providers should be selected when the first applic
 
 ```text
 apps/
-  web/                    Future Next.js application
+  web/                    Next.js UI and PostgreSQL/Drizzle adapter
 packages/
   contracts/              Portable domain vocabulary and boundary types
   application/            Framework-independent use-case coordination
@@ -99,10 +103,10 @@ packages/
 docs/
   ARCHITECTURE_CONTEXT.md Architecture, boundaries, and open decisions
   DEVELOPMENT_WORKFLOW.md Bounded-tranche and review workflow
-  decisions/              Future architecture decision records
+  decisions/              Accepted and proposed decision records
 ```
 
-See [Architecture context](docs/ARCHITECTURE_CONTEXT.md) and [Development workflow](docs/DEVELOPMENT_WORKFLOW.md) before beginning substantive work. The accepted first assignment is [Tranche 001: Manual Preflight Draft](docs/TRANCHE_001_MANUAL_PREFLIGHT_DRAFT.md). Repository-wide agent guidance is in [AGENTS.md](AGENTS.md).
+See [Architecture context](docs/ARCHITECTURE_CONTEXT.md) and [Development workflow](docs/DEVELOPMENT_WORKFLOW.md) before beginning substantive work. The accepted assignments are [Tranche 001: Manual Preflight Draft](docs/TRANCHE_001_MANUAL_PREFLIGHT_DRAFT.md) and [Tranche 002: Run and Outcome History Foundation](docs/TRANCHE_002_RUN_AND_OUTCOME_HISTORY_FOUNDATION.md). Repository-wide agent guidance is in [AGENTS.md](AGENTS.md).
 
 ## MVP boundaries
 

@@ -6,6 +6,7 @@ import { describe, expect, it } from "vitest";
 import type { FormActionState } from "../app/form-state";
 import { PreflightFormFields } from "./preflight-form";
 import { ProjectFormFields } from "./project-form";
+import { RunOutcomeFormFields } from "./run-outcome-form";
 
 const projectId = "d1b5eaa4-d266-4dd8-b9ab-17e195dccbd2";
 
@@ -55,6 +56,54 @@ describe("accessible form states", () => {
     ).toBeVisible();
     expect(
       screen.queryByText(/PROCEED|NARROW|DEFER|STOP \/ PRESERVE/),
+    ).not.toBeInTheDocument();
+  });
+
+  it("keeps factual run evidence accessible and policy-neutral", () => {
+    render(
+      createElement(RunOutcomeFormFields, {
+        current: null,
+        projectId,
+        runId: "04877823-b6d4-4b1d-bde2-91bd4f18f3dc",
+        state: {
+          status: "error",
+          message: "Check the highlighted fields and try again.",
+          fieldErrors: {
+            implementationUnit: ["Add a unit for this amount"],
+            remainingObservedAt: ["Add the observation time"],
+          },
+          values: {
+            runOutcome: "PARTIAL",
+            validationResult: "INCONCLUSIVE",
+            implementationAmount: "12.5",
+            remainingAmount: "48",
+          },
+        },
+      }),
+    );
+
+    expect(screen.getByRole("combobox", { name: "Run outcome" })).toHaveValue(
+      "PARTIAL",
+    );
+    expect(
+      screen.getByRole("combobox", { name: "Validation result" }),
+    ).toHaveValue("INCONCLUSIVE");
+    expect(
+      document.getElementById("implementationUnit"),
+    ).toHaveAccessibleDescription("Add a unit for this amount");
+    expect(
+      screen.getByRole("textbox", { name: "Observation time" }),
+    ).toHaveAccessibleDescription(
+      /ISO date-time with offset.*Add the observation time/,
+    );
+    expect(
+      screen.getByRole("textbox", { name: "Deferred work" }),
+    ).toBeVisible();
+    expect(
+      screen.getByRole("textbox", { name: "Unexpected failures" }),
+    ).toBeVisible();
+    expect(
+      screen.queryByText(/PROCEED|NARROW|STOP \/ PRESERVE/),
     ).not.toBeInTheDocument();
   });
 });

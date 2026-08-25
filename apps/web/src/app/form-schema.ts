@@ -120,6 +120,136 @@ export const preflightFormSchema = z
     }
   });
 
+const runOutcomeFormFields = z.object({
+  projectId: z.uuid("Invalid project identifier"),
+  runId: z.uuid("Invalid run identifier"),
+  runOutcome: z.enum(["COMPLETED", "PARTIAL", "FAILED"]),
+  validationResult: z.enum([
+    "NOT_RUN",
+    "PASSED",
+    "PARTIAL",
+    "FAILED",
+    "INCONCLUSIVE",
+  ]),
+  implementationAmount: optionalNonNegativeNumber,
+  implementationUnit: optionalText,
+  correctionAmount: optionalNonNegativeNumber,
+  correctionUnit: optionalText,
+  validationAmount: optionalNonNegativeNumber,
+  validationUnit: optionalText,
+  otherAmount: optionalNonNegativeNumber,
+  otherUnit: optionalText,
+  remainingAmount: optionalNonNegativeNumber,
+  remainingUnit: optionalText,
+  remainingObservedAt: z
+    .string()
+    .trim()
+    .transform((value) => value || undefined)
+    .refine(
+      (value) =>
+        value === undefined ||
+        z.iso.datetime({ offset: true }).safeParse(value).success,
+      "Use an ISO date and time with an explicit offset",
+    ),
+  unexpectedFailures: z.string(),
+  deferredWork: z.string(),
+  notes: optionalText,
+});
+
+type RunOutcomeFormFields = z.infer<typeof runOutcomeFormFields>;
+
+const validateRunOutcomeFields = (
+  value: RunOutcomeFormFields,
+  context: z.RefinementCtx,
+) => {
+  const validatePair = (
+    amount: number | undefined,
+    unit: string | undefined,
+    amountPath: keyof RunOutcomeFormFields,
+    unitPath: keyof RunOutcomeFormFields,
+  ) => {
+    if (amount !== undefined && !unit) {
+      context.addIssue({
+        code: "custom",
+        message: "Add a unit for this amount",
+        path: [unitPath],
+      });
+    }
+    if (amount === undefined && unit) {
+      context.addIssue({
+        code: "custom",
+        message: "Add an amount for this unit",
+        path: [amountPath],
+      });
+    }
+  };
+
+  validatePair(
+    value.implementationAmount,
+    value.implementationUnit,
+    "implementationAmount",
+    "implementationUnit",
+  );
+  validatePair(
+    value.correctionAmount,
+    value.correctionUnit,
+    "correctionAmount",
+    "correctionUnit",
+  );
+  validatePair(
+    value.validationAmount,
+    value.validationUnit,
+    "validationAmount",
+    "validationUnit",
+  );
+  validatePair(value.otherAmount, value.otherUnit, "otherAmount", "otherUnit");
+
+  const remainingValues = [
+    value.remainingAmount,
+    value.remainingUnit,
+    value.remainingObservedAt,
+  ];
+  const suppliedRemainingValues = remainingValues.filter(
+    (entry) => entry !== undefined,
+  ).length;
+  if (suppliedRemainingValues > 0 && suppliedRemainingValues < 3) {
+    if (value.remainingAmount === undefined) {
+      context.addIssue({
+        code: "custom",
+        message: "Add the observed remaining amount",
+        path: ["remainingAmount"],
+      });
+    }
+    if (!value.remainingUnit) {
+      context.addIssue({
+        code: "custom",
+        message: "Add the observed remaining unit",
+        path: ["remainingUnit"],
+      });
+    }
+    if (!value.remainingObservedAt) {
+      context.addIssue({
+        code: "custom",
+        message: "Add the observation time",
+        path: ["remainingObservedAt"],
+      });
+    }
+  }
+};
+
+export const runOutcomeFormSchema = runOutcomeFormFields.superRefine(
+  validateRunOutcomeFields,
+);
+
+export const amendRunOutcomeFormSchema = runOutcomeFormFields
+  .extend({
+    expectedCurrentObservationId: z.uuid(
+      "Invalid current outcome observation identifier",
+    ),
+    amendmentReason: requiredText,
+  })
+  .superRefine(validateRunOutcomeFields);
+
 export const splitLines = (value: string): string[] =>
   value
     .split(/\r?\n/)
