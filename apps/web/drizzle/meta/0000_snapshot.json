@@ -1,0 +1,272 @@
+{
+  "id": "e27ae483-dbe5-4b55-b325-1685ff073c76",
+  "prevId": "00000000-0000-0000-0000-000000000000",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "public.preflight_drafts": {
+      "name": "preflight_drafts",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "project_id": {
+          "name": "project_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "tranche_id": {
+          "name": "tranche_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "tranche_title": {
+          "name": "tranche_title",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "tranche_brief": {
+          "name": "tranche_brief",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "explicit_exclusions": {
+          "name": "explicit_exclusions",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "acceptance_criteria": {
+          "name": "acceptance_criteria",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "available_budget_amount": {
+          "name": "available_budget_amount",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "available_budget_unit": {
+          "name": "available_budget_unit",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "available_budget_source": {
+          "name": "available_budget_source",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "reset_at": {
+          "name": "reset_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "reset_timezone": {
+          "name": "reset_timezone",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "reset_notes": {
+          "name": "reset_notes",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "correction_minimum_amount": {
+          "name": "correction_minimum_amount",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "correction_minimum_unit": {
+          "name": "correction_minimum_unit",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "correction_target_share": {
+          "name": "correction_target_share",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "validation_minimum_amount": {
+          "name": "validation_minimum_amount",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "validation_minimum_unit": {
+          "name": "validation_minimum_unit",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "validation_target_share": {
+          "name": "validation_target_share",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "assumptions": {
+          "name": "assumptions",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "open_questions": {
+          "name": "open_questions",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "preflight_drafts_project_id_unique": {
+          "name": "preflight_drafts_project_id_unique",
+          "columns": [
+            {
+              "expression": "project_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "preflight_drafts_project_id_projects_id_fk": {
+          "name": "preflight_drafts_project_id_projects_id_fk",
+          "tableFrom": "preflight_drafts",
+          "tableTo": "projects",
+          "columnsFrom": ["project_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "preflight_budget_nonnegative": {
+          "name": "preflight_budget_nonnegative",
+          "value": "\"preflight_drafts\".\"available_budget_amount\" >= 0"
+        },
+        "preflight_correction_minimum_pair": {
+          "name": "preflight_correction_minimum_pair",
+          "value": "(\"preflight_drafts\".\"correction_minimum_amount\" is null) = (\"preflight_drafts\".\"correction_minimum_unit\" is null)"
+        },
+        "preflight_validation_minimum_pair": {
+          "name": "preflight_validation_minimum_pair",
+          "value": "(\"preflight_drafts\".\"validation_minimum_amount\" is null) = (\"preflight_drafts\".\"validation_minimum_unit\" is null)"
+        },
+        "preflight_correction_minimum_nonnegative": {
+          "name": "preflight_correction_minimum_nonnegative",
+          "value": "\"preflight_drafts\".\"correction_minimum_amount\" is null or \"preflight_drafts\".\"correction_minimum_amount\" >= 0"
+        },
+        "preflight_validation_minimum_nonnegative": {
+          "name": "preflight_validation_minimum_nonnegative",
+          "value": "\"preflight_drafts\".\"validation_minimum_amount\" is null or \"preflight_drafts\".\"validation_minimum_amount\" >= 0"
+        },
+        "preflight_correction_share_range": {
+          "name": "preflight_correction_share_range",
+          "value": "\"preflight_drafts\".\"correction_target_share\" is null or \"preflight_drafts\".\"correction_target_share\" between 0 and 1"
+        },
+        "preflight_validation_share_range": {
+          "name": "preflight_validation_share_range",
+          "value": "\"preflight_drafts\".\"validation_target_share\" is null or \"preflight_drafts\".\"validation_target_share\" between 0 and 1"
+        },
+        "preflight_manual_source": {
+          "name": "preflight_manual_source",
+          "value": "\"preflight_drafts\".\"available_budget_source\" = 'manual'"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.projects": {
+      "name": "projects",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    }
+  },
+  "enums": {},
+  "schemas": {},
+  "sequences": {},
+  "roles": {},
+  "policies": {},
+  "views": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}

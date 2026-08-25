@@ -1,0 +1,26 @@
+{
+  "name": "@capacity-governor/web",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "next build",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "tsx src/server/db/migrate.ts",
+    "dev": "next dev",
+    "start": "next start",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@capacity-governor/application": "workspace:*",
+    "@capacity-governor/contracts": "workspace:*",
+    "@electric-sql/pglite": "0.5.4",
+    "drizzle-orm": "0.45.2",
+    "luxon": "3.7.2",
+    "next": "16.3.0",
+    "pg": "8.23.0",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "zod": "4.4.3"
+  }
+}

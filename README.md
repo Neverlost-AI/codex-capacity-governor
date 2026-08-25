@@ -8,7 +8,38 @@ The Governor treats AI coding capacity as a finite development budget to plan be
 
 ## Repository status
 
-This repository is in foundation setup. It currently contains architecture context, development rules, package boundaries, and draft domain contracts. It does **not** contain a working application or finalized Governor policy rules.
+The founder-approved baseline contains architecture context, development rules, package boundaries, and the Tranche 001 assignment. The independent shadow branch implements only the Manual Preflight Draft vertical slice for later founder comparison. Governor policy and forecasting remain unimplemented.
+
+## Local development
+
+Prerequisites:
+
+- Node.js 22 or newer;
+- pnpm 11.20.0 through Corepack or `pnpm.cmd` on Windows;
+- Docker with Compose for the normal local PostgreSQL path.
+
+From a clean checkout:
+
+```bash
+cp .env.example .env
+pnpm install --frozen-lockfile
+docker compose up -d postgres
+pnpm db:migrate
+pnpm dev
+```
+
+Open `http://localhost:3000`. The migration command and application startup both apply committed migrations idempotently. Tests use an embedded PGlite build of PostgreSQL by default, so unit/integration verification does not require Docker.
+
+Required verification:
+
+```bash
+pnpm format:check
+pnpm lint
+pnpm typecheck
+pnpm test
+pnpm build
+pnpm test:e2e
+```
 
 ## Core loop
 
