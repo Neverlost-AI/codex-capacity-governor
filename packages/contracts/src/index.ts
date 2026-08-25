@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+export * from "./policy";
+
 /** Transport-neutral contracts for the Governor. */
 
 export type ISODateTime = string;
@@ -265,29 +267,6 @@ export interface ForecastRange {
   confidence: ForecastConfidence;
   factors: string[];
   forecastVersion: string;
-}
-
-export type OperatingMode = "FULL" | "CONSERVATION" | "LOW" | "CRITICAL";
-export type PolicyDecision = "PROCEED" | "NARROW" | "DEFER" | "STOP / PRESERVE";
-
-export interface CapacityAllocation {
-  implementation: CapacityQuantity;
-  correction: CapacityQuantity;
-  validation: CapacityQuantity;
-}
-
-export interface GovernedExecutionPlan {
-  id: Identifier;
-  preflightId: Identifier;
-  decision: PolicyDecision;
-  mode: OperatingMode;
-  forecast: ForecastRange;
-  allocation: CapacityAllocation;
-  reasons: string[];
-  optimizationGuidance: string[];
-  stopConditions: string[];
-  policyVersion: string;
-  createdAt: ISODateTime;
 }
 
 export type ExecutionOutcome = RunOutcomeObservation;
