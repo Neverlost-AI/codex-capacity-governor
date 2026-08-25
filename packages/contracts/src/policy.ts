@@ -7,15 +7,6 @@ const exactNonnegativeDecimal = z
   .max(128, "Decimal evidence is too long");
 const isoDateTime = z.iso.datetime({ offset: true });
 
-const isTimeZone = (value: string): boolean => {
-  try {
-    new Intl.DateTimeFormat("en-US", { timeZone: value }).format();
-    return true;
-  } catch {
-    return false;
-  }
-};
-
 export const policyCapacityUnitSchema = z.enum([
   "BASIS_POINTS",
   "PERCENT",
@@ -107,10 +98,7 @@ const confirmedResetSchema = z
   .object({
     kind: z.literal("CONFIRMED"),
     resetsAt: isoDateTime,
-    sourceTimezone: requiredText.refine(
-      isTimeZone,
-      "Use a valid IANA timezone",
-    ),
+    sourceTimezone: requiredText,
     normalizedUtc: z.iso.datetime({ offset: true }),
     expectedPostResetAvailability: policyRawQuantitySchema.optional(),
   })

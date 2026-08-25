@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import type {
   PolicyEvaluation,
   PolicyEvaluationInput,
@@ -363,6 +363,32 @@ describe("Gate A V1 mode, freshness, and stop boundaries", () => {
     );
     expect(result.aggregateDecision).toBe("STOP / PRESERVE");
     expect(result.stopIds).toContain("STOP_INVALID_RESET_EVIDENCE");
+  });
+
+  it("does not consult Intl when retaining source timezone evidence", () => {
+    const sourceTimezone = "provider-supplied-zone-label";
+    const dateTimeFormat = vi
+      .spyOn(Intl, "DateTimeFormat")
+      .mockImplementation(() => {
+        throw new Error("Intl timezone data must not be consulted");
+      });
+    try {
+      const result = evaluation(
+        withBucket({
+          reset: {
+            kind: "CONFIRMED",
+            resetsAt: "2026-08-26T06:00:00.000-06:00",
+            sourceTimezone,
+            normalizedUtc: "2026-08-26T12:00:00.000Z",
+            expectedPostResetAvailability: quantity("9000"),
+          },
+        }),
+      );
+      expect(result.bucketResults[0].reset).toMatchObject({ sourceTimezone });
+      expect(result.stopIds).not.toContain("STOP_INVALID_RESET_EVIDENCE");
+    } finally {
+      dateTimeFormat.mockRestore();
+    }
   });
 
   it("stops when reserves exhaust current capacity", () => {

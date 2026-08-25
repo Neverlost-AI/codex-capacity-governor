@@ -21,6 +21,12 @@ persistence, database, filesystem, network, environment, provider SDK, AI,
 randomness, or system-clock dependency. It does not create or persist a governed
 execution plan.
 
+`sourceTimezone` is retained unchanged as non-empty factual reset evidence. The
+contract does not consult the host OS or JavaScript runtime's timezone database,
+infer an offset, or perform provider-specific conversion. `resetsAt` and
+`normalizedUtc` remain strict offset-aware timestamps, and the evaluator
+deterministically requires them to represent the same instant.
+
 ## Versioning, normalization, and exact arithmetic
 
 `GATE_A_V1_CONFIGURATION` is the reviewed injectable fixture. Its runtime schema

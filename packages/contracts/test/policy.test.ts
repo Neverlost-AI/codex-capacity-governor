@@ -100,6 +100,50 @@ describe("T003 policy contracts", () => {
     expect(policyEvaluationInputSchema.parse(input)).toEqual(input);
   });
 
+  it("retains sourceTimezone as explicit factual reset evidence", () => {
+    const sourceTimezone = "provider-supplied-zone-label";
+    const result = policyEvaluationInputSchema.parse({
+      ...input,
+      requiredCapacityBuckets: [
+        {
+          ...bucket,
+          reset: {
+            kind: "CONFIRMED",
+            resetsAt: "2026-08-26T06:00:00.000-06:00",
+            sourceTimezone,
+            normalizedUtc: "2026-08-26T12:00:00.000Z",
+          },
+        },
+      ],
+    });
+    expect(result.requiredCapacityBuckets[0].reset).toMatchObject({
+      sourceTimezone,
+    });
+  });
+
+  it("rejects an empty sourceTimezone while retaining strict reset timestamps", () => {
+    const reset = {
+      kind: "CONFIRMED",
+      resetsAt: "not-a-timestamp",
+      sourceTimezone: "",
+      normalizedUtc: "not-a-timestamp",
+    };
+    const result = policyEvaluationInputSchema.safeParse({
+      ...input,
+      requiredCapacityBuckets: [{ ...bucket, reset }],
+    });
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.issues.map((issue) => issue.path.join("."))).toEqual(
+        expect.arrayContaining([
+          "requiredCapacityBuckets.0.reset.sourceTimezone",
+          "requiredCapacityBuckets.0.reset.resetsAt",
+          "requiredCapacityBuckets.0.reset.normalizedUtc",
+        ]),
+      );
+    }
+  });
+
   it.each(["01", ".5", "1e2", "-1", "NaN", "Infinity"])(
     "rejects non-canonical decimal %s",
     (amount) => {
