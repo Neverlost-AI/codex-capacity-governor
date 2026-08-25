@@ -1,7 +1,9 @@
 import { sql } from "drizzle-orm";
 import {
+  type AnyPgColumn,
   check,
   doublePrecision,
+  index,
   jsonb,
   pgTable,
   text,
@@ -84,6 +86,159 @@ export const preflightDrafts = pgTable(
     check(
       "preflight_manual_source",
       sql`${table.availableBudgetSource} = 'manual'`,
+    ),
+  ],
+);
+
+export const developmentRuns = pgTable(
+  "development_runs",
+  {
+    id: uuid("id").primaryKey(),
+    projectId: uuid("project_id")
+      .notNull()
+      .references(() => projects.id, { onDelete: "cascade" }),
+    preflightDraftId: uuid("preflight_draft_id")
+      .notNull()
+      .references(() => preflightDrafts.id, { onDelete: "cascade" }),
+    guidanceKind: text("guidance_kind").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull(),
+  },
+  (table) => [
+    check(
+      "development_runs_unguided_only",
+      sql`${table.guidanceKind} = 'UNGUIDED'`,
+    ),
+    index("development_runs_project_created_at_idx").on(
+      table.projectId,
+      table.createdAt,
+    ),
+  ],
+);
+
+export const runOutcomeObservations = pgTable(
+  "run_outcome_observations",
+  {
+    id: uuid("id").primaryKey(),
+    runId: uuid("run_id")
+      .notNull()
+      .references(() => developmentRuns.id, { onDelete: "cascade" }),
+    supersedesObservationId: uuid("supersedes_observation_id").references(
+      (): AnyPgColumn => runOutcomeObservations.id,
+      { onDelete: "restrict" },
+    ),
+    runOutcome: text("run_outcome").notNull(),
+    validationResult: text("validation_result").notNull(),
+    unexpectedFailures: jsonb("unexpected_failures")
+      .$type<string[]>()
+      .notNull(),
+    deferredWork: jsonb("deferred_work").$type<string[]>().notNull(),
+    notes: text("notes"),
+    remainingCapacityAmount: doublePrecision("remaining_capacity_amount"),
+    remainingCapacityUnit: text("remaining_capacity_unit"),
+    remainingCapacityObservedAt: timestamp("remaining_capacity_observed_at", {
+      withTimezone: true,
+    }),
+    remainingCapacitySource: text("remaining_capacity_source"),
+    amendmentReason: text("amendment_reason"),
+    recordedAt: timestamp("recorded_at", { withTimezone: true }).notNull(),
+  },
+  (table) => [
+    uniqueIndex("run_outcome_observations_one_initial_per_run")
+      .on(table.runId)
+      .where(sql`${table.supersedesObservationId} is null`),
+    uniqueIndex("run_outcome_observations_one_successor")
+      .on(table.supersedesObservationId)
+      .where(sql`${table.supersedesObservationId} is not null`),
+    index("run_outcome_observations_run_recorded_at_idx").on(
+      table.runId,
+      table.recordedAt,
+    ),
+    check(
+      "run_outcome_observations_run_outcome",
+      sql`${table.runOutcome} in ('COMPLETED', 'PARTIAL', 'FAILED')`,
+    ),
+    check(
+      "run_outcome_observations_validation_result",
+      sql`${table.validationResult} in ('NOT_RUN', 'PASSED', 'PARTIAL', 'FAILED', 'INCONCLUSIVE')`,
+    ),
+    check(
+      "run_outcome_observations_remaining_all_or_none",
+      sql`(
+        ${table.remainingCapacityAmount} is null
+        and ${table.remainingCapacityUnit} is null
+        and ${table.remainingCapacityObservedAt} is null
+        and ${table.remainingCapacitySource} is null
+      ) or (
+        ${table.remainingCapacityAmount} is not null
+        and ${table.remainingCapacityUnit} is not null
+        and ${table.remainingCapacityObservedAt} is not null
+        and ${table.remainingCapacitySource} is not null
+      )`,
+    ),
+    check(
+      "run_outcome_observations_remaining_nonnegative",
+      sql`${table.remainingCapacityAmount} is null or ${table.remainingCapacityAmount} >= 0`,
+    ),
+    check(
+      "run_outcome_observations_remaining_finite",
+      sql`${table.remainingCapacityAmount} is null or ${table.remainingCapacityAmount} not in ('Infinity'::float8, '-Infinity'::float8, 'NaN'::float8)`,
+    ),
+    check(
+      "run_outcome_observations_remaining_unit_nonempty",
+      sql`${table.remainingCapacityUnit} is null or btrim(${table.remainingCapacityUnit}) <> ''`,
+    ),
+    check(
+      "run_outcome_observations_remaining_manual",
+      sql`${table.remainingCapacitySource} is null or ${table.remainingCapacitySource} = 'manual'`,
+    ),
+    check(
+      "run_outcome_observations_amendment_pair",
+      sql`(${table.supersedesObservationId} is null) = (${table.amendmentReason} is null)`,
+    ),
+    check(
+      "run_outcome_observations_amendment_reason_nonempty",
+      sql`${table.amendmentReason} is null or btrim(${table.amendmentReason}) <> ''`,
+    ),
+  ],
+);
+
+export const actualCapacityConsumptions = pgTable(
+  "actual_capacity_consumptions",
+  {
+    id: uuid("id").primaryKey(),
+    outcomeObservationId: uuid("outcome_observation_id")
+      .notNull()
+      .references(() => runOutcomeObservations.id, { onDelete: "cascade" }),
+    category: text("category").notNull(),
+    amount: doublePrecision("amount").notNull(),
+    unit: text("unit").notNull(),
+    source: text("source").notNull(),
+    recordedAt: timestamp("recorded_at", { withTimezone: true }).notNull(),
+  },
+  (table) => [
+    uniqueIndex("actual_capacity_consumptions_observation_category_unique").on(
+      table.outcomeObservationId,
+      table.category,
+    ),
+    check(
+      "actual_capacity_consumptions_category",
+      sql`${table.category} in ('IMPLEMENTATION', 'CORRECTION', 'VALIDATION', 'OTHER')`,
+    ),
+    check(
+      "actual_capacity_consumptions_nonnegative",
+      sql`${table.amount} >= 0`,
+    ),
+    check(
+      "actual_capacity_consumptions_finite",
+      sql`${table.amount} not in ('Infinity'::float8, '-Infinity'::float8, 'NaN'::float8)`,
+    ),
+    check(
+      "actual_capacity_consumptions_unit_nonempty",
+      sql`btrim(${table.unit}) <> ''`,
+    ),
+    check(
+      "actual_capacity_consumptions_manual",
+      sql`${table.source} = 'manual'`,
     ),
   ],
 );

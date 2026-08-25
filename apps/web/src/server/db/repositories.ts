@@ -1,17 +1,32 @@
 import {
+  actualCapacityConsumptionSchema,
+  developmentRunSchema,
+  outcomeObservationWithConsumptionSchema,
   preflightDraftSchema,
   projectSchema,
+  runOutcomeObservationSchema,
+  type ActualCapacityConsumption,
+  type DevelopmentRun,
+  type OutcomeObservationWithConsumption,
   type PreflightDraft,
   type Project,
   type ReservePreference,
 } from "@capacity-governor/contracts";
 import type {
+  DevelopmentRunRepository,
   PreflightDraftRepository,
   ProjectRepository,
+  RunOutcomeRepository,
 } from "@capacity-governor/application";
-import { desc, eq } from "drizzle-orm";
+import { asc, desc, eq, inArray } from "drizzle-orm";
 import type { AppDatabase } from "./database";
-import { preflightDrafts, projects } from "./schema";
+import {
+  actualCapacityConsumptions,
+  developmentRuns,
+  preflightDrafts,
+  projects,
+  runOutcomeObservations,
+} from "./schema";
 
 const toIso = (value: Date): string => value.toISOString();
 
@@ -78,11 +93,174 @@ const mapPreflight = (
     openQuestions: row.openQuestions,
   });
 
+const mapDevelopmentRun = (
+  row: typeof developmentRuns.$inferSelect,
+): DevelopmentRun =>
+  developmentRunSchema.parse({
+    ...row,
+    createdAt: toIso(row.createdAt),
+  });
+
+const mapOutcomeObservation = (
+  row: typeof runOutcomeObservations.$inferSelect,
+) =>
+  runOutcomeObservationSchema.parse({
+    id: row.id,
+    runId: row.runId,
+    supersedesObservationId: row.supersedesObservationId ?? undefined,
+    runOutcome: row.runOutcome,
+    validationResult: row.validationResult,
+    unexpectedFailures: row.unexpectedFailures,
+    deferredWork: row.deferredWork,
+    notes: row.notes ?? undefined,
+    remainingCapacity:
+      row.remainingCapacityAmount === null ||
+      row.remainingCapacityUnit === null ||
+      row.remainingCapacityObservedAt === null ||
+      row.remainingCapacitySource === null
+        ? undefined
+        : {
+            amount: row.remainingCapacityAmount,
+            unit: row.remainingCapacityUnit,
+            observedAt: toIso(row.remainingCapacityObservedAt),
+            source: row.remainingCapacitySource,
+          },
+    amendmentReason: row.amendmentReason ?? undefined,
+    recordedAt: toIso(row.recordedAt),
+  });
+
+const mapConsumption = (
+  row: typeof actualCapacityConsumptions.$inferSelect,
+): ActualCapacityConsumption =>
+  actualCapacityConsumptionSchema.parse({
+    ...row,
+    recordedAt: toIso(row.recordedAt),
+  });
+
+const orderOutcomeRows = (
+  rows: Array<typeof runOutcomeObservations.$inferSelect>,
+): Array<typeof runOutcomeObservations.$inferSelect> => {
+  if (rows.length < 2) return rows;
+  const root = rows.find((row) => row.supersedesObservationId === null);
+  if (!root) return rows;
+  const byPredecessor = new Map(
+    rows
+      .filter((row) => row.supersedesObservationId !== null)
+      .map((row) => [row.supersedesObservationId as string, row]),
+  );
+  const ordered = [root];
+  let current = root;
+  while (byPredecessor.has(current.id)) {
+    current = byPredecessor.get(current.id)!;
+    ordered.push(current);
+  }
+  return ordered.length === rows.length ? ordered : rows;
+};
+
+const loadOutcomeHistory = async (
+  db: AppDatabase,
+  runId: string,
+): Promise<OutcomeObservationWithConsumption[]> => {
+  const observationRows = await db
+    .select()
+    .from(runOutcomeObservations)
+    .where(eq(runOutcomeObservations.runId, runId))
+    .orderBy(
+      asc(runOutcomeObservations.recordedAt),
+      asc(runOutcomeObservations.id),
+    );
+  if (!observationRows.length) return [];
+
+  const consumptionRows = await db
+    .select()
+    .from(actualCapacityConsumptions)
+    .where(
+      inArray(
+        actualCapacityConsumptions.outcomeObservationId,
+        observationRows.map((row) => row.id),
+      ),
+    )
+    .orderBy(
+      asc(actualCapacityConsumptions.recordedAt),
+      asc(actualCapacityConsumptions.category),
+    );
+  const consumptionByObservation = new Map<
+    string,
+    ActualCapacityConsumption[]
+  >();
+  consumptionRows.forEach((row) => {
+    const values = consumptionByObservation.get(row.outcomeObservationId) ?? [];
+    values.push(mapConsumption(row));
+    consumptionByObservation.set(row.outcomeObservationId, values);
+  });
+
+  return orderOutcomeRows(observationRows).map((row) =>
+    outcomeObservationWithConsumptionSchema.parse({
+      observation: mapOutcomeObservation(row),
+      actualConsumption: consumptionByObservation.get(row.id) ?? [],
+    }),
+  );
+};
+
+const observationValues = (
+  observation: Parameters<RunOutcomeRepository["createInitial"]>[0],
+): typeof runOutcomeObservations.$inferInsert => ({
+  id: observation.id,
+  runId: observation.runId,
+  supersedesObservationId: observation.supersedesObservationId ?? null,
+  runOutcome: observation.runOutcome,
+  validationResult: observation.validationResult,
+  unexpectedFailures: observation.unexpectedFailures,
+  deferredWork: observation.deferredWork,
+  notes: observation.notes ?? null,
+  remainingCapacityAmount: observation.remainingCapacity?.amount ?? null,
+  remainingCapacityUnit: observation.remainingCapacity?.unit ?? null,
+  remainingCapacityObservedAt: observation.remainingCapacity
+    ? new Date(observation.remainingCapacity.observedAt)
+    : null,
+  remainingCapacitySource: observation.remainingCapacity?.source ?? null,
+  amendmentReason: observation.amendmentReason ?? null,
+  recordedAt: new Date(observation.recordedAt),
+});
+
+const consumptionValues = (
+  entries: ActualCapacityConsumption[],
+): Array<typeof actualCapacityConsumptions.$inferInsert> =>
+  entries.map((entry) => ({
+    ...entry,
+    recordedAt: new Date(entry.recordedAt),
+  }));
+
+const isUniqueViolation = (error: unknown): boolean => {
+  let current: unknown = error;
+  const visited = new Set<unknown>();
+  while (current !== null && current !== undefined && !visited.has(current)) {
+    visited.add(current);
+    if (
+      typeof current === "object" &&
+      "code" in current &&
+      (current as { code?: string }).code === "23505"
+    ) {
+      return true;
+    }
+    if (String(current).toLowerCase().includes("unique constraint")) {
+      return true;
+    }
+    current =
+      typeof current === "object" && "cause" in current
+        ? (current as { cause?: unknown }).cause
+        : undefined;
+  }
+  return false;
+};
+
 export const createRepositories = (
   db: AppDatabase,
 ): {
   projects: ProjectRepository;
   preflightDrafts: PreflightDraftRepository;
+  developmentRuns: DevelopmentRunRepository;
+  runOutcomes: RunOutcomeRepository;
 } => ({
   projects: {
     async create(project) {
@@ -110,6 +288,14 @@ export const createRepositories = (
     },
   },
   preflightDrafts: {
+    async findById(id) {
+      const rows = await db
+        .select()
+        .from(preflightDrafts)
+        .where(eq(preflightDrafts.id, id))
+        .limit(1);
+      return rows[0] ? mapPreflight(rows[0]) : null;
+    },
     async findByProjectId(projectId) {
       const rows = await db
         .select()
@@ -180,6 +366,102 @@ export const createRepositories = (
         .update(projects)
         .set({ updatedAt: now })
         .where(eq(projects.id, draft.projectId));
+    },
+  },
+  developmentRuns: {
+    async create(run) {
+      await db.insert(developmentRuns).values({
+        ...run,
+        createdAt: new Date(run.createdAt),
+      });
+    },
+    async findById(id) {
+      const rows = await db
+        .select()
+        .from(developmentRuns)
+        .where(eq(developmentRuns.id, id))
+        .limit(1);
+      return rows[0] ? mapDevelopmentRun(rows[0]) : null;
+    },
+    async listByProjectId(projectId) {
+      const rows = await db
+        .select()
+        .from(developmentRuns)
+        .where(eq(developmentRuns.projectId, projectId))
+        .orderBy(desc(developmentRuns.createdAt), desc(developmentRuns.id));
+      return rows.map(mapDevelopmentRun);
+    },
+  },
+  runOutcomes: {
+    async createInitial(observation, actualConsumption) {
+      try {
+        return await db.transaction(async (transaction) => {
+          const existing = await transaction
+            .select({ id: runOutcomeObservations.id })
+            .from(runOutcomeObservations)
+            .where(eq(runOutcomeObservations.runId, observation.runId))
+            .limit(1);
+          if (existing.length) return false;
+          await transaction
+            .insert(runOutcomeObservations)
+            .values(observationValues(observation));
+          if (actualConsumption.length) {
+            await transaction
+              .insert(actualCapacityConsumptions)
+              .values(consumptionValues(actualConsumption));
+          }
+          return true;
+        });
+      } catch (error) {
+        if (isUniqueViolation(error)) return false;
+        throw error;
+      }
+    },
+    async appendAmendment(
+      expectedCurrentObservationId,
+      observation,
+      actualConsumption,
+    ) {
+      try {
+        return await db.transaction(async (transaction) => {
+          const rows = await transaction
+            .select({
+              id: runOutcomeObservations.id,
+              supersedesObservationId:
+                runOutcomeObservations.supersedesObservationId,
+            })
+            .from(runOutcomeObservations)
+            .where(eq(runOutcomeObservations.runId, observation.runId));
+          const supersededIds = new Set(
+            rows
+              .map((row) => row.supersedesObservationId)
+              .filter((id): id is string => id !== null),
+          );
+          const current = rows.find((row) => !supersededIds.has(row.id));
+          if (!current || current.id !== expectedCurrentObservationId) {
+            return false;
+          }
+          await transaction
+            .insert(runOutcomeObservations)
+            .values(observationValues(observation));
+          if (actualConsumption.length) {
+            await transaction
+              .insert(actualCapacityConsumptions)
+              .values(consumptionValues(actualConsumption));
+          }
+          return true;
+        });
+      } catch (error) {
+        if (isUniqueViolation(error)) return false;
+        throw error;
+      }
+    },
+    async findLatestByRunId(runId) {
+      const history = await loadOutcomeHistory(db, runId);
+      return history.at(-1) ?? null;
+    },
+    async listHistoryByRunId(runId) {
+      return loadOutcomeHistory(db, runId);
     },
   },
 });
