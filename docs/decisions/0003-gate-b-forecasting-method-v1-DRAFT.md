@@ -24,8 +24,32 @@ Gate B, and does not authorize Tranche 004 or any implementation work.
   automation, Gate B-to-policy composition, Gate B-to-outcome persistence, or a
   later tranche
 
-Every numbered decision below is individually pending. The founder may accept,
-change, or hold any item without accepting the rest.
+No numbered decision below has yet been accepted as a complete row. The founder
+has changed one recommendation and resolved sub-decisions within several held
+rows. The founder may later accept, change, or hold any item without accepting
+the rest.
+
+## Founder review progress — 2026-08-25
+
+The founder has resolved these cross-cutting sub-decisions:
+
+1. Gate B forecasts implementation demand only; broader lifecycle or
+   operational costs belong in a later layer.
+2. Unmodified `EXPECTED` is the candidate Gate A `D[b]`. Demand, confidence/
+   uncertainty evidence, and authoritative bucket provenance remain separate.
+   Gate A owns the policy effect of uncertainty.
+3. Preferred comparable history is at least five comparable completed runs
+   inside the preceding 180 days. When that threshold is not met, older
+   qualified completed history may be shown only as a separate, explicit
+   fallback set with age and provenance.
+4. Partial and failed runs are lower-bound evidence, not completed-scope point
+   observations.
+5. Gate B preserves raw demand above one normalized cycle without clamping;
+   evaluator policy owns interpretation and consequences.
+
+These rulings do not accept the complete Gate B method. The final checklist
+marks every unresolved decision `HOLD` and records the explicit history-rule
+`CHANGE`. Gate B remains open and this artifact remains draft.
 
 ## Context
 
@@ -111,11 +135,14 @@ These are recommended versioned values, not approved constants:
 | `methodVersion` | `gate-b-forecast-v1` | Pending |
 | `rangeSemanticsVersion` | `plausible-planning-band-v1` | Pending |
 | `historyAdjustmentMethod` | `median-actual-to-expected-ratio-v1` | Pending |
-| `minimumComparableCompletedRuns` | `5` | Pending |
-| `maximumComparableAgeDays` | `180` | Pending |
+| `minimumComparableCompletedRuns` | `5` | Founder-resolved sub-decision |
+| `preferredComparableAgeDays` | `180` | Founder-resolved sub-decision |
+| `olderHistoryFallbackAllowed` | `true`, separate and explicit | Founder-resolved sub-decision |
 | `coldStartConfidenceCeiling` | `MEDIUM` | Pending |
 | `historySuggestionRequiresAcceptance` | `true` | Pending |
-| `policyDemandCandidatePoint` | `EXPECTED` | Pending |
+| `policyDemandCandidatePoint` | unmodified `EXPECTED` | Founder-resolved sub-decision |
+| `forecastScope` | implementation demand only | Founder-resolved sub-decision |
+| `clampAboveOneCycle` | `false` | Founder-resolved sub-decision |
 | `lowRoundingDirection` | down/outward | Pending |
 | `expectedRoundingDirection` | up/outward | Pending |
 | `highRoundingDirection` | up/outward | Pending |
@@ -161,7 +188,7 @@ strict comparability.
 Accept the hybrid method, change it, or hold Gate B. Confirm whether one-component
 manual fallback is valid.
 
-### 2. Low / expected / high semantics — pending
+### 2. Low / expected / high semantics — HOLD (partially resolved)
 
 #### Available options
 
@@ -178,9 +205,15 @@ Choose option 3. Require nonnegative, monotonic points independently per bucket:
 Retain all component inputs. Round low down and expected/high up when whole
 policy-compatible values are needed. Never combine buckets.
 
-Recommend that the range forecast **implementation demand only**. Correction and
-validation exposure remain separate characterization/reserve evidence and are
-not folded into `D[b]`.
+The founder has accepted that the range forecasts **implementation demand
+only**. Correction and validation exposure remain separate
+characterization/reserve evidence and are not folded into `D[b]`. Broader
+lifecycle or operational cost forecasting belongs in a later layer.
+
+The founder has also accepted preservation of authoritative raw values above
+one normalized cycle. Gate B never clamps `1.4` cycle-equivalents to `1.0`,
+normalizes it into T003's accepted one-cycle range, or chooses a policy
+consequence.
 
 #### Tradeoffs
 
@@ -190,11 +223,12 @@ composition contract.
 
 #### Founder ruling required
 
-Approve plausible-band meanings, implementation-only scope, and directional
-rounding. Decide how expected/high demand above `10,000 bp` in one bucket is
-represented; V1 must not clamp it.
+Plausible-band meanings and directional rounding remain held. A future contract
+must define a typed bridge representation for raw demand above T003's one-cycle
+boundary while retaining the unchanged raw amount; the policy response is not a
+Gate B decision.
 
-### 3. Confidence semantics — pending
+### 3. Confidence semantics — HOLD (bridge boundary resolved)
 
 #### Available options
 
@@ -215,27 +249,32 @@ Choose option 2:
 - missing required numeric evidence produces a typed forecast rejection, not a
   confidence label.
 
-Recommended Gate A bridge, pending founder approval:
+Founder-accepted Gate A bridge boundary:
 
-| Forecast confidence | Proposed Gate A uncertainty |
-| --- | --- |
-| `HIGH` | `KNOWN` |
-| `MEDIUM` | `UNCERTAIN_BUT_BOUNDED` |
-| `LOW` | `UNKNOWN_OR_INVALID` |
+- unmodified `EXPECTED[b]` is the candidate raw `D[b]`;
+- confidence and uncertainty evidence remain separate from demand;
+- authoritative required-bucket provenance remains attached; and
+- Gate A/T003 remains authoritative for normalization and the policy effect of
+  uncertainty.
 
-The proposed raw policy-demand candidate is the expected point. The Gate A
-evaluator remains authoritative for normalization and uncertainty adjustment.
+Gate B must not inflate or otherwise modify `EXPECTED` based on confidence. The
+exact mapping, if any, from Gate B confidence labels to Gate A uncertainty
+states remains held. A bridge may retain both until a mapping or caller-owned
+translation is approved.
 
 #### Tradeoffs
 
-Labels are testable and consumable but compress nuance. Mapping `LOW` to
-failure-closed policy is conservative. Mapping `MEDIUM` to bounded uncertainty
-causes Gate A's accepted `5/4` adjustment and conservation cap.
+Labels are testable and consumable but compress nuance. Any later mapping into
+Gate A uncertainty states is policy-significant because it may trigger Gate A's
+bounded-uncertainty adjustment, mode cap, or fail-closed behavior. No such
+mapping is approved here.
 
 #### Founder ruling required
 
-Approve meanings, the five-run minimum for possible `HIGH`, the Gate A mapping,
-and expected as candidate `D[b]`.
+Approve the label meanings and evidence threshold for possible `HIGH`. Decide
+whether confidence maps to Gate A uncertainty or travels as separate evidence
+for caller interpretation. `EXPECTED` as candidate `D[b]` and separation of
+demand/uncertainty are resolved.
 
 ### 4. Task inputs — pending
 
@@ -275,7 +314,7 @@ taxonomy intentionally has no automatic weights in V1.
 Approve values, required fields, one-component fallback, and who may accept an
 AI/tool proposal.
 
-### 5. Historical calibration and comparable-run rules — pending
+### 5. Historical calibration and comparable-run rules — CHANGE
 
 #### Available options
 
@@ -294,12 +333,23 @@ Choose option 3. Numeric adjustment eligibility requires:
 - final bucket-linked `IMPLEMENTATION` actual consumption;
 - no unresolved amendment or data-quality conflict;
 - no in-scope deferred work;
-- age no greater than the proposed 180-day window; and
+- completion inside the preceding 180 days for the preferred set; and
 - approved task-shape matching fields.
 
+The founder has changed the recency rule:
+
+1. The preferred set requires at least five qualified comparable completed runs
+   inside the preceding 180 days.
+2. If the preferred set contains fewer than five, older qualified comparable
+   completed runs may be retained as fallback evidence.
+3. The older set must remain separate, carry `OLDER_HISTORY_FALLBACK` status,
+   retain every observation's age and provenance, and state that the preferred
+   recent-history threshold was not met.
+4. Older observations are never silently mixed into the preferred set.
+
 Recommend same-project history only for V1 unless cross-project use, privacy,
-and context controls are separately approved. Retain valid extreme observations;
-use the median instead of deleting statistical outliers.
+and context controls are separately approved. Retain valid extreme
+observations; use the median instead of deleting statistical outliers.
 
 #### Tradeoffs
 
@@ -308,8 +358,10 @@ reduces privacy/context ambiguity but slows learning.
 
 #### Founder ruling required
 
-Approve five completed observations, 180 days, same-project scope, hard matching
-keys, and no statistical outlier deletion.
+The five-run/180-day preferred set and explicit older-history fallback are
+resolved. Founder approval remains required for hard matching keys,
+same-project scope, whether fallback evidence may produce a numeric suggestion,
+and no statistical outlier deletion.
 
 ### 6. Cold-start / insufficient-history behavior — pending
 
@@ -369,7 +421,7 @@ non-overridable boundaries.
 Decide who may accept overrides, which values cannot be overridden, and whether
 every history suggestion requires manual acceptance.
 
-### 8. Forecast-error calculation — pending
+### 8. Forecast-error calculation — HOLD (partial/failed treatment resolved)
 
 #### Available options
 
@@ -397,8 +449,17 @@ Across compatible runs, report cohort size and median signed/absolute relative
 error. Never aggregate distinct bucket families or publish one accuracy score.
 
 For `PARTIAL` and `FAILED`, consumption to date is lower-bound/adverse evidence,
-not a completed-scope point error. `COMPLETED` is eligible only when the intact
-forecasted scope and actual evidence are complete.
+not a completed-scope point error. Retain each observation independently by
+bucket, compatible raw unit, observed amount/time, outcome, and provenance. For
+that run, completed intact-scope demand is greater than or equal to the maximum
+compatible consumed-to-date observation; repeated cumulative snapshots are not
+summed.
+
+Partial/failed records are excluded from completed-run counts, actual/expected
+ratios, medians, and point-error summaries. They do not automatically raise a
+different future scope's `L/E/H`. Numeric transfer requires separately accepted,
+actor-provenanced applicability evidence and an approved rule. `COMPLETED` is
+eligible only when the intact forecasted scope and actual evidence are complete.
 
 #### Tradeoffs
 
@@ -408,9 +469,10 @@ false success but delays numeric learning.
 
 #### Founder ruling required
 
-Approve expected comparison, undefined relative error at zero expected,
-completed-only point calibration, partial/failed lower-bound treatment, and
-median cohort summaries.
+Partial/failed lower-bound treatment and exclusion from completed-run statistics
+are resolved. Approve expected comparison, undefined relative error at zero
+expected, rules for transferring an accepted lower bound into a future range,
+confidence effects, and median cohort summaries.
 
 ### 9. Uncertainty disclosure — pending
 
@@ -487,8 +549,11 @@ For component `j` and bucket `b`, validate exact raw `L[j,b]`, `E[j,b]`, and
 
 `H0[b] = sum(H[j,b])`
 
-Let accepted bucket factor `F[b]` be exactly `1` at cold start or the explicitly
-accepted median ratio from a qualified cohort. Compute:
+Let accepted bucket factor `F[b]` be exactly `1` at cold start or an explicitly
+accepted factor from a source set whose numeric use the founder has approved.
+The preferred source set has at least five qualified comparable completed runs
+inside 180 days. If it does not, older fallback evidence remains separate with
+age/provenance and does not silently gain numeric authority. Compute:
 
 `L[b] = floor(L0[b] * F[b])`
 
@@ -520,9 +585,10 @@ With `F[5-hour] = F[weekly] = 1`:
 
 No global expected amount is calculated.
 
-Under the proposed, unapproved policy bridge, expected values become raw demand
-candidates and `MEDIUM` becomes `UNCERTAIN_BUT_BOUNDED`. Gate A would then apply
-its own accepted exact `5/4` margin. Gate B does not pre-apply or bypass it.
+Under the founder-resolved policy bridge boundary, expected values become raw
+demand candidates unchanged. Confidence/uncertainty evidence and authoritative
+bucket provenance travel separately. Gate A owns normalization and the policy
+effect of uncertainty; Gate B does not pre-apply or bypass it.
 
 ## Worked history-informed example
 
@@ -538,6 +604,12 @@ The sorted median is `11/10`. After explicit acceptance:
 
 Weekly remains `200 / 320 / 600` without its own qualified accepted factor.
 
+If fewer than five qualified completed 5-hour observations occurred inside 180
+days, those recent observations remain an explicit preferred-but-insufficient
+set. Older qualified observations may appear only in a separate
+`OLDER_HISTORY_FALLBACK` set with age and provenance. Their numeric use remains
+held for founder approval.
+
 ## Partial / failed / completed examples
 
 - `PARTIAL`, actual-to-date `800`, expected `1,400`: lower bound only; no
@@ -547,6 +619,10 @@ Weekly remains `200 / 320 / 600` without its own qualified accepted factor.
 - `COMPLETED`, actual `1,600`, expected `1,400`: signed error `+200`, absolute
   error `200`, exact relative error `1/7`; with range `900..2,300`, position is
   `WITHIN_RANGE`.
+
+The partial/failed values retain a lower-bound meaning only for their own intact
+run. They never enter the five-run completed threshold, ratio cohort, median, or
+point-error statistics.
 
 ## Proposed output boundary implications for a future T004 assignment
 
@@ -576,6 +652,12 @@ One immutable per-bucket result containing at least:
   bridge candidate rather than policy output; and
 - evaluation time supplied explicitly by the caller.
 
+The bridge candidate must preserve raw `EXPECTED` even when it exceeds one
+cycle, keep uncertainty/confidence separate, and retain authoritative bucket
+provenance. It must expose that the value is outside T003's current accepted
+one-cycle input range rather than clamp or reinterpret it. The evaluator/policy
+layer owns any defer, rejection, split, scheduling, or other consequence.
+
 The forecast engine must remain pure and must not import policy implementation,
 UI, persistence, AI, provider SDK, environment, randomness, or system clock.
 
@@ -585,9 +667,15 @@ UI, persistence, AI, provider SDK, environment, randomness, or system clock.
 - PR #3's policy evaluator must remain authoritative for policy normalization.
 - A future composition layer must pass the authoritative required bucket set; a
   forecast cannot create it.
+- Gate B supplies unchanged raw `EXPECTED[b]` as candidate `D[b]` and separate
+  confidence/uncertainty evidence; it never inflates demand based on confidence.
 - A forecast may emit raw `BASIS_POINTS`, `PERCENT`, or
   `NORMALIZED_FRACTION` evidence compatible with T003, but policy recomputes the
   normalized value.
+- When a raw forecast exceeds one cycle, Gate B preserves it. Because T003's
+  current public normalization boundary rejects values above one cycle, a future
+  composition contract must retain the raw forecast and route policy
+  interpretation without truncation. This draft does not change T003.
 - T001 manual preflight fields must not be silently reinterpreted as approved
   multi-bucket forecast input.
 - T002 actual consumption lacks bucket-family linkage required by this proposal.
@@ -614,6 +702,8 @@ UI, persistence, AI, provider SDK, environment, randomness, or system clock.
 11. AI proposals are non-authoritative until explicitly accepted.
 12. Forecasts make no unsupported accuracy, productivity, savings, or guarantee
     claim.
+13. Confidence/uncertainty evidence never changes raw `EXPECTED` demand.
+14. Raw demand above one cycle is retained unchanged for policy interpretation.
 
 ## Explicitly outside this decision
 
@@ -631,38 +721,46 @@ UI, persistence, AI, provider SDK, environment, randomness, or system clock.
 
 ## Unresolved founder decisions
 
-All ten numbered decisions remain unresolved until reviewed. The highest-impact
-cross-cutting questions are:
+No complete numbered decision is accepted yet. The highest-impact remaining
+questions are:
 
-1. implementation-only range versus total consumption range;
-2. expected/confidence-to-`D[b]`/uncertainty mapping;
-3. comparable-history minimum, recency, and matching keys;
-4. partial/failed confidence effect and later bucket-linked actual evidence;
-5. authority for accepting history factors and other assumptions; and
-6. representation of over-one-cycle demand without clamping.
+1. initial numeric method and whether history factors may adjust it;
+2. plausible-band definitions, directional rounding, and exact confidence
+   taxonomy;
+3. whether confidence maps to Gate A uncertainty or remains caller-interpreted
+   separate evidence;
+4. comparable-history matching keys and whether the explicit older fallback may
+   produce a numeric suggestion;
+5. partial/failed lower-bound effects on later ranges/confidence and future
+   bucket-linked actual-evidence contracts;
+6. authority for accepting history factors and other assumptions; and
+7. the exact typed bridge representation for preserved over-one-cycle demand.
 
 ## Founder review checklist
 
-For every row, mark exactly one: **ACCEPT**, **CHANGE**, or **HOLD**.
+The current founder-review disposition records exactly one result per row. A
+`HOLD` prevents the complete row from being treated as accepted even when
+specific sub-decisions in that row are resolved.
 
-| # | Gate B decision | Recommended V1 disposition | Founder result |
+| # | Gate B decision | Founder result | Resolved ruling / remaining approval |
 | ---: | --- | --- | --- |
-| 1 | Initial forecasting method | Manual three-point decomposition plus explicitly accepted median reference-class suggestion | ACCEPT / CHANGE / HOLD |
-| 2 | Low / expected / high semantics | Non-probabilistic implementation-demand planning band; monotonic; outward rounding | ACCEPT / CHANGE / HOLD |
-| 3 | Confidence semantics | `LOW/MEDIUM/HIGH` evidence quality; expected-to-`D[b]`; proposed Gate A mapping | ACCEPT / CHANGE / HOLD |
-| 4 | Task inputs | Structured components, per-bucket ranges, compact taxonomy, authoritative manual review | ACCEPT / CHANGE / HOLD |
-| 5 | Comparable history | Hard bucket/version/quality filters; five completed; 180 days; median; no outlier deletion | ACCEPT / CHANGE / HOLD |
-| 6 | Cold start | Manual range, factor `1`, `MEDIUM` ceiling, typed rejection for missing required evidence | ACCEPT / CHANGE / HOLD |
-| 7 | Assumptions/provenance | Versioned configuration plus actor-provenanced accepted overrides | ACCEPT / CHANGE / HOLD |
-| 8 | Forecast error | Per-bucket signed/absolute/relative/range position; completed-only point error | ACCEPT / CHANGE / HOLD |
-| 9 | Uncertainty disclosure | Structured assumptions/unknowns/history/rounding plus no-guarantee language | ACCEPT / CHANGE / HOLD |
-| 10 | Future calibration use | Deterministic median factor suggestion requiring explicit acceptance | ACCEPT / CHANGE / HOLD |
+| 1 | Initial forecasting method | **HOLD** | Manual decomposition and history-factor method were not ruled. |
+| 2 | Low / expected / high semantics | **HOLD** | Implementation-only scope and no clamping above one cycle are resolved; plausible-band meanings and rounding remain held. |
+| 3 | Confidence semantics | **HOLD** | Unmodified `EXPECTED` is candidate `D[b]`; demand/uncertainty remain separate; taxonomy and any mapping remain held. |
+| 4 | Task inputs | **HOLD** | Taxonomy, required fields, and one-component fallback were not ruled. |
+| 5 | Comparable history | **CHANGE** | Prefer five completed comparable runs inside 180 days; older qualified history is separate fallback. Matching rules and fallback numeric use remain held. |
+| 6 | Cold start | **HOLD** | Confidence ceiling and rejection boundaries were not ruled. |
+| 7 | Assumptions/provenance | **HOLD** | Acceptance authority and override boundaries were not ruled. |
+| 8 | Forecast error | **HOLD** | Partial/failed lower-bound treatment is resolved; complete error, confidence, and transfer rules remain held. |
+| 9 | Uncertainty disclosure | **HOLD** | Separation of demand, uncertainty, and provenance is resolved; complete disclosure requirements remain held. |
+| 10 | Future calibration use | **HOLD** | Median adjustment, source-set authority, and acceptance workflow were not ruled. |
 
 Additional rulings required within those rows:
 
-- over-one-cycle forecast representation;
+- exact typed bridge representation for preserved over-one-cycle raw demand;
 - exact `HIGH` history-quality rule and any extreme-factor hold boundary;
 - same-project versus approved cross-project comparable evidence;
+- whether older fallback evidence may produce a numeric suggestion;
 - actor authority for accepting suggestions/overrides; and
 - additive future linkage between T002/T006 actual evidence and Gate A buckets.
 

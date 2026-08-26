@@ -12,9 +12,10 @@
   contracts, persistence, migrations, UI, AI analysis, calibration automation,
   or composition with Governor policy
 
-This document compares options and recommends a coherent V1 package. Every
-recommended semantic remains a proposal until the founder explicitly accepts or
-changes it. The companion draft decision record is
+This document compares options and recommends a coherent V1 package. Only the
+cross-cutting rulings recorded below are founder-resolved; every other semantic
+remains a proposal until explicitly accepted or changed. The companion draft
+decision record is
 `docs/decisions/0003-gate-b-forecasting-method-v1-DRAFT.md`.
 
 ## Executive recommendation
@@ -32,9 +33,11 @@ accepted reference-class adjustment**:
    separate.
 5. With no qualified history, the manual three-point totals are the forecast and
    confidence cannot exceed `MEDIUM`.
-6. With enough qualified comparable completed runs, the engine may calculate a
-   median actual-to-expected adjustment as a visible suggestion. V1 applies it
-   only after an authoritative actor explicitly accepts it for the new forecast.
+6. The preferred history set contains at least five qualified comparable
+   completed runs from the preceding 180 days. When that threshold is not met,
+   older qualified completed runs may be presented only as a separate, explicit
+   fallback set with their age and provenance. Whether either set may produce a
+   numeric adjustment remains held for founder review.
 7. Partial and failed runs remain visible but are not treated as completed-scope
    point observations. Their consumption is lower-bound/adverse evidence.
 8. Confidence is an evidence-quality label, not a probability or accuracy
@@ -47,6 +50,29 @@ accepted reference-class adjustment**:
 This recommendation is intentionally modest. It works with zero historical
 runs, preserves manual characterization, permits transparent improvement from
 history, and avoids inventing statistical precision or opaque learning.
+
+## Founder review disposition — 2026-08-25
+
+The founder has accepted five cross-cutting rulings, but has not yet accepted
+the complete Gate B method. A row is `HOLD` when the ruling resolved only part of
+that decision or did not address it. `CHANGE` records an explicit change to the
+original recommendation.
+
+| # | Gate B decision | Current result | Founder ruling recorded / remaining hold |
+| ---: | --- | --- | --- |
+| 1 | Initial forecasting method | `HOLD` | No ruling yet on manual decomposition or history-factor application. |
+| 2 | Low / expected / high semantics | `HOLD` | Implementation-only scope and preservation above one cycle are accepted; plausible-band meanings and rounding remain held. |
+| 3 | Confidence semantics | `HOLD` | `EXPECTED` is the candidate `D[b]`, unchanged by confidence; confidence taxonomy and any Gate A uncertainty mapping remain held. |
+| 4 | Task inputs | `HOLD` | No ruling yet on taxonomy, required fields, or one-component fallback. |
+| 5 | Historical calibration/comparables | `CHANGE` | Prefer five comparable completed runs inside 180 days; permit older history only as an explicit, separate fallback. Matching rules and numeric use remain held. |
+| 6 | Cold start | `HOLD` | No ruling yet on confidence ceiling or rejection boundaries. |
+| 7 | Assumptions/provenance | `HOLD` | No ruling yet on acceptance authority or overridable settings. |
+| 8 | Forecast error | `HOLD` | Partial/failed lower-bound treatment is accepted; the complete error and summary method remains held. |
+| 9 | Uncertainty disclosure | `HOLD` | Separate demand, uncertainty, and provenance are accepted; full disclosure requirements remain held. |
+| 10 | Future calibration use | `HOLD` | No ruling yet on median adjustment or acceptance workflow. |
+
+Gate B therefore remains **DRAFT / NOT APPROVED**. None of these rulings
+authorizes Tranche 004.
 
 ## Compatibility with Gate A and PR #3
 
@@ -71,8 +97,10 @@ or bypass policy.
 Two compatibility limits are material:
 
 1. T003 accepts policy demand only within one bucket cycle (`0..10,000 bp` after
-   normalization). Gate B still needs a founder ruling for a forecast whose
-   expected or high point exceeds one cycle. It must not silently clamp it.
+   normalization). Gate B must preserve an authoritative raw forecast above one
+   cycle without clamping. A future bridge must not misrepresent that value as a
+   valid one-cycle T003 input; the evaluator/policy layer owns its interpretation
+   and consequences.
 2. Current T002 actual-consumption records identify category, amount, unit, and
    source, but not a Gate A bucket/provider/window/reset-cycle identity. They
    cannot automatically become multi-bucket comparable observations without a
@@ -215,16 +243,26 @@ dependent on good assumption disclosure.
   policy-compatible units are needed; and
 - range width is displayed, but not translated into a probability.
 
-The recommended range covers **implementation demand only**. Correction and
-validation exposure remain distinct evidence for Gate A reserve inputs and must
-not be silently added to `D[b]`.
+The founder has accepted that the range covers **implementation demand only**.
+Correction and validation exposure remain distinct evidence for Gate A reserve
+inputs and must not be silently added to `D[b]`. A later layer may forecast
+broader lifecycle or operational costs without changing Gate B V1.
 
-### Founder approval required
+Gate B also preserves the authoritative raw range when any point exceeds one
+normalized cycle. It never clamps `1.4` cycle-equivalents to `1.0` or chooses a
+policy consequence.
+
+### Founder ruling recorded
+
+- **Accepted:** Gate B forecasts implementation demand only.
+- **Accepted:** authoritative raw values above one cycle remain unchanged.
+
+### Remaining founder approval required
 
 - Accept plausible-band rather than percentile semantics?
-- Confirm that Gate B forecasts implementation demand only?
 - Approve the directional rounding proposal?
-- Decide how a range above one bucket cycle is represented without clamping.
+- Approve the exact typed representation for a raw value above one cycle at the
+  future Gate B-to-policy bridge, without changing or clamping it?
 
 ## Decision 3 — Confidence semantics
 
@@ -266,25 +304,35 @@ harder to scan in the UI.
 Confidence does not mean probability of completion, probability that actual is
 inside the range, correctness, affordability, or authorization.
 
-### Proposed Gate A mapping
+### Founder-accepted Gate A bridge boundary
 
-For founder review only:
+For every bucket, Gate B must preserve and expose separately:
 
-- `HIGH` -> proposed `KNOWN`;
-- `MEDIUM` -> proposed `UNCERTAIN_BUT_BOUNDED`; and
-- `LOW` -> proposed `UNKNOWN_OR_INVALID`.
+- authoritative raw `EXPECTED` as the candidate `D[b]`;
+- confidence and uncertainty evidence without changing `EXPECTED`; and
+- authoritative required-bucket provenance.
 
-The expected point is the recommended candidate for raw `D[b]`. The Gate A
-evaluator remains authoritative for normalization and its accepted uncertainty
-margin. This mapping is not approved merely by appearing here.
+Gate A/T003 remains authoritative for normalization and for the effect of
+uncertainty on policy evaluation. Gate B must not pre-apply Gate A's uncertainty
+margin, inflate demand because confidence is lower, or turn confidence into a
+policy decision.
+
+The exact translation, if any, from Gate B `HIGH | MEDIUM | LOW` confidence to
+Gate A `KNOWN | UNCERTAIN_BUT_BOUNDED | UNKNOWN_OR_INVALID` remains held. The
+bridge may retain both fields until that translation is approved.
 
 ### Founder approval required
 
-- Accept the three labels and evidence meanings?
-- Approve the history threshold for `HIGH` (recommended: five qualified
-  completed runs)?
-- Approve the proposed mapping to Gate A uncertainty?
-- Approve expected, rather than high, as the candidate `D[b]` point?
+- Accept the three labels and their exact evidence thresholds, including whether
+  five recent qualified completed runs are sufficient for possible `HIGH`?
+- Approve a translation from confidence to Gate A uncertainty, or require the
+  caller to supply policy uncertainty separately?
+
+### Founder ruling recorded
+
+- **Accepted with clarification:** unmodified `EXPECTED` is the candidate
+  `D[b]`; demand and uncertainty remain separate; Gate A owns uncertainty's
+  policy effect.
 
 ## Decision 4 — Task inputs
 
@@ -359,7 +407,7 @@ hard filters.
 
 ### Recommended V1 choice
 
-**Option C.** A numeric adjustment candidate should require all of:
+**Option C.** Preferred-history eligibility requires all of:
 
 - same provider/manual-source and capacity-window family;
 - compatible raw unit or an approved exact conversion;
@@ -368,20 +416,40 @@ hard filters.
 - final, bucket-linked `IMPLEMENTATION` actual consumption;
 - no unresolved amendment or data-quality conflict;
 - no deferred work that belonged to the forecasted intact scope;
-- age within a versioned recency window (recommended proposal: 180 days); and
+- completion inside the preceding 180 days; and
 - approved matching task-shape keys.
 
 Use a median, retain every included/excluded run and reason, and do not
 statistically delete outliers in V1. Data-invalid or incompatible observations
 may be excluded; surprising valid observations remain.
 
+The founder changed the history-window rule as follows:
+
+1. The preferred set requires at least five qualified comparable completed runs
+   inside the preceding 180 days.
+2. If it contains fewer than five, older qualified comparable completed runs
+   may be shown as fallback evidence.
+3. The fallback set remains separate from the preferred set. It must be labeled
+   `OLDER_HISTORY_FALLBACK`, retain each observation's age and provenance, and
+   state that the preferred recent-history threshold was not met.
+4. Older observations are never silently mixed into the preferred set.
+5. Whether fallback evidence may produce a numeric factor, or only disclosure
+   and confidence evidence, remains held for founder approval.
+
 ### Founder approval required
 
-- Approve five qualified completed runs as the minimum adjustment cohort?
-- Approve the proposed 180-day recency window or choose another/no window?
 - Which taxonomy fields are mandatory exact matches?
+- May the older fallback set produce a numeric suggestion, or is it disclosure
+  and confidence evidence only?
 - May cross-project evidence be comparable when the actor, repository, and
   privacy boundary permit it, or must V1 remain within one project?
+
+### Founder ruling recorded
+
+- **Changed:** prefer at least five comparable completed runs inside 180 days;
+  when fewer exist, permit older qualified completed history only as explicit,
+  provenance-preserving fallback evidence that is not mixed into the preferred
+  set.
 
 ## Decision 6 — Cold-start / insufficient-history behavior
 
@@ -589,11 +657,13 @@ For every forecast request:
    conversion.
 3. For each bucket independently, sum component lows, expecteds, and highs using
    exact decimal/rational arithmetic.
-4. Select qualified history using only approved deterministic filters.
-5. If the qualified completed-run count is below the approved minimum, set the
-   history factor to exactly `1` and apply the cold-start confidence ceiling.
-6. Otherwise calculate the median actual/expected ratio as a suggestion. Apply
-   it only when authoritative accepted-adjustment evidence is present.
+4. Select preferred qualified history using only approved deterministic filters:
+   at least five comparable completed runs inside the preceding 180 days.
+5. If the preferred threshold is not met, keep any older qualified fallback set
+   separate, preserve age/provenance, and disclose the shortfall. Do not silently
+   mix it into the preferred set or infer authority for numeric adjustment.
+6. Calculate or apply a median actual/expected suggestion only if the founder
+   later approves its source-set and acceptance rules.
 7. Multiply all three bucket points by the same accepted bucket factor. Round
    low down and expected/high up when producing whole policy-compatible values.
 8. Determine confidence from the approved evidence rules; never infer a
@@ -626,11 +696,11 @@ With no qualified history:
 The buckets remain independent. The values are not added to a global `1,720 bp`
 expected demand.
 
-Under the proposed Gate A bridge, raw candidate `D[b]` is the expected point and
-`MEDIUM` maps to `UNCERTAIN_BUT_BOUNDED`. Gate A would independently normalize
-and apply its accepted `5/4` adjustment, producing `1,750 bp` for the 5-hour
-candidate and `400 bp` for the weekly candidate. This paragraph is an example of
-the proposed bridge, not approval of it.
+Under the founder-accepted bridge boundary, raw candidate `D[b]` is the unchanged
+expected point: `1,400 bp` for the 5-hour bucket and `320 bp` for the weekly
+bucket. Confidence/uncertainty evidence travels separately. Gate A independently
+normalizes and determines any uncertainty effect; Gate B does not pre-apply Gate
+A's `5/4` margin.
 
 ## Worked example — history informed
 
@@ -657,6 +727,12 @@ Whether the 5-hour confidence becomes `HIGH` still depends on the founder-
 approved completeness, coverage, and adverse-evidence rules; five runs alone do
 not silently guarantee elevation.
 
+If only three qualified completed runs occurred inside 180 days, they form the
+preferred-but-insufficient set. Older qualified runs may be presented in a
+separate `OLDER_HISTORY_FALLBACK` set with their ages and provenance. They do
+not silently become part of the five-run recent set, and no numeric use is
+authorized until the founder resolves that held question.
+
 ## Partial and failed run treatment
 
 ### Option A — Treat consumed-to-date as the actual point
@@ -675,7 +751,22 @@ confidence under an approved rule.
 
 ### Recommended V1 choice
 
-**Option C.** Examples:
+**Option C.** The automatic quantitative meaning is limited to the historical
+run itself:
+
+- retain each observation independently by bucket, compatible raw unit,
+  consumed amount, observation time, outcome, failure/defer evidence, and
+  provenance;
+- for that intact run, completed demand is known to be greater than or equal to
+  the maximum compatible consumed-to-date observation; do not sum repeated
+  snapshots of the same consumption;
+- exclude the record from completed-run ratios, medians, error summaries, and
+  preferred/fallback completed-run counts; and
+- do not automatically transfer the lower bound to a different future scope or
+  raise that scope's `L/E/H`. Such use requires separately accepted,
+  actor-provenanced applicability evidence and an approved rule.
+
+Examples:
 
 - A `PARTIAL` run consumes `800 bp` against expected `1,400 bp`. `800 bp` is a
   lower bound for the intact scope, not a `-600 bp` forecast success.
@@ -685,9 +776,10 @@ confidence under an approved rule.
   is `+200 bp`, absolute error is `200 bp`, and exact relative error is `1/7`.
   If the original range was `900..2,300`, range position is `WITHIN_RANGE`.
 
-Founder must decide whether and when partial/failed counts lower confidence, and
-whether a later approved completed remainder may be linked into one intact-scope
-observation.
+Founder must still decide whether and when partial/failed evidence lowers a
+future forecast's confidence, whether an explicitly accepted lower bound may
+raise a future range, and whether a later completed remainder may be linked into
+one intact-scope observation.
 
 ## Confidence examples
 
@@ -697,7 +789,8 @@ observation.
   current inputs, accepted factor, and approved coverage quality -> potentially
   `HIGH`, subject to founder approval of the exact rule.
 - **Material limitation:** estimates exist but a major dependency or context gap
-  remains -> recommended `LOW`; proposed Gate A mapping fails closed.
+  remains -> recommended `LOW`; retain the uncertainty evidence separately for
+  Gate A/caller policy interpretation.
 - **Missing bucket estimate:** no forecast is fabricated; return typed rejection.
 
 ## Edge and boundary cases
@@ -710,9 +803,9 @@ observation.
 | Mixed units inside one bucket | Reject unless an approved exact conversion exists. | Whether to require one unit per bucket in V1. |
 | Same numeric value in different buckets | Retain separately; never substitute. | None; controlled by Gate A. |
 | Expected value `0`, actual positive | Signed/absolute error valid; relative error undefined. | Approve undefined-relative representation. |
-| Expected/high exceeds one cycle | Never clamp. | Reject, return overflow status, or support a separate multi-cycle forecast semantic. |
+| Expected/high exceeds one cycle | Preserve the authoritative raw value unchanged; mark that it exceeds the one-cycle T003 boundary; leave interpretation and consequences to evaluator policy. | Exact bridge representation remains held. |
 | No completed history | Factor `1`; confidence ceiling `MEDIUM`. | Approve ceiling and manual input minimum. |
-| Fewer than five comparable completed runs | Show history; do not propose numeric factor. | Approve minimum count. |
+| Fewer than five comparable completed runs inside 180 days | Keep the recent set explicit; show older qualified history only as a separate, age-provenanced fallback set. | Whether fallback may produce a numeric suggestion. |
 | Valid extreme historical run | Retain; median limits influence; no silent outlier deletion. | Any founder-review hold boundary. |
 | Partial/failed run | Lower-bound/adverse evidence, not point calibration. | Confidence effect. |
 | Amended outcome | Use only the current accepted observation while retaining the amendment chain. | Exact T006 linkage semantics. |
@@ -724,17 +817,18 @@ observation.
 The recommendation is not implementation-ready until the founder resolves at
 least these questions:
 
-1. Is the forecast range implementation demand only, with correction and
-   validation kept separate?
-2. Is the expected point the candidate `D[b]`, and does confidence map to Gate A
-   uncertainty as proposed?
-3. Is `MEDIUM` the cold-start ceiling and five completed comparable runs the
-   minimum for possible `HIGH`/history adjustment?
+1. Do the proposed plausible-band meanings and directional rounding rules apply?
+2. What exact confidence taxonomy applies, and does it translate to Gate A
+   uncertainty or travel as separate evidence for caller interpretation?
+3. Is `MEDIUM` the cold-start ceiling, and what evidence permits `HIGH`?
 4. Which task taxonomy keys and comparable-run filters are required?
-5. Is the recommended 180-day recency window acceptable?
+5. May the explicit older-history fallback produce a numeric suggestion, and
+   what confidence effect does its age have?
 6. Must history suggestions be explicitly accepted, and by whom?
-7. How do partial/failed runs affect confidence without becoming point errors?
-8. How should over-one-cycle forecast demand be represented?
+7. How does partial/failed lower-bound evidence affect a future forecast's range
+   or confidence without entering completed-run statistics?
+8. What exact typed bridge representation preserves over-one-cycle raw demand
+   before policy interpretation?
 9. What future contract links T002/T006 actual consumption to Gate A bucket
    identity without rewriting existing evidence?
 10. Which configuration values and manual overrides are allowed, and which are
