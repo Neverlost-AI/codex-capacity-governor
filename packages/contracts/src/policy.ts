@@ -1,11 +1,33 @@
 import { z } from "zod";
 
 const requiredText = z.string().trim().min(1, "Required");
+const sameUniqueIdSet = (left: string[], right: string[]): boolean => {
+  const leftIds = new Set(left);
+  const rightIds = new Set(right);
+  return (
+    leftIds.size === left.length &&
+    rightIds.size === right.length &&
+    leftIds.size === rightIds.size &&
+    [...leftIds].every((id) => rightIds.has(id))
+  );
+};
 const exactNonnegativeDecimal = z
   .string()
   .regex(/^(?:0|[1-9]\d*)(?:\.\d+)?$/, "Use a canonical nonnegative decimal")
   .max(128, "Decimal evidence is too long");
-const isoDateTime = z.iso.datetime({ offset: true });
+export const policyTimestampSchema = z.iso
+  .datetime({ offset: true })
+  .refine((value) => {
+    const fractionalSeconds = /\.(\d+)(?:Z|[+-]\d{2}:\d{2})$/.exec(value)?.[1];
+    return fractionalSeconds === undefined || fractionalSeconds.length <= 3;
+  }, "Use timestamp precision no finer than milliseconds");
+
+const upstreamProvenanceSchema = z
+  .object({
+    kind: z.literal("UPSTREAM_TRUSTED_BOUNDARY"),
+    evidenceReference: requiredText,
+  })
+  .strict();
 
 export const policyCapacityUnitSchema = z.enum([
   "BASIS_POINTS",
@@ -54,7 +76,10 @@ export type PolicyDecision = z.infer<typeof policyDecisionSchema>;
 export const bucketAuthoritySchema = z
   .object({
     actorReference: requiredText,
-    recordedAt: isoDateTime,
+    recordedAt: policyTimestampSchema,
+    requiredBucketIds: z.array(requiredText).min(1),
+    scopeTrancheId: requiredText,
+    provenance: upstreamProvenanceSchema,
   })
   .strict();
 export type BucketAuthority = z.infer<typeof bucketAuthoritySchema>;
@@ -62,8 +87,9 @@ export type BucketAuthority = z.infer<typeof bucketAuthoritySchema>;
 export const minimumCoherentScopeAttestationSchema = z
   .object({
     actorReference: requiredText,
-    recordedAt: isoDateTime,
+    recordedAt: policyTimestampSchema,
     scopeTrancheId: requiredText,
+    provenance: upstreamProvenanceSchema,
     attestedValue: z.boolean(),
   })
   .strict();
@@ -74,7 +100,7 @@ export type MinimumCoherentScopeAttestation = z.infer<
 export const knownCapacityActivitySchema = z
   .object({
     eventId: requiredText,
-    occurredAt: isoDateTime,
+    occurredAt: policyTimestampSchema,
     affectedBucketIds: z.array(requiredText).min(1),
     source: requiredText,
   })
@@ -97,9 +123,9 @@ const rollingResetSchema = z
 const confirmedResetSchema = z
   .object({
     kind: z.literal("CONFIRMED"),
-    resetsAt: isoDateTime,
+    resetsAt: policyTimestampSchema,
     sourceTimezone: requiredText,
-    normalizedUtc: z.iso.datetime({ offset: true }),
+    normalizedUtc: policyTimestampSchema,
     expectedPostResetAvailability: policyRawQuantitySchema.optional(),
   })
   .strict();
@@ -127,7 +153,7 @@ export const requiredCapacityBucketSchema = z
     capacityWindowId: requiredText,
     resetCycleId: requiredText,
     availableCapacity: policyRawQuantitySchema,
-    observedAt: isoDateTime,
+    observedAt: policyTimestampSchema,
     reset: bucketResetEvidenceSchema,
     correctionReserve: policyReserveInputSchema.optional(),
     validationReserve: policyReserveInputSchema.optional(),
@@ -173,7 +199,8 @@ export type GateAV1Configuration = z.infer<typeof gateAV1ConfigurationSchema>;
 
 export const policyEvaluationInputSchema = z
   .object({
-    evaluationTime: isoDateTime,
+    evaluationTime: policyTimestampSchema,
+    scopeTrancheId: requiredText,
     configuration: gateAV1ConfigurationSchema,
     requiredBucketAuthority: bucketAuthoritySchema,
     minimumCoherentScope: minimumCoherentScopeAttestationSchema,
@@ -183,6 +210,42 @@ export const policyEvaluationInputSchema = z
   })
   .strict()
   .superRefine((input, context) => {
+    const evaluationMilliseconds = Date.parse(input.evaluationTime);
+    const evidenceRecords = [
+      ["requiredBucketAuthority", input.requiredBucketAuthority],
+      ["minimumCoherentScope", input.minimumCoherentScope],
+    ] as const;
+
+    for (const [field, evidence] of evidenceRecords) {
+      if (Date.parse(evidence.recordedAt) > evaluationMilliseconds) {
+        context.addIssue({
+          code: "custom",
+          message: "INPUT_FUTURE_EVIDENCE",
+          path: [field, "recordedAt"],
+        });
+      }
+      if (evidence.scopeTrancheId !== input.scopeTrancheId) {
+        context.addIssue({
+          code: "custom",
+          message: "INPUT_EVIDENCE_CONTEXT_MISMATCH",
+          path: [field, "scopeTrancheId"],
+        });
+      }
+    }
+
+    if (
+      !sameUniqueIdSet(
+        input.requiredBucketAuthority.requiredBucketIds,
+        input.requiredCapacityBuckets.map((bucket) => bucket.bucketId),
+      )
+    ) {
+      context.addIssue({
+        code: "custom",
+        message: "INPUT_AUTHORIZED_BUCKET_SET_MISMATCH",
+        path: ["requiredBucketAuthority", "requiredBucketIds"],
+      });
+    }
+
     const bucketIds = new Set<string>();
     const compositeIds = new Set<string>();
 
@@ -259,8 +322,11 @@ export const policyValidationIdSchema = z.enum([
   "INPUT_REQUIRED",
   "INPUT_INVALID_TYPE",
   "INPUT_INVALID_FORMAT",
+  "INPUT_AUTHORIZED_BUCKET_SET_MISMATCH",
   "INPUT_INVALID_VALUE",
   "INPUT_UNRECOGNIZED_KEY",
+  "INPUT_FUTURE_EVIDENCE",
+  "INPUT_EVIDENCE_CONTEXT_MISMATCH",
   "INPUT_DUPLICATE_BUCKET_ID",
   "INPUT_DUPLICATE_BUCKET_IDENTITY",
   "INPUT_DUPLICATE_ACTIVITY_ID",
@@ -367,7 +433,7 @@ export const policyBucketResultSchema = z
     implementationDemand: policyRawQuantitySchema,
     correctionReserve: policyReserveInputSchema.optional(),
     validationReserve: policyReserveInputSchema.optional(),
-    observedAt: isoDateTime,
+    observedAt: policyTimestampSchema,
     affectingKnownActivities: z.array(knownCapacityActivitySchema),
     reset: bucketResetEvidenceSchema,
     uncertainty: policyUncertaintySchema,
@@ -388,14 +454,118 @@ export const policyBucketResultSchema = z
     stopIds: z.array(policyStopIdSchema),
     roundingEvidence: z.array(policyRoundingEvidenceSchema),
   })
-  .strict();
+  .strict()
+  .superRefine((bucket, context) => {
+    const addIssue = (message: string, path: Array<string | number>) => {
+      context.addIssue({ code: "custom", message, path });
+    };
+
+    if (
+      bucket.implementationAllocationBasisPoints !==
+      bucket.availableBasisPoints -
+        bucket.correctionReserveBasisPoints -
+        bucket.validationReserveBasisPoints
+    ) {
+      addIssue("OUTCOME_ALLOCATION_MISMATCH", [
+        "implementationAllocationBasisPoints",
+      ]);
+    }
+    if (
+      bucket.currentAffordable !==
+      bucket.adjustedDemandBasisPoints <=
+        bucket.implementationAllocationBasisPoints
+    ) {
+      addIssue("OUTCOME_AFFORDABILITY_MISMATCH", ["currentAffordable"]);
+    }
+    if (bucket.postReset) {
+      const postReset = bucket.postReset;
+      const reservesFit =
+        postReset.correctionReserveBasisPoints +
+          postReset.validationReserveBasisPoints <
+        postReset.availableBasisPoints;
+      if (
+        postReset.implementationAllocationBasisPoints !==
+          postReset.availableBasisPoints -
+            postReset.correctionReserveBasisPoints -
+            postReset.validationReserveBasisPoints ||
+        postReset.sufficient !==
+          (reservesFit &&
+            bucket.adjustedDemandBasisPoints <=
+              postReset.implementationAllocationBasisPoints)
+      ) {
+        addIssue("OUTCOME_POST_RESET_MISMATCH", ["postReset"]);
+      }
+    }
+    if (bucket.blocking !== !bucket.currentAffordable) {
+      addIssue("OUTCOME_BLOCKING_AFFORDABILITY_MISMATCH", ["blocking"]);
+    }
+
+    const decisionDefers = bucket.candidateDecision === "DEFER";
+    if (bucket.deferEligible !== decisionDefers) {
+      addIssue("OUTCOME_DEFER_DECISION_MISMATCH", ["deferEligible"]);
+    }
+
+    if (
+      bucket.deferEligible &&
+      (bucket.currentAffordable ||
+        !bucket.blocking ||
+        bucket.reset.kind !== "CONFIRMED" ||
+        !bucket.reset.expectedPostResetAvailability ||
+        bucket.postReset?.sufficient !== true ||
+        bucket.stopIds.length > 0)
+    ) {
+      addIssue("OUTCOME_INVALID_DEFER_EVIDENCE", ["deferEligible"]);
+    }
+
+    if (
+      bucket.candidateDecision === "PROCEED" &&
+      (!bucket.currentAffordable ||
+        bucket.blocking ||
+        bucket.deferEligible ||
+        bucket.stopIds.length > 0)
+    ) {
+      addIssue("OUTCOME_INVALID_PROCEED_CANDIDATE", ["candidateDecision"]);
+    }
+
+    if (
+      bucket.candidateDecision === "NARROW" &&
+      ((bucket.currentAffordable && bucket.mode !== "LOW") ||
+        (!bucket.currentAffordable &&
+          bucket.implementationAllocationBasisPoints <= 0))
+    ) {
+      addIssue("OUTCOME_INVALID_NARROW_CANDIDATE", ["candidateDecision"]);
+    }
+
+    if (
+      bucket.candidateDecision === "STOP / PRESERVE" &&
+      bucket.stopIds.length === 0 &&
+      bucket.implementationAllocationBasisPoints > 0
+    ) {
+      addIssue("OUTCOME_INVALID_STOP_CANDIDATE", ["candidateDecision"]);
+    }
+
+    if (
+      bucket.mode === "CRITICAL" &&
+      bucket.candidateDecision !== "STOP / PRESERVE"
+    ) {
+      addIssue("OUTCOME_CRITICAL_REQUIRES_STOP", ["candidateDecision"]);
+    }
+
+    if (
+      bucket.stopIds.length > 0 &&
+      bucket.candidateDecision !== "STOP / PRESERVE"
+    ) {
+      addIssue("OUTCOME_STOP_REQUIRES_STOP_CANDIDATE", ["candidateDecision"]);
+    }
+  });
 export type PolicyBucketResult = z.infer<typeof policyBucketResultSchema>;
 
 export const policyEvaluationSchema = z
   .object({
     kind: z.literal("POLICY_EVALUATION"),
     authorizesWork: z.boolean(),
-    evaluationTime: isoDateTime,
+    evaluationTime: policyTimestampSchema,
+    scopeTrancheId: requiredText,
     configuration: gateAV1ConfigurationSchema,
     requiredBucketAuthority: bucketAuthoritySchema,
     minimumCoherentScope: minimumCoherentScopeAttestationSchema,
@@ -408,7 +578,126 @@ export const policyEvaluationSchema = z
     stopIds: z.array(policyStopIdSchema),
     activeMandatoryStopIds: z.array(requiredText),
   })
-  .strict();
+  .strict()
+  .superRefine((evaluation, context) => {
+    const addIssue = (message: string, path: Array<string | number>) => {
+      context.addIssue({ code: "custom", message, path });
+    };
+
+    const shouldAuthorize = evaluation.aggregateDecision === "PROCEED";
+    if (evaluation.authorizesWork !== shouldAuthorize) {
+      addIssue("OUTCOME_AUTHORIZATION_DECISION_MISMATCH", ["authorizesWork"]);
+    }
+
+    const bucketStopIds = evaluation.bucketResults.flatMap(
+      (bucket) => bucket.stopIds,
+    );
+    const hasAnyStopId =
+      evaluation.stopIds.length > 0 || bucketStopIds.length > 0;
+    if (
+      hasAnyStopId &&
+      (evaluation.authorizesWork ||
+        evaluation.aggregateDecision !== "STOP / PRESERVE")
+    ) {
+      addIssue("OUTCOME_STOP_REQUIRES_NON_AUTHORIZATION", ["stopIds"]);
+    }
+
+    const expectedBlockingIds = new Set(
+      evaluation.bucketResults
+        .filter((bucket) => bucket.blocking)
+        .map((bucket) => bucket.bucketId),
+    );
+    const actualBlockingIds = new Set(evaluation.blockingBucketIds);
+    if (
+      actualBlockingIds.size !== evaluation.blockingBucketIds.length ||
+      expectedBlockingIds.size !== actualBlockingIds.size ||
+      [...expectedBlockingIds].some((id) => !actualBlockingIds.has(id))
+    ) {
+      addIssue("OUTCOME_BLOCKING_BUCKETS_MISMATCH", ["blockingBucketIds"]);
+    }
+
+    const decisionOrder = evaluation.configuration.decisionRestrictivenessOrder;
+    const expectedAggregateDecision =
+      evaluation.activeMandatoryStopIds.length > 0
+        ? "STOP / PRESERVE"
+        : evaluation.bucketResults
+            .map((bucket) => bucket.candidateDecision)
+            .reduce((left, right) =>
+              decisionOrder.indexOf(right) > decisionOrder.indexOf(left)
+                ? right
+                : left,
+            );
+    if (evaluation.aggregateDecision !== expectedAggregateDecision) {
+      addIssue("OUTCOME_AGGREGATE_DECISION_MISMATCH", ["aggregateDecision"]);
+    }
+
+    const expectedStopIds = new Set(bucketStopIds);
+    if (evaluation.activeMandatoryStopIds.length > 0) {
+      expectedStopIds.add("STOP_EXTERNAL_MANDATORY_CONDITION");
+    }
+    const actualStopIds = new Set(evaluation.stopIds);
+    if (
+      actualStopIds.size !== evaluation.stopIds.length ||
+      expectedStopIds.size !== actualStopIds.size ||
+      [...expectedStopIds].some((id) => !actualStopIds.has(id))
+    ) {
+      addIssue("OUTCOME_AGGREGATE_STOPS_MISMATCH", ["stopIds"]);
+    }
+
+    for (const [index, bucket] of evaluation.bucketResults.entries()) {
+      if (
+        bucket.mode === "LOW" &&
+        !evaluation.minimumCoherentScope.attestedValue &&
+        bucket.candidateDecision === "PROCEED"
+      ) {
+        addIssue("OUTCOME_LOW_REQUIRES_ATTESTATION", [
+          "bucketResults",
+          index,
+          "candidateDecision",
+        ]);
+      }
+      if (
+        bucket.mode === "LOW" &&
+        evaluation.minimumCoherentScope.attestedValue &&
+        bucket.currentAffordable &&
+        bucket.stopIds.length === 0 &&
+        bucket.candidateDecision === "NARROW"
+      ) {
+        addIssue("OUTCOME_INVALID_LOW_NARROW_CANDIDATE", [
+          "bucketResults",
+          index,
+          "candidateDecision",
+        ]);
+      }
+    }
+    if (
+      !sameUniqueIdSet(
+        evaluation.requiredBucketAuthority.requiredBucketIds,
+        evaluation.bucketResults.map((bucket) => bucket.bucketId),
+      )
+    ) {
+      addIssue("OUTCOME_AUTHORIZED_BUCKET_SET_MISMATCH", [
+        "requiredBucketAuthority",
+        "requiredBucketIds",
+      ]);
+    }
+    const evaluationMilliseconds = Date.parse(evaluation.evaluationTime);
+    const evidenceRecords = [
+      ["requiredBucketAuthority", evaluation.requiredBucketAuthority],
+      ["minimumCoherentScope", evaluation.minimumCoherentScope],
+    ] as const;
+    for (const [field, evidence] of evidenceRecords) {
+      if (Date.parse(evidence.recordedAt) > evaluationMilliseconds) {
+        addIssue("OUTCOME_FUTURE_EVIDENCE", [field, "recordedAt"]);
+      }
+      if (evidence.scopeTrancheId !== evaluation.scopeTrancheId) {
+        addIssue("OUTCOME_EVIDENCE_CONTEXT_MISMATCH", [
+          field,
+          "scopeTrancheId",
+        ]);
+      }
+    }
+  });
 export type PolicyEvaluation = z.infer<typeof policyEvaluationSchema>;
 
 export const policyEvaluationOutcomeSchema = z.discriminatedUnion("kind", [

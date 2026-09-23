@@ -27,8 +27,11 @@ interface ValidationIssueLike {
   path: PropertyKey[];
 }
 
+const compareCodeUnits = (left: string, right: string): number =>
+  left < right ? -1 : left > right ? 1 : 0;
+
 const uniqueSorted = <T extends string>(values: T[]): T[] =>
-  [...new Set(values)].sort((left, right) => left.localeCompare(right));
+  [...new Set(values)].sort(compareCodeUnits);
 
 const deepFreeze = <T>(value: T): T => {
   if (typeof value !== "object" || value === null || Object.isFrozen(value)) {
@@ -123,7 +126,7 @@ const rejectInput = (issues: PolicyInputIssue[]): PolicyEvaluationOutcome =>
     issues: issues
       .map((issue) => ({ ...issue, path: [...issue.path] }))
       .sort((left, right) =>
-        JSON.stringify(left.path).localeCompare(JSON.stringify(right.path)),
+        compareCodeUnits(JSON.stringify(left.path), JSON.stringify(right.path)),
       ),
   });
 
@@ -315,7 +318,7 @@ const sortedActivities = (
       ...activity,
       affectedBucketIds: uniqueSorted(activity.affectedBucketIds),
     }))
-    .sort((left, right) => left.eventId.localeCompare(right.eventId));
+    .sort((left, right) => compareCodeUnits(left.eventId, right.eventId));
 
 const copyReset = (
   reset: RequiredCapacityBucket["reset"],
@@ -599,7 +602,7 @@ const evaluateBucket = (
       correction.evidence,
       validation.evidence,
       ...(uncertaintyEvidence ? [uncertaintyEvidence] : []),
-    ].sort((left, right) => left.operation.localeCompare(right.operation)),
+    ].sort((left, right) => compareCodeUnits(left.operation, right.operation)),
   };
 };
 
@@ -610,7 +613,7 @@ const evaluateParsedInput = (
   const activities = sortedActivities(input.knownCapacityActivities);
   const bucketResults = normalizedBuckets
     .sort((left, right) =>
-      left.bucket.bucketId.localeCompare(right.bucket.bucketId),
+      compareCodeUnits(left.bucket.bucketId, right.bucket.bucketId),
     )
     .map((bucket) => evaluateBucket(bucket, input, activities));
   const aggregateMode = mostRestrictiveMode(
@@ -657,6 +660,7 @@ const evaluateParsedInput = (
     kind: "POLICY_EVALUATION",
     authorizesWork: aggregateDecision === "PROCEED",
     evaluationTime: input.evaluationTime,
+    scopeTrancheId: input.scopeTrancheId,
     configuration: {
       ...input.configuration,
       modeRestrictivenessOrder: [
@@ -666,8 +670,17 @@ const evaluateParsedInput = (
         ...input.configuration.decisionRestrictivenessOrder,
       ],
     },
-    requiredBucketAuthority: { ...input.requiredBucketAuthority },
-    minimumCoherentScope: { ...input.minimumCoherentScope },
+    requiredBucketAuthority: {
+      ...input.requiredBucketAuthority,
+      requiredBucketIds: uniqueSorted(
+        input.requiredBucketAuthority.requiredBucketIds,
+      ),
+      provenance: { ...input.requiredBucketAuthority.provenance },
+    },
+    minimumCoherentScope: {
+      ...input.minimumCoherentScope,
+      provenance: { ...input.minimumCoherentScope.provenance },
+    },
     bucketResults,
     aggregateMode,
     aggregateDecision,

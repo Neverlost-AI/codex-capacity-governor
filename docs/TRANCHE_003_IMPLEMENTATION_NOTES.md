@@ -27,6 +27,20 @@ infer an offset, or perform provider-specific conversion. `resetsAt` and
 `normalizedUtc` remain strict offset-aware timestamps, and the evaluator
 deterministically requires them to represent the same instant.
 
+Policy timestamps accept no more than millisecond fractional precision because
+the evaluator compares them with millisecond `Date.parse` values. Sub-millisecond
+observations and reset timestamps are rejected at the input boundary, including
+values that would otherwise collapse to the same instant or pass the 24-hour
+defer boundary after truncation.
+
+The evaluated tranche/scope ID is explicit input. Both required-bucket authority
+and minimum-coherent-scope attestation must name that same ID, have a recorded
+time no later than evaluation time, and carry a reference from an upstream
+trusted boundary. The upstream caller is responsible for authenticating the
+actor and establishing that provenance; `actorReference` alone is not proof.
+Required-bucket authority also lists the exact bucket IDs it approved; the
+contract rejects a different, missing, additional, or duplicated evaluated set.
+
 ## Versioning, normalization, and exact arithmetic
 
 `GATE_A_V1_CONFIGURATION` is the reviewed injectable fixture. Its runtime schema
@@ -39,6 +53,12 @@ whitelist unit: `BASIS_POINTS`, `PERCENT`, or `NORMALIZED_FRACTION`. The
 evaluator converts those strings to integer/rational values with `bigint`; it
 does not first convert them to binary floating point. Available capacity and
 post-reset availability round down. Demand and reserve requirements round up.
+For current and post-reset availability, the exact rational amount is checked
+against the configured per-bucket maximum before rounding. Thus
+`100.001 PERCENT` is rejected rather than rounded down to `10,000 bp`.
+
+Canonical output ordering compares JavaScript UTF-16 code units directly; it
+does not consult locale settings or normalize Unicode identifiers.
 
 For `A = 3,333 bp`, each default reserve is calculated as
 `ceil(3,333 * 1,500 / 10,000) = 500 bp`, so `I = 2,333 bp`. For bounded demand
@@ -71,6 +91,11 @@ A malformed input such as `{ "configuration": {} }` returns an
 `INPUT_REJECTION` with `authorizesWork: false` and stable `INPUT_*` issues. It
 contains no `aggregateMode` or `aggregateDecision`.
 
+The exported outcome schema also rejects contradictory serialized evaluations:
+authorization must agree with `PROCEED`; stops prohibit authorization; blocking,
+affordability, defer eligibility, bucket candidates, and aggregate candidates
+must agree. LOW authorization requires the bound true attestation.
+
 A contract-valid input with `uncertainty: "UNKNOWN_OR_INVALID"` returns a
 successful `POLICY_EVALUATION` with its normal per-bucket evidence, one mode,
 aggregate `STOP / PRESERVE`, and
@@ -89,6 +114,10 @@ anchors; the test runner reports any parameterized boundary cases separately.
 | `INPUT_DUPLICATE_ACTIVITY_ID`, `INPUT_DUPLICATE_ACTIVITY_BUCKET`, `INPUT_UNKNOWN_ACTIVITY_BUCKET` | `rejects duplicate IDs and unknown activity bucket references` |
 | Unsupported versions/order/configuration | `rejects unknown, case-variant, and incomplete configuration`; `retains injected versioned orders and complete configuration` |
 | Runtime outcome schemas | `round-trips successful and rejected outcomes through runtime schemas` |
+| Exact availability maximum, before rounding | `accepts exact current availability maximum in ...`; `rejects immediately-over-maximum current availability in ... before rounding`; corresponding post-reset tests |
+| Millisecond timestamp boundary | `rejects an observation 0.0001 ms in the future`; `rejects a reset 24 hours plus 0.0009 ms away`; `rejects distinct reset instants inside the same millisecond` |
+| Authoritative evidence context and bucket set | `rejects future-dated ... evidence`; `rejects ... evidence from another evaluation context`; `does not treat the actor string alone as authenticated ... evidence`; `rejects authority that ...` |
+| Contradictory serialized outcomes | `rejects contradictory serialized aggregate authorization and stop evidence`; `rejects contradictory serialized bucket candidates at both schema boundaries`; `rejects contradictory serialized post-reset affordability evidence`; `rejects LOW authorization when the bound attestation is false` |
 
 | Stop identifier | Focused test |
 | --- | --- |
@@ -112,7 +141,7 @@ anchors; the test runner reports any parameterized boundary cases separately.
 | Bucket and all-blocker defer rules | `accepts a qualifying reset at exactly 24 hours`; `requires every blocking bucket to qualify for defer`; `does not infer defer evidence from reset kind ...` |
 | LOW attestation rules | `allows LOW proceed only with minimum-coherent-scope attestation` |
 | Decision and aggregation rules | `aggregates DEFER plus NARROW to NARROW`; `gives mandatory stops precedence over otherwise qualifying defer` |
-| Stable evidence and ordering | `is deeply repeatable for identical input`; `is independent of bucket, activity, and affected-ID input order`; `retains stable bucket-specific rule and stop identifiers` |
+| Stable evidence and ordering | `is deeply repeatable for identical input`; `is independent of bucket, activity, and affected-ID input order`; `canonicalizes composed and decomposed identifiers by UTF-16 code units`; `retains stable bucket-specific rule and stop identifiers` |
 
 ## Verification commands
 

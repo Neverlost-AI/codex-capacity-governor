@@ -51,15 +51,26 @@ const bucket = {
 
 const input = {
   evaluationTime: "2026-08-25T12:00:00.000Z",
+  scopeTrancheId: "t003",
   configuration,
   requiredBucketAuthority: {
     actorReference: "founder",
     recordedAt: "2026-08-25T11:45:00.000Z",
+    scopeTrancheId: "t003",
+    requiredBucketIds: ["five-hour"],
+    provenance: {
+      kind: "UPSTREAM_TRUSTED_BOUNDARY",
+      evidenceReference: "contract-authority",
+    },
   },
   minimumCoherentScope: {
     actorReference: "founder",
     recordedAt: "2026-08-25T11:45:00.000Z",
     scopeTrancheId: "t003",
+    provenance: {
+      kind: "UPSTREAM_TRUSTED_BOUNDARY",
+      evidenceReference: "contract-attestation",
+    },
     attestedValue: true,
   },
   requiredCapacityBuckets: [bucket],

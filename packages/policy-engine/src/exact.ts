@@ -65,6 +65,11 @@ export const normalizeQuantity = (
         ? 100n
         : 10_000n;
   const numerator = raw.numerator * multiplier;
+
+  if (numerator > BigInt(maximumBasisPoints) * raw.denominator) {
+    throw new PolicyNormalizationError(operation, "OUT_OF_RANGE");
+  }
+
   const rounded = divide(numerator, raw.denominator, direction);
   const basisPoints = toSafeNumber(rounded, operation);
 

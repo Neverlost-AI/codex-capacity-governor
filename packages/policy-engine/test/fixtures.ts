@@ -34,15 +34,26 @@ export const makeInput = (
   overrides: Partial<PolicyEvaluationInput> = {},
 ): PolicyEvaluationInput => ({
   evaluationTime: EVALUATION_TIME,
+  scopeTrancheId: "t003-fixture",
   configuration: { ...GATE_A_V1_CONFIGURATION },
   requiredBucketAuthority: {
     actorReference: "founder",
     recordedAt: "2026-08-25T11:45:00.000Z",
+    scopeTrancheId: "t003-fixture",
+    requiredBucketIds: buckets.map((bucket) => bucket.bucketId),
+    provenance: {
+      kind: "UPSTREAM_TRUSTED_BOUNDARY",
+      evidenceReference: "fixture-authority",
+    },
   },
   minimumCoherentScope: {
     actorReference: "founder",
     recordedAt: "2026-08-25T11:45:00.000Z",
     scopeTrancheId: "t003-fixture",
+    provenance: {
+      kind: "UPSTREAM_TRUSTED_BOUNDARY",
+      evidenceReference: "fixture-attestation",
+    },
     attestedValue: true,
   },
   requiredCapacityBuckets: buckets,

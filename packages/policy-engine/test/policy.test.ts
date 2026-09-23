@@ -6,7 +6,10 @@ import type {
   PolicyOperatingMode,
   RequiredCapacityBucket,
 } from "@capacity-governor/contracts";
-import { policyEvaluationOutcomeSchema } from "@capacity-governor/contracts";
+import {
+  policyBucketResultSchema,
+  policyEvaluationOutcomeSchema,
+} from "@capacity-governor/contracts";
 import { evaluatePolicyV1 } from "../src/index";
 import { makeBucket, makeInput, quantity } from "./fixtures";
 
@@ -33,7 +36,7 @@ const withBucket = (
 const confirmedReset = (
   resetsAt: string,
   expectedAmount?: string,
-): RequiredCapacityBucket["reset"] => ({
+): Extract<RequiredCapacityBucket["reset"], { kind: "CONFIRMED" }> => ({
   kind: "CONFIRMED",
   resetsAt,
   sourceTimezone: "UTC",
@@ -109,18 +112,96 @@ describe("Gate A V1 exact normalization and allocation", () => {
     expect(result.stopIds).not.toContain("STOP_NORMALIZATION_CLAIM_MISMATCH");
   });
 
-  it("rejects normalized quantities outside one bucket cycle", () => {
-    const result = rejection(
-      withBucket({ availableCapacity: quantity("100.01", "PERCENT") }),
-    );
-    if (result.kind === "INPUT_REJECTION") {
-      expect(result.authorizesWork).toBe(false);
-      expect(result.issues[0]).toMatchObject({
-        validationId: "INPUT_INVALID_VALUE",
-        bucketId: "five-hour",
-      });
-    }
-  });
+  it.each([
+    ["BASIS_POINTS", "10000"],
+    ["PERCENT", "100"],
+    ["NORMALIZED_FRACTION", "1"],
+  ] as const)(
+    "accepts exact current availability maximum in %s",
+    (unit, amount) => {
+      const result = evaluation(
+        withBucket({
+          availableCapacity: quantity(amount, unit),
+          implementationDemand: quantity("0"),
+        }),
+      );
+      expect(result.bucketResults[0].availableBasisPoints).toBe(10_000);
+    },
+  );
+
+  it.each([
+    ["BASIS_POINTS", "10000.1"],
+    ["PERCENT", "100.001"],
+    ["NORMALIZED_FRACTION", "1.00001"],
+  ] as const)(
+    "rejects immediately-over-maximum current availability in %s before rounding",
+    (unit, amount) => {
+      const result = rejection(
+        withBucket({ availableCapacity: quantity(amount, unit) }),
+      );
+      if (result.kind === "INPUT_REJECTION") {
+        expect(result.authorizesWork).toBe(false);
+        expect(result.issues[0]).toMatchObject({
+          validationId: "INPUT_INVALID_VALUE",
+          bucketId: "five-hour",
+          path: ["requiredCapacityBuckets", 0, "availableCapacity", "amount"],
+        });
+      }
+    },
+  );
+
+  it.each([
+    ["BASIS_POINTS", "10000"],
+    ["PERCENT", "100"],
+    ["NORMALIZED_FRACTION", "1"],
+  ] as const)(
+    "accepts exact post-reset availability maximum in %s",
+    (unit, amount) => {
+      const result = evaluation(
+        withBucket({
+          availableCapacity: quantity("5000"),
+          implementationDemand: quantity("4000"),
+          reset: {
+            ...confirmedReset("2026-08-26T11:00:00.000Z"),
+            expectedPostResetAvailability: quantity(amount, unit),
+          },
+        }),
+      );
+      expect(result.bucketResults[0].postReset?.availableBasisPoints).toBe(
+        10_000,
+      );
+    },
+  );
+
+  it.each([
+    ["BASIS_POINTS", "10000.1"],
+    ["PERCENT", "100.001"],
+    ["NORMALIZED_FRACTION", "1.00001"],
+  ] as const)(
+    "rejects immediately-over-maximum post-reset availability in %s before rounding",
+    (unit, amount) => {
+      const result = rejection(
+        withBucket({
+          reset: {
+            ...confirmedReset("2026-08-26T11:00:00.000Z"),
+            expectedPostResetAvailability: quantity(amount, unit),
+          },
+        }),
+      );
+      if (result.kind === "INPUT_REJECTION") {
+        expect(result.issues[0]).toMatchObject({
+          validationId: "INPUT_INVALID_VALUE",
+          path: [
+            "requiredCapacityBuckets",
+            0,
+            "reset",
+            "expectedPostResetAvailability",
+            "amount",
+          ],
+        });
+      }
+    },
+  );
 
   it("calculates exact 15 percent reserve floors", () => {
     const result = evaluation(
@@ -437,6 +518,63 @@ describe("Gate A V1 mode, freshness, and stop boundaries", () => {
     },
   );
 
+  it("rejects an observation 0.0001 ms in the future", () => {
+    const result = rejection(
+      withBucket({ observedAt: "2026-08-25T12:00:00.0000001Z" }),
+    );
+    if (result.kind === "INPUT_REJECTION") {
+      expect(result.issues).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            validationId: "INPUT_INVALID_VALUE",
+            path: ["requiredCapacityBuckets", 0, "observedAt"],
+          }),
+        ]),
+      );
+    }
+  });
+
+  it("rejects a reset 24 hours plus 0.0009 ms away", () => {
+    const timestamp = "2026-08-26T12:00:00.0000009Z";
+    const result = rejection(
+      withBucket({
+        availableCapacity: quantity("5000"),
+        implementationDemand: quantity("4000"),
+        reset: {
+          kind: "CONFIRMED",
+          resetsAt: timestamp,
+          sourceTimezone: "UTC",
+          normalizedUtc: timestamp,
+          expectedPostResetAvailability: quantity("7000"),
+        },
+      }),
+    );
+    if (result.kind === "INPUT_REJECTION") {
+      expect(result.issues).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            path: ["requiredCapacityBuckets", 0, "reset", "resetsAt"],
+          }),
+        ]),
+      );
+    }
+  });
+
+  it("rejects distinct reset instants inside the same millisecond", () => {
+    const result = rejection(
+      withBucket({
+        reset: {
+          kind: "CONFIRMED",
+          resetsAt: "2026-08-26T11:00:00.0000001Z",
+          sourceTimezone: "UTC",
+          normalizedUtc: "2026-08-26T11:00:00.0000002Z",
+          expectedPostResetAvailability: quantity("7000"),
+        },
+      }),
+    );
+    expect(result.kind).toBe("INPUT_REJECTION");
+  });
+
   it("rejects unsafe normalization arithmetic without throwing", () => {
     const result = rejection(
       withBucket({ availableCapacity: quantity("9".repeat(128)) }),
@@ -605,6 +743,10 @@ describe("Gate A V1 reset, defer, and aggregate decisions", () => {
           actorReference: "founder",
           recordedAt: "2026-08-25T11:45:00.000Z",
           scopeTrancheId: "t003-fixture",
+          provenance: {
+            kind: "UPSTREAM_TRUSTED_BOUNDARY",
+            evidenceReference: "fixture-attestation",
+          },
           attestedValue: false,
         },
       }),
@@ -627,12 +769,116 @@ describe("Gate A V1 reset, defer, and aggregate decisions", () => {
           actorReference: "founder",
           recordedAt: "2026-08-25T11:45:00.000Z",
           scopeTrancheId: "t003-fixture",
+          provenance: {
+            kind: "UPSTREAM_TRUSTED_BOUNDARY",
+            evidenceReference: "fixture-attestation",
+          },
           attestedValue: false,
         },
       }),
     );
     expect(attested.aggregateDecision).toBe("PROCEED");
+    expect(attested.scopeTrancheId).toBe("t003-fixture");
+    expect(attested.minimumCoherentScope.provenance).toEqual({
+      kind: "UPSTREAM_TRUSTED_BOUNDARY",
+      evidenceReference: "fixture-attestation",
+    });
+    expect(attested.requiredBucketAuthority.scopeTrancheId).toBe(
+      "t003-fixture",
+    );
     expect(notAttested.aggregateDecision).toBe("NARROW");
+  });
+
+  it.each(["requiredBucketAuthority", "minimumCoherentScope"] as const)(
+    "rejects future-dated %s evidence",
+    (field) => {
+      const input = makeInput();
+      const result = rejection({
+        ...input,
+        [field]: {
+          ...input[field],
+          recordedAt: "2026-08-25T12:00:00.001Z",
+        },
+      });
+      if (result.kind === "INPUT_REJECTION") {
+        expect(result.issues).toEqual(
+          expect.arrayContaining([
+            expect.objectContaining({
+              validationId: "INPUT_FUTURE_EVIDENCE",
+              path: [field, "recordedAt"],
+            }),
+          ]),
+        );
+      }
+    },
+  );
+
+  it.each(["requiredBucketAuthority", "minimumCoherentScope"] as const)(
+    "rejects %s evidence from another evaluation context",
+    (field) => {
+      const input = makeInput();
+      const result = rejection({
+        ...input,
+        [field]: {
+          ...input[field],
+          scopeTrancheId: "different-tranche",
+        },
+      });
+      if (result.kind === "INPUT_REJECTION") {
+        expect(result.issues).toEqual(
+          expect.arrayContaining([
+            expect.objectContaining({
+              validationId: "INPUT_EVIDENCE_CONTEXT_MISMATCH",
+              path: [field, "scopeTrancheId"],
+            }),
+          ]),
+        );
+      }
+    },
+  );
+
+  it.each(["requiredBucketAuthority", "minimumCoherentScope"] as const)(
+    "does not treat the actor string alone as authenticated %s evidence",
+    (field) => {
+      const input = makeInput();
+      const evidence: Record<string, unknown> = { ...input[field] };
+      delete evidence.provenance;
+      const result = rejection({ ...input, [field]: evidence });
+      if (result.kind === "INPUT_REJECTION") {
+        expect(result.issues).toEqual(
+          expect.arrayContaining([
+            expect.objectContaining({
+              path: [field, "provenance"],
+            }),
+          ]),
+        );
+      }
+    },
+  );
+
+  it.each([
+    ["omits a required bucket", ["five-hour"]],
+    ["adds an unrelated bucket", ["five-hour", "weekly", "unrelated"]],
+    ["duplicates an authority bucket", ["five-hour", "weekly", "weekly"]],
+  ] as const)("rejects authority that %s", (_name, requiredBucketIds) => {
+    const input = makeInput([makeBucket("five-hour"), makeBucket("weekly")]);
+    const result = rejection({
+      ...input,
+      requiredBucketAuthority: {
+        ...input.requiredBucketAuthority,
+        requiredBucketIds,
+      },
+    });
+    if (result.kind === "INPUT_REJECTION") {
+      expect(result.issues).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            validationId: "INPUT_AUTHORIZED_BUCKET_SET_MISMATCH",
+            path: ["requiredBucketAuthority", "requiredBucketIds"],
+          }),
+        ]),
+      );
+    }
   });
 
   it("does not substitute a healthy bucket for a blocking bucket", () => {
@@ -651,6 +897,145 @@ describe("Gate A V1 reset, defer, and aggregate decisions", () => {
     expect(result.bucketResults[0].currentAffordable).toBe(true);
     expect(result.bucketResults[1].currentAffordable).toBe(false);
     expect(result.aggregateDecision).toBe("NARROW");
+  });
+  it("rejects contradictory serialized aggregate authorization and stop evidence", () => {
+    const valid = evaluation(makeInput());
+    expect(
+      policyEvaluationOutcomeSchema.safeParse({
+        ...valid,
+        authorizesWork: false,
+      }).success,
+    ).toBe(false);
+    expect(
+      policyEvaluationOutcomeSchema.safeParse({
+        ...valid,
+        aggregateDecision: "NARROW",
+        authorizesWork: false,
+      }).success,
+    ).toBe(false);
+    expect(
+      policyEvaluationOutcomeSchema.safeParse({
+        ...valid,
+        aggregateDecision: "STOP / PRESERVE",
+        activeMandatoryStopIds: ["external-stop"],
+        stopIds: ["STOP_EXTERNAL_MANDATORY_CONDITION"],
+        authorizesWork: true,
+      }).success,
+    ).toBe(false);
+    expect(
+      policyEvaluationOutcomeSchema.safeParse({
+        ...valid,
+        requiredBucketAuthority: {
+          ...valid.requiredBucketAuthority,
+          requiredBucketIds: ["another-bucket"],
+        },
+      }).success,
+    ).toBe(false);
+  });
+
+  it("rejects contradictory serialized bucket candidates at both schema boundaries", () => {
+    const valid = evaluation(makeInput());
+    const bucket = valid.bucketResults[0];
+    const contradictions = [
+      { ...bucket, blocking: true },
+      { ...bucket, deferEligible: true },
+      { ...bucket, candidateDecision: "DEFER" },
+      {
+        ...bucket,
+        candidateDecision: "PROCEED",
+        currentAffordable: false,
+        blocking: true,
+      },
+      { ...bucket, stopIds: ["STOP_POLICY_INVARIANT"] },
+      { ...bucket, candidateDecision: "NARROW" },
+      { ...bucket, candidateDecision: "STOP / PRESERVE" },
+      {
+        ...bucket,
+        adjustedDemandBasisPoints:
+          bucket.implementationAllocationBasisPoints + 1,
+      },
+      {
+        ...bucket,
+        implementationAllocationBasisPoints:
+          bucket.implementationAllocationBasisPoints + 1,
+      },
+      { ...bucket, mode: "CRITICAL" },
+      {
+        ...bucket,
+        candidateDecision: "NARROW",
+        currentAffordable: false,
+        blocking: true,
+        implementationAllocationBasisPoints: 0,
+      },
+    ];
+    for (const contradiction of contradictions) {
+      expect(policyBucketResultSchema.safeParse(contradiction).success).toBe(
+        false,
+      );
+      expect(
+        policyEvaluationOutcomeSchema.safeParse({
+          ...valid,
+          bucketResults: [contradiction],
+        }).success,
+      ).toBe(false);
+    }
+  });
+
+  it("rejects contradictory serialized post-reset affordability evidence", () => {
+    const valid = evaluation(
+      withBucket({
+        availableCapacity: quantity("5000"),
+        implementationDemand: quantity("4000"),
+        reset: confirmedReset("2026-08-26T11:00:00.000Z", "7000"),
+      }),
+    );
+    const bucket = valid.bucketResults[0];
+    expect(bucket.postReset?.sufficient).toBe(true);
+    if (!bucket.postReset) {
+      throw new Error("Expected post-reset evidence");
+    }
+    const contradictions = [
+      { ...bucket, postReset: { ...bucket.postReset, sufficient: false } },
+      { ...bucket, reset: { kind: "NONE" } },
+      {
+        ...bucket,
+        postReset: {
+          ...bucket.postReset,
+          implementationAllocationBasisPoints:
+            bucket.postReset.implementationAllocationBasisPoints + 1,
+        },
+      },
+    ];
+    for (const contradiction of contradictions) {
+      expect(policyBucketResultSchema.safeParse(contradiction).success).toBe(
+        false,
+      );
+      expect(
+        policyEvaluationOutcomeSchema.safeParse({
+          ...valid,
+          bucketResults: [contradiction],
+        }).success,
+      ).toBe(false);
+    }
+  });
+
+  it("rejects LOW authorization when the bound attestation is false", () => {
+    const low = evaluation(
+      withBucket({
+        availableCapacity: quantity("3000"),
+        implementationDemand: quantity("1000"),
+      }),
+    );
+    expect(low.aggregateDecision).toBe("PROCEED");
+    expect(
+      policyEvaluationOutcomeSchema.safeParse({
+        ...low,
+        minimumCoherentScope: {
+          ...low.minimumCoherentScope,
+          attestedValue: false,
+        },
+      }).success,
+    ).toBe(false);
   });
 });
 
@@ -740,6 +1125,48 @@ describe("Gate A V1 determinism and explainability", () => {
       }),
     );
     expect(reversed).toEqual(forward);
+  });
+
+  it("canonicalizes composed and decomposed identifiers by UTF-16 code units", () => {
+    const composed = "é";
+    const decomposed = "e\u0301";
+    const first = makeBucket(composed);
+    const second = makeBucket(decomposed);
+    const activities = [
+      {
+        eventId: composed,
+        occurredAt: "2026-08-25T11:49:00.000Z",
+        affectedBucketIds: [composed, decomposed],
+        source: "recorded-run",
+      },
+      {
+        eventId: decomposed,
+        occurredAt: "2026-08-25T11:48:00.000Z",
+        affectedBucketIds: [decomposed],
+        source: "recorded-run",
+      },
+    ];
+    const forward = evaluation(
+      makeInput([first, second], { knownCapacityActivities: activities }),
+    );
+    const reversed = evaluation(
+      makeInput([second, first], {
+        knownCapacityActivities: [
+          activities[1],
+          { ...activities[0], affectedBucketIds: [decomposed, composed] },
+        ],
+      }),
+    );
+    expect(reversed).toEqual(forward);
+    expect(forward.bucketResults.map((bucket) => bucket.bucketId)).toEqual([
+      decomposed,
+      composed,
+    ]);
+    expect(
+      forward.bucketResults[0].affectingKnownActivities.map(
+        (activity) => activity.eventId,
+      ),
+    ).toEqual([decomposed, composed]);
   });
 
   it("retains stable bucket-specific rule and stop identifiers", () => {
