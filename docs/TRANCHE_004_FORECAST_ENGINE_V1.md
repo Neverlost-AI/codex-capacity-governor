@@ -2,21 +2,23 @@
 
 ## Assignment status
 
-- **Status:** DRAFT — founder approval and implementation authorization required
+- **Status:** Founder-approved; implementation authorized — 2026-09-23
 - **Type:** Bounded pure-domain implementation tranche
 - **Controlling decision:**
   `docs/decisions/0003-gate-b-forecasting-method-v1.md`
-- **Proposed implementation owner:** Codex
-- **Recommended implementation branch:**
-  `feature/tranche-004-forecast-engine-v1`
+- **Founder approval date:** 2026-09-23
+- **Implementation owner:** Codex
+- **Founder-approved pre-authorization baseline:** `e272ccbdac7a6caf316db1b348a7a3bfaa717b0b`
+- **Implementation branch:** `feature/tranche-004-forecast-engine-v1`
 - **Pull-request target:** `main`
 - **Product and acceptance owner:** Founder
 
-This document translates accepted Founder Decision Gate B into a proposed
-implementation boundary. It is **not implementation authority**. Do not create
-the implementation branch or write T004 code until the founder explicitly
-approves this assignment and grants implementation authority from a named clean
-`main` baseline.
+This document is the founder-approved bounded implementation authority for
+Tranche 004. Founder approval on 2026-09-23 authorizes Codex to implement only
+this assignment after the approval record is landed on `main`. The implementation
+branch must be created from the resulting clean `main` approval-record commit,
+which is a documentation-only descendant of the founder-approved pre-authorization
+baseline named above. No T005+ work is authorized.
 
 Before any authorized implementation, read `README.md`, `AGENTS.md`,
 `docs/ARCHITECTURE_CONTEXT.md`, `docs/DEVELOPMENT_WORKFLOW.md`,
@@ -660,10 +662,10 @@ Document:
 
 ## Branch and pull-request expectations
 
-After explicit founder implementation authorization:
+Founder implementation authorization is granted.
 
 1. create `feature/tranche-004-forecast-engine-v1` from the exact clean
-   founder-named `main` baseline;
+   `main` commit that lands this approval record;
 2. keep changes inside the allowed surfaces;
 3. do not commit implementation directly to `main`;
 4. run all required focused and repository verification;
