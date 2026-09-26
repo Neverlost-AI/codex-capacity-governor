@@ -34,6 +34,16 @@ For compatible COMPLETED observations, comparison reports signed and absolute `a
 
 ## Verification and deliberate limits
 
+### PR #7 blocking-review revisions
+
+Historical independence is checked by project/repository plus provider/window class and current run identity or observation evidence reference, not candidate ID. Multiple current candidates for the same run/class or aliases of the same observation/class reject input with `INPUT_DUPLICATE_HISTORY_OBSERVATION`; no arbitrary representative is selected. A superseded original with a distinct current amendment may remain in audit input but only the current eligible observation contributes. One run may independently report distinct bucket classes. Historical reset-cycle compatibility is unchanged; this correction does not resolve or redefine that documented ambiguity.
+
+Required buckets also reject duplicate provider/window/reset tuples (`INPUT_DUPLICATE_BUCKET_IDENTITY`), even with different presentation IDs. Projection validates structural evidence and then replays `evaluateForecastV1` from the retained reviewed inputs, comparing the entire canonical semantic result. Contradictory confidence, history, unknowns, scores, ranges, or overall confidence return `NOT_COMPOSABLE / PROJECTION_INVALID_FORECAST`. This is internal consistency validation, not authentication of upstream evidence.
+
+Comparison checks current evidence and compatible normalized actual presence before identifying PARTIAL/FAILED consumption as lower-bound evidence. Missing, incompatible, or superseded actuals return `UNAVAILABLE`; a lower-bound outcome requires the retained actual amount. History and comparison share the actual-compatibility predicate.
+
+Formatting investigation at the reviewed head found that all 78 formatter-supported tracked LF Git objects pass Prettier. The 65 local failures coincided exactly with CRLF checkout files under `core.autocrlf=true`, not malformed committed content. Local checkout formatting and LF-object validation must be reported separately; unrelated files are not rewritten for this Windows checkout limitation.
+
 Focused: `pnpm exec vitest run packages/contracts/test/forecast.test.ts packages/forecast-engine/test/forecast.test.ts` (or `node node_modules/vitest/vitest.mjs run …` on Windows if the workspace command shim fails). Full repo: `pnpm format:check`, `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm build`, `pnpm test:e2e`, `pnpm db:generate`, and `git diff --check`. Coverage: `pnpm test:coverage`.
 
 T004 intentionally does not persist forecasts or load history, create UI or application orchestration, generate AI characterization, use provider-specific conversion, change Gate A, or make accuracy/savings claims. A future reviewed boundary must supply compatible normalized actual evidence from T002; a future tranche may compose forecast and policy without either package acquiring the other's authority.

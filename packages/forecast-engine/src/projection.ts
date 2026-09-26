@@ -4,6 +4,7 @@ import {
   policyUncertaintySchema,
   type ForecastPolicyProjection,
 } from "@capacity-governor/contracts";
+import { isConsistentForecastV1 } from "./validation";
 
 /** Forms demand/uncertainty evidence only; Gate A alone decides authorization. */
 export const projectForecastToPolicyDemandV1 = (
@@ -11,7 +12,7 @@ export const projectForecastToPolicyDemandV1 = (
   bucketId: string,
 ): ForecastPolicyProjection => {
   const parsed = forecastEvaluationSchema.safeParse(forecast);
-  if (!parsed.success || !bucketId) {
+  if (!parsed.success || !bucketId || !isConsistentForecastV1(parsed.data)) {
     return {
       kind: "NOT_COMPOSABLE",
       authorizesWork: false,

@@ -338,6 +338,51 @@ export const forecastEvaluationInputSchema = z
   })
   .strict()
   .superRefine((input, context) => {
+    // Presentation IDs do not establish independent bucket or observation identity.
+    // JSON tuples are collision-free for arbitrary explicit identifier strings.
+    const bucketIdentities = new Set<string>();
+    input.requiredBuckets.forEach((bucket, index) => {
+      const identity = JSON.stringify([
+        bucket.providerId,
+        bucket.capacityWindowId,
+        bucket.resetCycleId,
+      ]);
+      if (bucketIdentities.has(identity)) {
+        context.addIssue({
+          code: "custom",
+          message: "INPUT_DUPLICATE_BUCKET_IDENTITY",
+          path: ["requiredBuckets", index],
+        });
+      }
+      bucketIdentities.add(identity);
+    });
+    const currentRunIdentities = new Set<string>();
+    const observationIdentities = new Set<string>();
+    input.calibrationCandidates.forEach((candidate, index) => {
+      const bucketClass = [
+        candidate.projectId,
+        candidate.repositoryId,
+        candidate.bucket.providerId,
+        candidate.bucket.capacityWindowId,
+      ];
+      const runIdentity = JSON.stringify([...bucketClass, candidate.runId]);
+      const observationIdentity = JSON.stringify([
+        ...bucketClass,
+        candidate.evidenceReference,
+      ]);
+      if (
+        (candidate.currentEvidence && currentRunIdentities.has(runIdentity)) ||
+        observationIdentities.has(observationIdentity)
+      ) {
+        context.addIssue({
+          code: "custom",
+          message: "INPUT_DUPLICATE_HISTORY_OBSERVATION",
+          path: ["calibrationCandidates", index],
+        });
+      }
+      if (candidate.currentEvidence) currentRunIdentities.add(runIdentity);
+      observationIdentities.add(observationIdentity);
+    });
     const requiredIds = input.requiredBuckets.map((bucket) => bucket.bucketId);
     const authorityIds = input.requiredBucketAuthority.requiredBucketIds;
     if (
@@ -622,7 +667,7 @@ export const forecastErrorComparisonSchema = z.discriminatedUnion("kind", [
       candidateId: id,
       bucketId: id,
       runOutcome: z.enum(["PARTIAL", "FAILED"]),
-      observedActualBasisPoints: decimal.optional(),
+      observedActualBasisPoints: decimal,
     })
     .strict(),
   z

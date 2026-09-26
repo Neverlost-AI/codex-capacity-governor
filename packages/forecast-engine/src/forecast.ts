@@ -23,6 +23,7 @@ import {
   safeInteger,
   type Fraction,
 } from "./exact";
+import { hasCompatibleActual } from "./actual-evidence";
 
 const factorNames = [
   "complexity",
@@ -166,12 +167,7 @@ const reasonsFor = (
     reasons.push("HISTORY_PROFILE_MISMATCH");
   if (candidate.runOutcome !== "COMPLETED")
     reasons.push("HISTORY_NOT_COMPLETED");
-  const actual = candidate.normalizedActualImplementation;
-  if (
-    !actual ||
-    actual.bucketId !== candidate.bucket.bucketId ||
-    actual.bucketProfileVersion !== candidate.bucket.bucketProfileVersion
-  )
+  if (!hasCompatibleActual(candidate))
     reasons.push("HISTORY_ACTUAL_UNAVAILABLE_OR_INCOMPATIBLE");
   if (
     !candidate.originalRange ||

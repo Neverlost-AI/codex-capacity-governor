@@ -4,13 +4,30 @@ import {
   type ForecastErrorComparison,
 } from "@capacity-governor/contracts";
 import { compare, evidence, fraction, parseDecimal } from "./exact";
+import { hasCompatibleActual } from "./actual-evidence";
 
 /** Full-completion comparison for one original candidate, never a quality aggregate. */
 export const compareForecastWithRunV1 = (
   candidateInput: ForecastCalibrationCandidate,
 ): ForecastErrorComparison => {
   const candidate = forecastCalibrationCandidateSchema.parse(candidateInput);
-  const actual = candidate.normalizedActualImplementation;
+  if (!candidate.currentEvidence) {
+    return {
+      kind: "UNAVAILABLE",
+      candidateId: candidate.candidateId,
+      bucketId: candidate.bucket.bucketId,
+      reasonId: "COMPARISON_SUPERSEDED_OR_INVALID",
+    };
+  }
+  if (!hasCompatibleActual(candidate)) {
+    return {
+      kind: "UNAVAILABLE",
+      candidateId: candidate.candidateId,
+      bucketId: candidate.bucket.bucketId,
+      reasonId: "COMPARISON_ACTUAL_UNAVAILABLE_OR_INCOMPATIBLE",
+    };
+  }
+  const actual = candidate.normalizedActualImplementation!;
   if (candidate.runOutcome !== "COMPLETED") {
     return {
       kind: "NOT_COMPARABLE_FULL_COMPLETION",
@@ -18,17 +35,7 @@ export const compareForecastWithRunV1 = (
       candidateId: candidate.candidateId,
       bucketId: candidate.bucket.bucketId,
       runOutcome: candidate.runOutcome,
-      ...(actual
-        ? { observedActualBasisPoints: actual.amountBasisPoints }
-        : {}),
-    };
-  }
-  if (!candidate.currentEvidence) {
-    return {
-      kind: "UNAVAILABLE",
-      candidateId: candidate.candidateId,
-      bucketId: candidate.bucket.bucketId,
-      reasonId: "COMPARISON_SUPERSEDED_OR_INVALID",
+      observedActualBasisPoints: actual.amountBasisPoints,
     };
   }
   const range = candidate.originalRange;
@@ -46,18 +53,6 @@ export const compareForecastWithRunV1 = (
       bucketId: candidate.bucket.bucketId,
       reasonId: "COMPARISON_ZERO_EXPECTED",
     };
-  if (
-    !actual ||
-    actual.bucketId !== candidate.bucket.bucketId ||
-    actual.bucketProfileVersion !== candidate.bucket.bucketProfileVersion
-  ) {
-    return {
-      kind: "UNAVAILABLE",
-      candidateId: candidate.candidateId,
-      bucketId: candidate.bucket.bucketId,
-      reasonId: "COMPARISON_ACTUAL_UNAVAILABLE_OR_INCOMPATIBLE",
-    };
-  }
   const actualFraction = parseDecimal(actual.amountBasisPoints);
   const expected = fraction(BigInt(range.expectedBasisPoints));
   const signComparison = compare(actualFraction, expected);
