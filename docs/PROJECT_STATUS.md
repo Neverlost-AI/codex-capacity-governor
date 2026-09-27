@@ -68,9 +68,11 @@ canonical LF Git objects were 121/121 PASS. This is not an all-green checkout
 format claim. The earlier overlapping heavy-run timeout cause remains
 unresolved; subsequent isolated checks passed without weakening timeouts.
 Two nonblocking T005 UI test-coverage gaps remain follow-up candidates:
-optional reset/reserve rendering branches in the review summary, and low unit
-line coverage in the access wrapper/legacy actions despite real guarded E2E
-coverage. They do not reopen T005 acceptance or authorize work.
+optional reset/reserve rendering branches in the review summary, and an
+activity test that types `removed-window` but never actually removes a capacity
+window. Separately, the builder noted low unit line coverage
+in the access wrapper/legacy actions despite real guarded E2E coverage. These
+limitations do not reopen T005 acceptance or authorize work.
 
 ## Next proposed work and milestone boundary
 
