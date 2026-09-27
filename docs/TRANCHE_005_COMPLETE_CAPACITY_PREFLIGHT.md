@@ -2,9 +2,9 @@
 
 ## Assignment status and authority
 
-- **Status:** DRAFT / NOT APPROVED — founder review required.
+- **Status:** Finalized scope-review assignment — F1-F9 founder-accepted; implementation NOT AUTHORIZED.
 - **Authority granted now:** planning only; no T005 implementation.
-- **Scope review:** F1-F7 accepted by the founder; F8 and F9 remain pending.
+- **Scope review:** F1-F7 retained; F8 accepted for the single-operator local prototype; F9 source precedence accepted with broader-MVP clarification.
 - **Planning baseline:** merged main `1f0bdbf30cd4d37f1f3f17153308e28b7c298260`.
 - **Proposed implementation owner:** Codex, subject to founder assignment.
 - **Proposed implementation branch:** `feature/tranche-005-complete-capacity-preflight`.
@@ -12,8 +12,8 @@
 - **Controlling semantics:** accepted Decisions 0001, 0002 and 0003, plus the
   accepted T001-T004 assignments and current runtime boundaries.
 
-No implementation branch should be created until the founder resolves the
-decision checklist below, approves the final assignment and explicitly grants
+No implementation branch should be created until the founder reviews this
+finalized assignment and explicitly grants
 implementation authority. Its accepted documentation commit on main becomes the
 implementation baseline; this planning baseline is not that future baseline.
 
@@ -25,10 +25,12 @@ A user supplies reviewed work characterization and independent manual capacity
 buckets, confirms the inputs, obtains a traceable result, and saves/reopens its
 immutable evidence. No development execution is performed by the application.
 
-The founder accepted a cold-start, manual-only T005 scope through F1-F7.
+The founder accepted a cold-start, manual-only, single-operator local T005 scope through F1-F9.
 Comparable-history loading, governed-run linkage and outcome/calibration UI
-belong to T006. F8/F9 and the final implementation assignment still require
-approval; accepting scope does not authorize code.
+belong to T006. T005 supplies only the preflight part of the complete
+preflight → outcome → comparison loop. Accepting this manual slice does not
+remove broader features from the eventual MVP; their placement is recorded in
+the roadmap. Accepting scope does not authorize code.
 
 ## Current implementation and compatibility assessment
 
@@ -59,7 +61,7 @@ scaffold status text. No accepted engine semantics need changing for this
 composition. Historical reset-cycle comparability and upstream authentication
 remain deferred; this tranche may not resolve either implicitly.
 
-## User-visible completion condition (proposed)
+## User-visible completion condition
 
 From an existing or newly created project, a user can:
 
@@ -83,23 +85,23 @@ must never expose an enabled execution/continue action implying authorization.
 An engine PROCEED result is a policy result, not founder approval to implement a
 repository tranche or authority for automatic execution.
 
-## Founder scope decisions and remaining review
+## Accepted founder scope decisions
 
-The founder accepted F1-F7 as proposed in the preceding draft. Their choices are
-settled for this assignment and are not being reopened. F8/F9 remain proposals;
-the detailed sections below supersede their earlier high-level descriptions.
+The founder retained F1-F7 and accepted the detailed F8 local boundary and F9
+source precedence below. All nine choices are settled for T005. Acceptance does
+not grant implementation authority or decide every broader feature's MVP placement.
 
-| Decision | Status                | Controlling choice                                                                                               |
-| -------- | --------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| F1       | ACCEPTED              | Accepted manual taxonomy; explicit repository reference; immutable revision scope identity.                      |
-| F2       | ACCEPTED              | AI assistance deferred.                                                                                          |
-| F3       | ACCEPTED              | Confirm frozen inputs, then evaluate and save; no editable final result.                                         |
-| F4       | ACCEPTED              | Existing deterministic explanations and neutral guidance only.                                                   |
-| F5       | ACCEPTED              | Reopened results are historical; current guidance requires reviewed reevaluation.                                |
-| F6       | ACCEPTED              | Immutable revision/attempt/plan evidence, including negative submitted evaluations.                              |
-| F7       | ACCEPTED              | Cold start only; governed-run linkage, outcome comparison and history loading follow in T006.                    |
-| F8       | HOLD — proposal ready | Loopback-only app, local pairing session and server-owned confirmation evidence as specified below.              |
-| F9       | HOLD — source found   | Use V0.2 as product context and accepted tracked decisions/assignments as controlling scope; see reconciliation. |
+| Decision | Status   | Controlling choice                                                                                                       |
+| -------- | -------- | ------------------------------------------------------------------------------------------------------------------------ |
+| F1       | ACCEPTED | Accepted manual taxonomy; explicit repository reference; immutable revision scope identity.                              |
+| F2       | ACCEPTED | AI assistance deferred.                                                                                                  |
+| F3       | ACCEPTED | Confirm frozen inputs, then evaluate and save; no editable final result.                                                 |
+| F4       | ACCEPTED | Existing deterministic explanations and neutral guidance only.                                                           |
+| F5       | ACCEPTED | Reopened results are historical; current guidance requires reviewed reevaluation.                                        |
+| F6       | ACCEPTED | Immutable revision/attempt/plan evidence, including negative submitted evaluations.                                      |
+| F7       | ACCEPTED | Cold start only; governed-run linkage, outcome comparison and history loading follow in T006.                            |
+| F8       | ACCEPTED | Loopback-only single-operator app, local pairing session and server-owned confirmation evidence as specified below.      |
+| F9       | ACCEPTED | Accepted source precedence and reconciliation; manual T005 does not automatically exclude broader features from the MVP. |
 
 F1-F7 retain the exact choices accepted in the preceding draft. In particular,
 F1 requires explicit confirmation of legacy values rather than silent conversion;
@@ -109,11 +111,11 @@ meanings.
 
 F1/F8 bind authoritative inputs; F3/F5 define when confirmation applies; F6
 defines retained evidence; F7 keeps historical identity and actual normalization
-out of this tranche. The remaining detailed F8/F9 proposals follow.
+out of this tranche. The accepted detailed F8/F9 boundaries follow.
 
-### F8 — Concrete local access and confirmation proposal (NOT APPROVED)
+### F8 — Accepted single-operator local access and confirmation boundary
 
-**Recommendation:** add a minimal local access gate and server-owned confirmation
+**Accepted choice:** add a minimal local access gate and server-owned confirmation
 receipts. This permits one local operator to submit explicit evidence under a
 documented operating assumption; it is not a human identity verification system.
 Accepting it must not be described as resolving general upstream authentication.
@@ -139,7 +141,7 @@ Accepting it must not be described as resolving general upstream authentication.
 4. The operator enters that secret in the loopback pairing form. The server
    validates it and creates a server-held session with an opaque cookie marked
    HttpOnly and SameSite=Strict, host-only and without persistent browser expiry.
-   This proposal uses loopback HTTP and must not pretend the cookie has HTTPS
+   This accepted boundary uses loopback HTTP and must not pretend the cookie has HTTPS
    transport protection. All product data reads and mutations require the
    paired session; only the pairing/health/static surfaces needed to enter it
    are public. Clear pending challenges on session end; restart invalidates all
@@ -214,7 +216,8 @@ UPSTREAM_TRUSTED_BOUNDARY provenance and Gate B reviewed-characterization/bucket
 authority from the durable receipt. The server-generated actor/reference and
 record time match the exact scope and bucket set. Existing policy/forecast
 schemas and semantics remain unchanged. Client trust flags cannot take this
-path. This is the concrete mapping requiring F8 approval.
+path. This mapping is founder-accepted for this local prototype only; the
+browser cannot establish authority by supplying trust flags.
 
 **User impact:** one pairing step each server session, followed by review and
 explicit confirmation for each input revision. No external account or provider
@@ -235,9 +238,9 @@ requirements, not tests or implementation added during this planning pass.
 Reference design guidance:
 [OWASP CSRF prevention](https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html).
 The installed Next.js CLI source confirms --hostname support and the current
-0.0.0.0 default. No startup scripts or request handling changed in this draft.
+0.0.0.0 default. No startup scripts or request handling changed in this documentation pass.
 
-### F9 — Product Brief found and reconciled (NOT APPROVED)
+### F9 — Accepted Product Brief reconciliation and source precedence
 
 Both original V0.1 (July 31, 2026) and later V0.2 (August 11, 2026) PDFs were
 found in the user's Downloads project materials. The configured Obsidian vault's
@@ -246,7 +249,7 @@ All PDF pages were extracted and relevant scope/example pages visually reviewed;
 V0.2 page 6 is blank. Paths, source hashes, page references and differences are
 recorded in [Product Brief reconciliation](PRODUCT_BRIEF_RECONCILIATION.md).
 
-**Recommendation for approval:** retain V0.2 as historical product vision, V0.1
+**Accepted precedence:** retain V0.2 as historical product vision, V0.1
 as origin context, and use the accepted tracked Decisions 0001-0003, accepted
 assignments and latest explicit founder T005 rulings as controlling semantics
 and bounded scope. README/architecture explain the product; the roadmap keeps
@@ -258,11 +261,13 @@ and later learning. Their broader AI, credit/model-cost, optimization and runtim
 integration descriptions differ from accepted V1 semantics or bounded T005
 scope. F1-F7 remain accepted; the reconciliation does not reopen them. Governed
 outcomes/history remain T006, dogfooding T007 and external pilot T008. Broader
-unassigned capabilities are visible in the roadmap without being new MVP gates.
+unassigned capabilities remain visible in the roadmap. Their omission from T005
+is not a decision to exclude them from the first MVP.
 
-**Remaining F9 choice:** accept this source precedence and reconciliation, or
-identify a specific brief requirement whose scheduling/authority needs a later
-founder ruling. No requirement is now blocked merely because the brief is absent.
+The reconciliation distinguishes deferred-from-T005 work, work assigned to later
+tranches, and proposed first-MVP exclusions pending a separate founder decision.
+No requirement is now blocked merely because the brief is absent. Unassigned
+broader-feature scheduling remains a later founder choice, not builder discretion.
 
 ## Technical scope after approval
 
@@ -361,6 +366,19 @@ confidence explanation, unknowns, assumptions, limiting buckets, stops and
 existing rule identifiers. Do not total capacity or conceal restrictive buckets.
 Use planning-range language; no probability, accuracy or savings claims.
 
+The review and result screens must explicitly explain that these cold-start
+forecasts are **uncalibrated planning estimates**. MEDIUM confidence reflects
+known/reviewed characterization and profile evidence, **not demonstrated prediction
+accuracy**. Current ranges express percentages of an identified capacity window
+(100 bp = one percentage point); they are **not purchased-credit cost estimates**.
+Do not imply interchangeability between windows or monetary savings. Preserve
+unknowns and configuration assumptions alongside these explanations.
+
+T005 always passes an empty calibration-candidate set. Before T006 is authorized,
+resolve [calibration concern 001](FORECAST_CALIBRATION_CONCERN_001.md) through a
+separately reviewed method decision. T005 must not fix this concern by changing
+Decision 0003, formulas, confidence or history eligibility.
+
 Show NOT_COMPOSABLE and INPUT_REJECTION without a fabricated Governor mode or
 decision. For above-cycle demand, retain the unclamped forecast and explain that
 Gate A V1 cannot consume it. Do not translate it into NARROW, DEFER or STOP.
@@ -399,7 +417,7 @@ downgrading the app is safer than dropping new evidence tables.
 - `apps/web/e2e/**`: critical paths and conservative-family evidence.
 - Root/package manifests and test configuration only if essential for existing
   engine/application dependency wiring. New dependencies require approval.
-- If F8 is approved, narrow local launch/session/origin/CSRF/review-challenge
+- For accepted F8, narrow local launch/session/origin/CSRF/review-challenge
   handling and tests in apps/web and existing scripts/run-e2e.mjs as required
   for the same protected local flow; no external auth provider or new dependency.
 - Documentation directly needed to operate, test and review T005.
@@ -446,7 +464,7 @@ adjusts demand to 1,500. Do not preinflate expected in application code. At
 current A=7,800, default reserves are 1,170 each and I=5,460; another bucket at
 A=1,300 remains CRITICAL and independently forces the restrictive result.
 
-The runtime flow is recommended cold-start only. Tests may prove the existing
+The accepted runtime flow is cold-start only. Tests may prove the existing
 engine accepts history independently, but must not add an unapproved product
 history loader to obtain HIGH confidence.
 
@@ -484,7 +502,9 @@ content defects or rewrite unrelated files. Do not weaken tests or gates.
 7. Confirmation and reopened-result behavior match approved F3/F5/F8 without
    inferring authentication or silently renewing capacity observations.
 8. UI explains limiting buckets, existing rule IDs, protected reserves, unknowns,
-   and restrictive results accessibly with no unsupported claims.
+   and restrictive results accessibly with no unsupported claims. Component and
+   critical-path E2E assertions prove the uncalibrated-estimate, MEDIUM-not-accuracy
+   and capacity-window-not-credit-cost explanations are visible.
 9. Legacy T001/T002 behavior remains intact; no GUIDED run or calibration loader
    is added, and accepted engine/decision behavior remains unchanged.
 10. Additive migrations and all required checks pass with reviewable evidence.
@@ -499,6 +519,9 @@ After approval, record the resolved assignment on main through a focused PR and
 identify its exact accepted commit before creating the implementation branch.
 Use the governor-build-review skill: coordinator controls authority, builder
 authors implementation/tests/fixes, and a different reviewer authors no changes.
+This is the repository's development workflow, not a Governor-to-Codex runtime
+integration. It neither executes a saved plan nor retrieves account capacity.
+Future runtime integration requires its own founder-approved bounded assignment.
 Report exact candidate SHA, agent separation, attempt ledger and any unresolved
 findings. Stop after three review attempts, or earlier for a real founder choice.
 
@@ -532,10 +555,9 @@ Stop affected implementation and report the smallest founder decision if:
 
 Do not resolve these with a guessed default, a hidden flag or a disclaimer.
 
-## Founder review checklist
+## Final review and authorization checklist
 
-F1-F7 are accepted and recorded above. No further approval of those choices is
-requested. Their accepted checklist remains:
+F1-F9 are accepted and recorded above. Their accepted checklist remains:
 
 - F1: full accepted manual taxonomy, explicit repository reference and immutable
   revision scope identity.
@@ -548,13 +570,13 @@ requested. Their accepted checklist remains:
   transactionally saved with no invented policy fields.
 - F7: cold-start flow only; history loading and governed-run linkage deferred.
 
-Only F8/F9 require ACCEPT, CHANGE (with replacement), or HOLD:
+- F8: accepted loopback/pairing/session and server-owned one-use confirmation
+  receipt, including exact revision/bucket binding and local-only trust limits.
+- F9: accepted source precedence; deferred, later-assigned and proposed-excluded
+  work are distinct. Broader MVP membership is not silently removed.
 
-- F8: approve the concrete loopback/pairing/session, server-owned review snapshot
-  and one-use confirmation receipt boundary specified above, with its local-only
-  trust limits; or hold authorizing paths pending a different boundary.
-- F9: approve the found-brief reconciliation and source precedence specified
-  above; or identify a particular unresolved requirement for a founder ruling.
-
-After these decisions, separately approve the final assignment, owner and
-implementation authority. This draft alone is not safe authority to begin T005.
+Review this exact documentation commit for consistency and implementation
+readiness. Then separately grant implementation authority and establish the
+accepted main baseline before creating the proposed branch. Until then PR #10
+remains unmerged and no T005 implementation is authorized. The unresolved
+calibration concern gates T006, not this empty-history T005 slice.

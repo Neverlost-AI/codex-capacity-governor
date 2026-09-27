@@ -6,7 +6,7 @@ This ledger records observed repository state and explicit founder acceptance.
 It grants no implementation, deployment, or merge authority. Accepted decision
 records and separately approved assignments remain controlling. The roadmap now
 includes current progress and the remaining MVP; historical readiness prose in
-its original tranche descriptions and README's T002-era status must not override
+its original tranche descriptions must not override
 the accepted records and merge evidence below.
 
 ## Current accepted implementation
@@ -46,16 +46,18 @@ ledger was prepared; it was not merged as part of PR #9 acceptance.
 
 ## Next unfinished tranche
 
-**T005 — Complete Capacity Preflight: planning only, not implementation-ready.**
+**T005 — Complete Capacity Preflight: finalized scope-review assignment; no implementation authority.**
 
-The draft is
-[Tranche 005 assignment](TRANCHE_005_COMPLETE_CAPACITY_PREFLIGHT_DRAFT.md).
+The finalized assignment is
+[Tranche 005 assignment](TRANCHE_005_COMPLETE_CAPACITY_PREFLIGHT.md).
 T001-T004 dependencies exist. The founder accepted F1-F7 as proposed for T005:
 manual cold start, reviewed immutable revisions, confirmation/evaluate/save,
 existing guidance only, historical reopened results, immutable attempt/plan
-evidence and deferred governed-run/history loading. F8's concrete local
-access/server-receipt proposal and F9's found-brief reconciliation remain pending.
-Final assignment/implementation authority has not been granted.
+evidence and deferred governed-run/history loading. F8's concrete single-operator
+local access/server-receipt boundary and F9's source precedence are now accepted.
+Manual T005 does not automatically remove broader features from the first MVP.
+Independent exact-commit documentation review and separate implementation
+authorization remain required. No authorization is inferred from finalized prose.
 No T005 implementation branch or migrations have been created. T006-T008,
 deployment and external pilot work remain unauthorized.
 
@@ -68,8 +70,15 @@ located original V0.1 and later V0.2 Product Brief PDFs in Downloads and the
 Capacity Governor folder in the configured Obsidian vault. Both briefs were read;
 the folder contained governance/T003 materials rather than the brief itself.
 No standalone brief is tracked. [Source reconciliation](PRODUCT_BRIEF_RECONCILIATION.md)
-records exact provenance, hashes and scope differences for F9 approval. Discovery
-does not override later accepted decisions or F1-F7.
+records exact provenance, hashes and accepted source precedence, with later
+assignments and proposed first-MVP exclusions distinguished from T005 deferrals.
+Discovery does not override later accepted decisions or F1-F9.
+
+[Calibration concern 001](FORECAST_CALIBRATION_CONCERN_001.md) is unresolved and
+must be resolved before T006. The docs-only read-only synthetic repeated-workload
+diagnostic is not production usage evidence or a full-suite verification.
+Decision 0003 and engine formulas remain unchanged. The accepted builder/reviewer
+development workflow is not a Governor-to-Codex runtime integration.
 
 This documentation pass did not rerun product test suites. Existing independent
 T004 and workflow review results are historical evidence, not a new full-suite

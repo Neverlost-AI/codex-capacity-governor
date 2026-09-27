@@ -2,8 +2,9 @@
 
 ## Status and search boundary
 
-Documentation evidence for founder review; F9 remains NOT APPROVED. F1-F7 are
-accepted separately and are not reopened. No external PDF is copied into this
+F9 source precedence is founder-accepted, with the clarification that manual
+T005 does not automatically remove broader features from the eventual MVP.
+F1-F8 are accepted separately and are not reopened. No external PDF is copied into this
 repository or treated as new implementation authority.
 
 Read-only search located the configured Obsidian vault via its local vault-path
@@ -47,7 +48,7 @@ preflight and immutable plan baseline; it is not represented as completing the
 whole MVP. T006 supplies governed outcomes/comparison/history input; T007 gathers
 internal evidence; T008 is a separately authorized hosted external pilot.
 
-## Differences and proposed reconciliation
+## Differences and accepted source reconciliation
 
 | Brief requirement/example                                                                                            | Reference                    | Relationship to accepted documents and T005                                                                                                                                                                                                                                                                   |
 | -------------------------------------------------------------------------------------------------------------------- | ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -59,7 +60,7 @@ internal evidence; T008 is a separately authorized hosted external pilot.
 | Model/context/parallelism/dependency optimization report                                                             | V0.2 pp. 4-5, 7              | F4 accepts existing deterministic explanations and neutral next steps only. Broader optimization heuristics remain unassigned; none is invented to satisfy the older vision.                                                                                                                                  |
 | Full preflight-to-history loop, actual outcomes and project comparison                                               | V0.2 pp. 4-5, 7, 11          | Required full MVP objective remains visible. F7 schedules governed linkage, actual compatibility, comparison and history loading in T006. Existing T002 UNGUIDED history is preserved.                                                                                                                        |
 | Project/repository/general allocations beyond one run                                                                | V0.2 p. 9                    | No portfolio allocation, general reserve or fungible global balance is implied by T005. Current buckets remain independent. Broader allocation requires later founder prioritization and semantics.                                                                                                           |
-| Paste/upload brief, user/session state and future integration                                                        | V0.2 pp. 7-8                 | T001 text intake plus T005 manual characterization covers the bounded input path. Upload parsing, external identity and runtime integration are not authorized. Minimal local session capability is the pending F8 proposal, not a claimed hosted authentication system.                                      |
+| Paste/upload brief, user/session state and future integration                                                        | V0.2 pp. 7-8                 | T001 text intake plus T005 manual characterization covers the bounded input path. Upload parsing, external identity and runtime integration are not authorized. Minimal local session capability is accepted F8 for the single-operator prototype, not a claimed hosted authentication system.                |
 | Public hackathon demonstration and later distribution/commercial tiers                                               | V0.2 pp. 7, 10-11; V0.1 p. 7 | Historical delivery/market context does not authorize hosting or billing. Current roadmap T008 owns separately approved external pilot preparation; commercial work remains excluded.                                                                                                                         |
 | Forecast-error/effectiveness/accuracy improvement measures                                                           | V0.1 p. 7; V0.2 p. 10        | Evidence questions, not proven results. Decision 0003 controls bucket-specific comparison and no overall accuracy percentage. T006/T007/T008 provide later evidence, without unsupported claims.                                                                                                              |
 
@@ -69,21 +70,47 @@ precedence explicitly and retain the larger product goals in the roadmap.
 If the founder instead wants a historical requirement in T005, that is a new
 explicit assignment revision requiring review, not a builder default.
 
-## Recommended authority for F9 approval
+## Accepted authority for F9
 
 1. Explicit latest founder rulings and accepted Decisions 0001-0003 control
    recording, policy and forecast semantics respectively. Any conflict among
    controlling records must be escalated rather than resolved silently.
 2. The final founder-approved T005 assignment defines allowed implementation
-   scope, acceptance tests and exclusions; F1-F7 are already accepted, F8/F9
-   are still pending.
+   scope, acceptance tests and exclusions; F1-F9 are accepted. Implementation
+   still requires a separate explicit grant.
 3. Tracked README, architecture and roadmap explain the product, inward
    dependency direction and sequence; old readiness/status prose is not newer
    authority than accepted decisions and merge evidence.
 4. V0.2 is retained historical product vision and V0.1 origin context. Neither
    is a blanket authorization, a conversion table or a reason to add scope.
 
-The found briefs resolve the source gap. There is no longer a missing document
-whose content prevents comparison. What remains is founder approval of this
-authority/reconciliation choice, particularly the deliberate bounded scheduling
-of the broader vision. No automatic adoption of a PDF requirement is proposed.
+The found briefs resolve the source gap. Their discovery does not automatically
+adopt a PDF requirement into T005, and accepting T005 does not automatically
+remove that requirement from the MVP. The following placement distinctions are
+controlling for planning, not new implementation authority.
+
+## Broader product placement — three distinct categories
+
+| Category                                                                  | Features and current treatment                                                                                                                                                                                         | Founder authority still needed                                                                                                    |
+| ------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| Deferred from T005; first-MVP membership and tranche placement unresolved | Optional AI characterization; whole-project decomposition/sequencing; model/context/parallelism guidance; paste/upload parsing; basic Governor-to-Codex runtime integration. These stay visible in the product vision. | Decide whether each belongs in the first MVP and assign a bounded tranche if included. None is removed by manual T005 acceptance. |
+| Assigned to a later roadmap tranche, not yet authorized                   | T006 governed outcomes, compatible actuals, forecast-versus-actual comparison and history loading; T007 complete-loop dogfooding; T008 external pilot and its hosted boundary.                                         | Approve exact assignments and prerequisite decisions. Calibration concern 001 must be resolved before T006.                       |
+| Proposed exclusion from the first MVP, pending founder decision           | Rich project/portfolio allocation and purchased-credit/model-price cost forecasting. Recommendation: defer these beyond the first MVP to avoid unapproved fungibility and provider-cost semantics.                     | ACCEPT/CHANGE/HOLD each proposed exclusion separately. This recommendation is not an accepted exclusion.                          |
+
+Existing accepted post-MVP boundaries (billing, Claude Code, enterprise/team
+features, automatic provider retrieval and ML calibration) remain unchanged;
+they are not new exclusions inferred from F9. An improved future workflow adapter
+is distinct from deciding whether a basic runtime integration belongs in the MVP.
+The builder/reviewer agents are development governance, not either runtime adapter.
+
+## Interpretation and calibration limits
+
+T005 must label cold-start forecasts as uncalibrated planning estimates. MEDIUM
+indicates known characterization, not measured predictive accuracy. Values are
+capacity-window percentages, not purchased-credit cost estimates. The broader
+briefs' improvement goals remain evidence questions rather than proven claims.
+
+[Calibration concern 001](FORECAST_CALIBRATION_CONCERN_001.md) records possible
+feedback drift from applying actual/originalExpected ratios to the cold-start
+baseline when originalExpected was already adjusted. It is unresolved before
+T006; no accepted method or Decision 0003 is changed here.
