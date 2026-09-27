@@ -7,14 +7,19 @@ export function PlanningDisclosure() {
         evidence, not demonstrated prediction accuracy.
       </p>
       <p>
-        Ranges express percentages of an identified capacity window (100 bp =
-        one percentage point), not purchased-credit cost estimates. Different
-        windows are independent and cannot be added or exchanged.
+        Ranges express percentages of an identified capacity window, not
+        purchased-credit cost estimates. Different windows are independent and
+        cannot be added or exchanged.
       </p>
-      <p>
-        T005 has no calibration history. The pre-T006 calibration method concern
-        remains unresolved.
-      </p>
+      <details>
+        <summary>Technical scope and calibration limitations</summary>
+        <p>
+          T005 has no calibration history. The pre-T006 calibration method
+          concern remains unresolved. No historical adjustment is applied to
+          these planning estimates. Exact technical quantities use basis points:
+          100 bp = one percentage point.
+        </p>
+      </details>
     </aside>
   );
 }

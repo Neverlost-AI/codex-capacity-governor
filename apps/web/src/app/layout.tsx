@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
 import type { ReactNode } from "react";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
@@ -8,7 +9,7 @@ import { LocalSessionProvider } from "../components/local-session";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Codex Capacity Governor",
+  title: "Capacity Governor by Neverlost Systems",
   description: "Plan bounded AI-assisted development work before execution.",
 };
 
@@ -29,12 +30,17 @@ export default async function RootLayout({
       <body>
         <header className="site-header">
           <Link className="brand" href="/">
-            <span aria-hidden="true" className="brand-mark">
-              CG
-            </span>
+            <Image
+              src="/neverlost-systems-logo.png"
+              alt="Neverlost Systems"
+              width={48}
+              height={48}
+              loading="eager"
+              unoptimized
+            />
             <span>
               <strong>Capacity Governor</strong>
-              <small>Manual preflight workspace</small>
+              <small>by Neverlost Systems</small>
             </span>
           </Link>
           <span className="status-chip">Local manual preflight</span>
@@ -43,7 +49,7 @@ export default async function RootLayout({
           <LocalSessionProvider csrf={csrf}>{children}</LocalSessionProvider>
         </main>
         {csrf ? (
-          <form action="/access/end" method="post">
+          <form className="session-controls" action="/access/end" method="post">
             <input type="hidden" name="csrf" value={csrf} />
             <button type="submit">End local session</button>
           </form>

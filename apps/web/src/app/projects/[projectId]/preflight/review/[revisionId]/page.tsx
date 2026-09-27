@@ -2,6 +2,7 @@ import Link from "next/link";
 import { requireLocalAccess } from "../../../../../../server/access";
 import { ReviewConfirmation } from "../../../../../../components/review-confirmation";
 import { PlanningDisclosure } from "../../../../../../components/planning-disclosure";
+import { ComposedReview } from "../../../../../../components/composed-review";
 export const dynamic = "force-dynamic";
 export default async function ReviewPage({
   params,
@@ -35,28 +36,7 @@ export default async function ReviewPage({
     <div className="narrow-shell">
       <h1>Review exact frozen inputs</h1>
       <PlanningDisclosure />
-      <p>
-        Revision {revisionId}. Canonical digest {review.digest}. Minimum
-        coherent scope:{" "}
-        {review.revision.input.minimumCoherentScope ? "Yes" : "No"}.
-      </p>
-      <h2>Exact required bucket membership</h2>
-      <ul>
-        {review.revision.input.buckets.map((bucket) => (
-          <li key={bucket.bucketId}>
-            {bucket.bucketId} · {bucket.providerId} / {bucket.capacityWindowId}{" "}
-            / {bucket.resetCycleId}
-          </li>
-        ))}
-      </ul>
-      <h2>All material inputs and accepted configurations</h2>
-      <pre
-        className="evidence-json"
-        tabIndex={0}
-        aria-label="Complete reviewed evidence"
-      >
-        {JSON.stringify(review.revision, null, 2)}
-      </pre>
+      <ComposedReview revision={review.revision} digest={review.digest} />
       <ReviewConfirmation
         revisionId={revisionId}
         challenge={review.challenge}

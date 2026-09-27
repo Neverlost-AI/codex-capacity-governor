@@ -42,20 +42,21 @@ export function ReviewConfirmation({
     }
   };
   return (
-    <form onSubmit={submit}>
+    <form onSubmit={submit} className="confirmation-form form-section">
       <CsrfField />
+      <h2>Confirm this reviewed snapshot</h2>
       {error ? (
         <p ref={summary} tabIndex={-1} role="alert">
           {error}
         </p>
       ) : null}
-      <label>
+      <label className="check-row">
         <input name="work" type="checkbox" required />I explicitly confirm all
         reviewed work inputs.
       </label>
-      <label>
+      <label className="check-row">
         <input name="buckets" type="checkbox" required />I explicitly confirm
-        this exact required bucket set.
+        this exact required capacity window set.
       </label>
       <p>
         Confirmation does not refresh observation times. The separate

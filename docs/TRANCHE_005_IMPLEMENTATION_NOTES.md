@@ -9,11 +9,48 @@ and subsequent express COMPLETE T005 implementation/local-commit grant control
 over earlier planning-only authority statements. All substantive requirements
 of the finalized assignment and Decisions 0001–0004 remain controlling.
 
-Implementation candidate is prepared on `feature/tranche-005-complete-capacity-preflight`.
-No implementation acceptance, push, PR creation, merge, deployment or follow-on
-tranche is authorized. A separate exact-commit reviewer will review the candidate;
-the builder cannot approve it. Independent implementation review has not run
-(0 of 3 review attempts used); the exact candidate SHA accompanies the handoff.
+The original implementation was prepared on `feature/tranche-005-complete-capacity-preflight`.
+Its independent exact-commit review (attempt 1) passed at
+`7f3f2070b36e0e815e62eb3bf42e602d10e86c76`; it is the baseline for the
+founder-authorized presentation/form-interaction revision on existing draft PR #11.
+The latest founder grant permits presentation implementation, tests, local commits,
+and coordinator push of the reviewed revision to that PR. The builder does not
+push or approve its work. A fresh independent exact-commit review is pending as
+attempt 2 of the maximum 3; no outcome is predicted. Founder acceptance and merge,
+deployment, product-semantic changes and follow-on tranches remain unauthorized.
+
+## Presentation revision and brand provenance
+
+The revision preserves engines, contracts, server-held review/confirmation,
+immutable records, access/CSRF controls and all migration files. Readable review
+content is rendered directly from the server-held revision; complete exact JSON,
+configurations, IDs, digest and receipts remain expandable. Structured activity
+rows preserve explicit event and affected-window IDs, including invalid references
+when windows are renamed or removed. Validation retains entered values and links
+errors to fields; neither attestation nor confirmation is preselected.
+
+Results lead with the evaluation-time decision below the historical notice.
+Independent window values use exact integer-basis-point percentage formatting,
+without input normalization, clamping, floating-point policy arithmetic or totals.
+Raw quantities, exact basis points and rational evidence remain technical details.
+Unknowns, protected reserves, typed failures, planning limitations and supported
+new-preflight guidance are retained. There is no automatic execution action.
+
+Brand palette is taken from the founder-supplied, explicitly authorized
+`C:/Users/35jsu/Downloads/Brand Overview Card.png`: accent `#1F66D8`, primary
+`#122033`, muted `#566678`, subtle `#EAF2F8`, card dark `#102844`.
+The official supplied `C:/Users/35jsu/Downloads/NVLT Offical Logo (1).png` was
+copied unchanged to `apps/web/public/neverlost-systems-logo.png`. Both source and
+destination SHA-256 are
+`D9238C962C3B5E2BC0135B8F9FE8441F17F38D84886D67196C8262405BF7C2C1`.
+It was not redrawn, extracted from the brand card, resampled or approximated.
+Capacity Governor is primary; “by Neverlost Systems” is secondary. No standalone
+font asset was supplied: CSS requests Inter with a system fallback and fetches no
+external font. Functional success/error colors remain distinct from brand colors.
+
+The baseline verification ledger below records the original implementation only;
+the presentation revision's current gate results and screenshots are recorded
+separately in its candidate handoff and the revision ledger appended below.
 
 ## Public application operations and evidence
 
@@ -277,3 +314,75 @@ Ignored evidence files (not committed), all under this absolute directory:
 Screenshots supplement assertions, not proof of forecast accuracy. Independent
 exact-commit review and founder acceptance remain. No push, PR, merge, deployment,
 execution integration, upstream authentication or T006 work is included.
+
+## Presentation revision verification ledger
+
+This ledger is separate from the original implementation evidence above and
+applies to the founder-authorized usability/branding revision whose parent is
+`7f3f2070b36e0e815e62eb3bf42e602d10e86c76`. The earlier no-push/PR statement
+describes the original builder delivery; the current authority is stated at the
+top of this document. Independent review attempt 2 remains pending.
+
+- Final `pnpm test`: **360/360**, **18 files**, 91.65s. This includes 10 focused
+  component tests and 10 exact-percentage/plain-reason presentation tests.
+- Final `pnpm test:coverage`: **360/360**, **18 files**, 91.14s. Statements
+  **87.46% (1,493/1,707)**, branches **81.35% (1,056/1,298)**, functions
+  **89.44% (390/436)**, lines **87.82% (1,443/1,643)**. Branch coverage is lower
+  than the original **82.69%**; no threshold, timeout or assertion was weakened.
+  New review summary branch coverage is **58.33%**, with **100%** line coverage;
+  not every optional reset/reserve rendering branch has a unit fixture.
+- Final `pnpm lint`, `pnpm typecheck`, `pnpm build`: PASS, all 14 dynamic routes.
+- Final built `pnpm test:e2e`: **13/13**, 1.1m. Final dev: **12 passed**, one
+  explicitly built-only skip, 2.9m. Both had terminal hygiene PASS, exit 0 and
+  successful cleanup of only their owned server process trees.
+- `pnpm db:generate`: PASS, seven tables, "No schema changes, nothing to migrate";
+  zero additional migration delta. `git diff --check`: PASS.
+- Actual `pnpm format:check`: FAIL on **36 unchanged checkout files**. Read-only
+  checks examined **121 supported paths**: all 121 pass after CRLF-to-LF
+  normalization, every raw failure is identical to the parent baseline after
+  normalization, and no changed presentation path fails. Exact staged canonical
+  Git objects: **121/121 PASS**, zero non-LF objects. Unrelated files were
+  not rewritten to hide this Windows checkout discrepancy.
+- Decisions 0001–0004 and the calibration concern are unchanged. The existing
+  recorded SHA-256 values for Decision 0002, Decision 0003 and the concern were
+  rechecked byte-for-byte. Engines, contracts, server code, launch/cleanup scripts,
+  dependency lockfile and migration paths have zero delta from this parent.
+
+Regression mapping:
+
+| Requirement | Evidence |
+| --- | --- |
+| Structured activity, explicit facts, associated errors, retained values/references | Component activity/error tests; real browser invalid-reference correction and retained event/source input |
+| Readable exact server-held review and distinct unchecked confirmations | Component complete-JSON equality/material-values/explicit-zero test; desktop/mobile review and confirmation browser assertions |
+| Evidence-grounded decisions, independent windows and historical distinction | Real engine browser PROCEED, NARROW, DEFER, STOP/PRESERVE, stale and non-composable cases; typed result component fixtures |
+| Exact percentages and raw technical arithmetic retained | Ten presentation regressions, including 0, fractional percentage digits, negative and above-100 values; original complete attempt JSON retained |
+| Brand identity, labels, keyboard and responsive layout | Unchanged supplied logo hash; actual pairing/form/review/result screenshots; computed font fallback and loaded-logo checks, no horizontal overflow; keyboard component and browser error-focus checks |
+| Guarded confirmation/save/reopen behavior unchanged | Existing session/CSRF/other-session/boundary/direct-launch regressions remain active and pass |
+
+Actual retries are disclosed: initial UI tests exposed a newly focusable technical
+disclosure, nested error labels and raw-versus-readable error expectations. Browser
+locators were made precise for Next's route-announcer alert and duplicated source
+text in collapsed JSON. A final full-unit run passed 350 tests but timed out before
+the component fork started; the exact command, rerun alone, passed all 360. A
+read-only CIM diagnostic was denied and was not bypassed. Final remaining gates
+ran sequentially. No dependency installation or external font fetch occurred.
+Next's existing standalone/start and slow-filesystem warnings do not establish
+deployment support; this remains the accepted guarded local launch only.
+
+Actual screenshot evidence is ignored, not committed, at
+`C:/Users/35jsu/GitHub/codex-capacity-governor/.data/t005-usability-evidence/`.
+Both `built` and `dev`, and both `desktop` (1280×900) and `mobile` (390×844),
+capture `pairing`, `form-top`, `form`, `review`, `review-confirmations`, `result`,
+`historical-reopen`, and conservative `NARROW`, `DEFER`, `STOP-PRESERVE`, `STALE`,
+`NOT_COMPOSABLE` states. Each named PNG also has a `-viewport.png` view. Pairing
+captures contain an empty password input, never the admission secret; traces stay
+disabled. Desktop/mobile full and viewport images were inspected for readable
+logo/aspect ratio, labels, status distinction, confirmation separation and retained
+historical notice. Brand text pairs use the approved palette: blue/white 5.32:1,
+muted/white 5.89:1, blue/subtle 4.70:1; errors and decisions retain text labels.
+
+There is no new migration or data rollback requirement. Reverting this focused
+presentation commit returns the prior UI without changing immutable records or
+policy evidence. Branding assets are resolved; no standalone font was supplied,
+so the declared Inter/system fallback remains honest. Fresh exact-commit review,
+founder acceptance and any merge/deployment authority are still outstanding.

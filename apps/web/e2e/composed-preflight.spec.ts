@@ -3,16 +3,47 @@ import { test as unpairedTest } from "@playwright/test";
 import type { Page } from "@playwright/test";
 import { mkdirSync } from "node:fs";
 import path from "node:path";
-const evidenceDirectory = path.resolve(".data/t005-evidence");
+const evidenceDirectory = path.resolve(".data/t005-usability-evidence");
 const screenshot = async (page: Page, name: string) => {
+  expect(
+    await page
+      .locator(".brand strong")
+      .evaluate((element) => getComputedStyle(element).fontFamily),
+  ).toBe('Inter, "Segoe UI", Arial, sans-serif');
   mkdirSync(evidenceDirectory, { recursive: true });
+  await expect(
+    page.getByRole("img", { name: "Neverlost Systems" }),
+  ).toBeVisible();
+  await expect
+    .poll(
+      async () =>
+        await page
+          .getByRole("img", { name: "Neverlost Systems" })
+          .evaluate(
+            (element: HTMLImageElement) =>
+              element.complete && element.naturalWidth > 0,
+          ),
+    )
+    .toBe(true);
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= window.innerWidth,
+    ),
+  ).toBe(true);
   await page.screenshot({
     path: path.join(
       evidenceDirectory,
-      `${process.env.CAPACITY_GOVERNOR_E2E_BUILT === "1" ? "built" : "dev"}-${name}.png`,
+      `${process.env.CAPACITY_GOVERNOR_E2E_BUILT === "1" ? "built" : "dev"}-${page.viewportSize()!.width < 600 ? "mobile" : "desktop"}-${name}.png`,
     ),
     fullPage: true,
     caret: "initial", // Never inject transient input styles before React hydration.
+  });
+  await page.screenshot({
+    path: path.join(
+      evidenceDirectory,
+      `${process.env.CAPACITY_GOVERNOR_E2E_BUILT === "1" ? "built" : "dev"}-${page.viewportSize()!.width < 600 ? "mobile" : "desktop"}-${name}-viewport.png`,
+    ),
+    caret: "initial",
   });
 };
 const createDraft = async (page: Page) => {
@@ -71,7 +102,7 @@ const fillBucket = async (
   observedAt = new Date().toISOString(),
 ) => {
   for (const [label, value] of [
-    ["Bucket ID", index === 1 ? "short" : "weekly"],
+    ["Window evidence ID", index === 1 ? "short" : "weekly"],
     ["Provider ID", "manual-codex"],
     ["Capacity window ID", index === 1 ? "5-hour" : "weekly"],
     ["Reset cycle ID", `cycle-${index}`],
@@ -115,7 +146,9 @@ const confirm = async (page: Page) => {
     .getByRole("checkbox", { name: /confirm all reviewed work/ })
     .check();
   await page
-    .getByRole("checkbox", { name: /confirm this exact required bucket set/ })
+    .getByRole("checkbox", {
+      name: /confirm this exact required capacity window set/,
+    })
     .check();
   await page
     .getByRole("button", { name: "Confirm, evaluate and save" })
@@ -133,6 +166,9 @@ unpairedTest(
       "password",
     );
     await screenshot(page, "pairing");
+    await page.setViewportSize({ width: 390, height: 844 });
+    await screenshot(page, "pairing");
+    await page.setViewportSize({ width: 1280, height: 900 });
     for (const headers of [
       { Host: "localhost:3100" },
       { "x-forwarded-host": "127.0.0.1:3100" },
@@ -165,84 +201,139 @@ unpairedTest(
     ).toHaveCount(0);
   },
 );
-test("manual multiple-item/bucket review/evaluate/save/reopen critical path and actual screenshots", async ({
-  page,
-  browser,
-}) => {
-  test.setTimeout(180000);
-  const { projectUrl, name } = await createDraft(page);
-  await fill(page);
-  await page.getByRole("button", { name: "Add work item" }).click();
-  await fillItem(page, 2);
-  await page.getByRole("button", { name: "Add required bucket" }).click();
-  await fillBucket(page, 2, "7800");
-  await screenshot(page, "form");
-  await page.getByRole("button", { name: "Review frozen inputs" }).click();
-  await expect(
-    page.getByRole("heading", { name: "Review exact frozen inputs" }),
-  ).toBeVisible();
-  await expect(
-    page.getByText("weekly · manual-codex / weekly / cycle-2", { exact: true }),
-  ).toBeVisible();
-  await screenshot(page, "review");
-  await page
-    .getByRole("checkbox", { name: /confirm all reviewed work/ })
-    .check();
-  await page
-    .getByRole("checkbox", { name: /confirm this exact required bucket set/ })
-    .check();
-  await page
-    .getByRole("button", { name: "Confirm, evaluate and save" })
-    .click();
-  await expect(
-    page.getByRole("heading", { name: "PROCEED", exact: true }),
-  ).toBeVisible();
-  await expect(
-    page.getByRole("heading", { name: "short allocations" }),
-  ).toBeVisible();
-  await expect(
-    page.getByRole("heading", { name: "weekly allocations" }),
-  ).toBeVisible();
-  await expect(page.getByText(/Historical saved evaluation/)).toBeVisible();
-  // Non-secret browser probe: the launcher fails if Next forwards it to terminal.
-  await page.evaluate(() =>
-    console.warn("T005_BROWSER_LOG_HYGIENE_PROBE_NON_SECRET"),
-  );
-  await expect(
-    page.getByRole("button", { name: "Automatic execution unavailable" }),
-  ).toBeDisabled();
-  await screenshot(page, "result");
-  const resultUrl = page.url();
-  await page.getByRole("link", { name: "Back to project" }).click();
-  await expect(page.getByRole("heading", { name })).toBeVisible();
-  await expect(page.getByLabel("Capacity unit", { exact: true })).toHaveValue(
-    "legacy manual units",
-  );
-  await page
-    .getByRole("link", { name: /Reviewed capacity scope ·.*PROCEED/ })
-    .click();
-  await expect(page).toHaveURL(resultUrl);
-  await expect(page.getByText(/Historical saved evaluation/)).toBeVisible();
-  await expect(page.getByText(/uncalibrated planning estimates/)).toBeVisible();
-  await expect(
-    page.getByText(/not demonstrated prediction accuracy/),
-  ).toBeVisible();
-  await expect(
-    page.getByText(/not purchased-credit cost estimates/),
-  ).toBeVisible();
-  await screenshot(page, "historical-reopen");
-  const unpaired = await browser.newContext();
-  const outsider = await unpaired.newPage();
-  await outsider.goto(projectUrl);
-  await expect(
-    outsider.getByRole("heading", { name: "Pair this local browser" }),
-  ).toBeVisible();
-  await outsider.goto(resultUrl);
-  await expect(
-    outsider.getByRole("heading", { name: "Pair this local browser" }),
-  ).toBeVisible();
-  await unpaired.close();
-});
+for (const viewport of [
+  { width: 1280, height: 900 },
+  { width: 390, height: 844 },
+])
+  test(`manual multiple-item/bucket review/evaluate/save/reopen ${viewport.width < 600 ? "mobile" : "desktop"} critical path and actual screenshots`, async ({
+    page,
+    browser,
+  }) => {
+    test.setTimeout(180000);
+    await page.setViewportSize(viewport);
+    const { projectUrl, name } = await createDraft(page);
+    await fill(page);
+    await page.getByRole("button", { name: "Add work item" }).click();
+    await fillItem(page, 2);
+    await page.getByRole("button", { name: "Add capacity window" }).click();
+    await fillBucket(page, 2, "7800");
+    await page.evaluate(() => window.scrollTo(0, 0));
+    await screenshot(page, "form-top");
+    await page.getByRole("button", { name: "Add capacity activity" }).click();
+    await page
+      .getByLabel("Activity identity 1", { exact: true })
+      .fill("before-observation");
+    await page
+      .getByLabel("Activity time (explicit offset) 1", { exact: true })
+      .fill(new Date(Date.now() - 60000).toISOString());
+    await page
+      .getByLabel("Activity factual source 1", { exact: true })
+      .fill("Manual factual activity record");
+    await page
+      .getByLabel("Affected window evidence IDs (one per line) 1", {
+        exact: true,
+      })
+      .fill("unknown-window");
+    await page.getByRole("button", { name: "Review frozen inputs" }).click();
+    await expect(
+      page.getByRole("alert").filter({
+        has: page.getByRole("heading", {
+          name: "Check the submitted fields",
+        }),
+      }),
+    ).toBeFocused();
+    await expect(
+      page.getByLabel("Activity identity 1", { exact: true }),
+    ).toHaveValue("before-observation");
+    await page
+      .getByLabel("Affected window evidence IDs (one per line) 1", {
+        exact: true,
+      })
+      .fill("short");
+    await screenshot(page, "form");
+    await page.getByRole("button", { name: "Review frozen inputs" }).click();
+    await expect(
+      page.getByRole("heading", { name: "Review exact frozen inputs" }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "weekly · weekly", exact: true }),
+    ).toBeVisible();
+    await expect(
+      page.getByText("Manual factual activity record", { exact: true }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("checkbox", { name: /confirm all reviewed work/ }),
+    ).not.toBeChecked();
+    await expect(
+      page.getByRole("checkbox", {
+        name: /confirm this exact required capacity window set/,
+      }),
+    ).not.toBeChecked();
+    await screenshot(page, "review");
+    await page.locator(".confirmation-form").scrollIntoViewIfNeeded();
+    await screenshot(page, "review-confirmations");
+    await page
+      .getByRole("checkbox", { name: /confirm all reviewed work/ })
+      .check();
+    await page
+      .getByRole("checkbox", {
+        name: /confirm this exact required capacity window set/,
+      })
+      .check();
+    await page
+      .getByRole("button", { name: "Confirm, evaluate and save" })
+      .click();
+    await expect(
+      page.getByRole("heading", { name: "PROCEED", exact: true }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "short allocations" }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "weekly allocations" }),
+    ).toBeVisible();
+    await expect(page.getByText(/Historical saved evaluation/)).toBeVisible();
+    // Non-secret browser probe: the launcher fails if Next forwards it to terminal.
+    await page.evaluate(() =>
+      console.warn("T005_BROWSER_LOG_HYGIENE_PROBE_NON_SECRET"),
+    );
+    await expect(
+      page.getByRole("button", { name: "Automatic execution unavailable" }),
+    ).toBeDisabled();
+    await screenshot(page, "result");
+    const resultUrl = page.url();
+    await page.getByRole("link", { name: "Back to project" }).click();
+    await expect(page.getByRole("heading", { name })).toBeVisible();
+    await expect(page.getByLabel("Capacity unit", { exact: true })).toHaveValue(
+      "legacy manual units",
+    );
+    await page
+      .getByRole("link", { name: /Reviewed capacity scope ·.*PROCEED/ })
+      .click();
+    await expect(page).toHaveURL(resultUrl);
+    await expect(page.getByText(/Historical saved evaluation/)).toBeVisible();
+    await expect(
+      page.getByText(/uncalibrated planning estimates/),
+    ).toBeVisible();
+    await expect(
+      page.getByText(/not demonstrated prediction accuracy/),
+    ).toBeVisible();
+    await expect(
+      page.getByText(/not purchased-credit cost estimates/),
+    ).toBeVisible();
+    await screenshot(page, "historical-reopen");
+    const unpaired = await browser.newContext();
+    const outsider = await unpaired.newPage();
+    await outsider.goto(projectUrl);
+    await expect(
+      outsider.getByRole("heading", { name: "Pair this local browser" }),
+    ).toBeVisible();
+    await outsider.goto(resultUrl);
+    await expect(
+      outsider.getByRole("heading", { name: "Pair this local browser" }),
+    ).toBeVisible();
+    await unpaired.close();
+  });
 for (const family of [
   "NARROW",
   "DEFER",
@@ -261,7 +352,7 @@ for (const family of [
         : undefined,
     );
     if (family === "STOP / PRESERVE") {
-      await page.getByRole("button", { name: "Add required bucket" }).click();
+      await page.getByRole("button", { name: "Add capacity window" }).click();
       await fillBucket(page, 2, "1300");
     }
     if (family === "DEFER") {
@@ -291,9 +382,17 @@ for (const family of [
         await fillItem(page, index);
       }
     await confirm(page);
+    await screenshot(page, `conservative-${family.replaceAll(" / ", "-")}`);
+    await page.setViewportSize({ width: 390, height: 844 });
+    await screenshot(page, `conservative-${family.replaceAll(" / ", "-")}`);
     await expect(
       page.getByRole("heading", {
-        name: family === "STALE" ? "STOP / PRESERVE" : family,
+        name:
+          family === "STALE"
+            ? "STOP / PRESERVE"
+            : family === "NOT_COMPOSABLE"
+              ? "Forecast cannot be used for a policy decision"
+              : family,
         exact: true,
       }),
     ).toBeVisible();
@@ -302,12 +401,18 @@ for (const family of [
     ).toBeDisabled();
     if (family === "NOT_COMPOSABLE") {
       await expect(page.getByText(/Operating mode:/)).toHaveCount(0);
-      await expect(page.getByText(/Expected 10800 bp/)).toBeVisible();
+      await expect(
+        page.getByText(/Expected implementation usage 108%/),
+      ).toBeVisible();
     }
     if (family === "STALE") {
-      const aggregateRules = page.getByText(/^Aggregate rules:/);
+      const aggregateRules = page
+        .getByText(/The capacity observation is older/)
+        .first();
       await expect(aggregateRules).toBeVisible();
-      await expect(aggregateRules).toContainText("STOP_STALE_OBSERVATION");
+      await expect(aggregateRules).toContainText(
+        "permitted freshness interval",
+      );
       await expect(
         page.getByRole("link", { name: "Create a new reviewed evaluation" }),
       ).toBeVisible();

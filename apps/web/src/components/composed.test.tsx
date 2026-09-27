@@ -4,6 +4,7 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, describe, it, expect, vi } from "vitest";
 import { ComposedForm } from "./composed-form";
 import { ComposedResult } from "./composed-result";
+import { ComposedReview } from "./composed-review";
 import { ReviewConfirmation } from "./review-confirmation";
 import { LocalSessionProvider } from "./local-session";
 import {
@@ -28,9 +29,82 @@ const saved = async (input = inputFixture()) => {
   );
 };
 describe("focused complete-preflight accessible UI", () => {
+  it("review renders all material server-held values with collapsed technical evidence", async () => {
+    const input = inputFixture();
+    input.buckets[0].correctionReserve = {
+      manualMinimum: { amount: "0", unit: "PERCENT" },
+      targetShareBasisPoints: 0,
+    };
+    input.knownCapacityActivities = [
+      {
+        eventId: "event-factual",
+        occurredAt: "2026-09-26T11:59:00.000Z",
+        affectedBucketIds: ["short"],
+        source: "Manually observed run",
+      },
+    ];
+    const h = harness();
+    const revision = await h.service.prepare(input);
+    render(<ComposedReview revision={revision} digest="exact-test-digest" />);
+    expect(screen.getByText(input.repositoryReference)).toBeVisible();
+    expect(screen.getByText("Manually observed run")).toBeVisible();
+    expect(screen.getByText("event-factual")).toBeVisible();
+    expect(screen.getByText(/Minimum coherent scope: No/)).toBeVisible();
+    expect(screen.getByText(/Minimum 0.*target share 0%/)).toBeVisible();
+    expect(screen.getByText("Some new pattern")).toBeVisible();
+    expect(
+      screen.getByLabelText("Complete reviewed evidence").closest("details"),
+    ).not.toHaveAttribute("open");
+    expect(
+      JSON.parse(
+        screen.getByLabelText("Complete reviewed evidence").textContent!,
+      ),
+    ).toEqual(revision);
+  });
+  it("activity rows preserve explicit references after window edits and map errors to retained fields", async () => {
+    const user = userEvent.setup();
+    render(<ComposedForm projectId={PROJECT} draft={draftFixture()} />);
+    await user.click(
+      screen.getByRole("button", { name: "Add capacity activity" }),
+    );
+    await user.type(screen.getByLabelText("Activity identity 1"), "keep-event");
+    await user.type(
+      screen.getByLabelText("Affected window evidence IDs (one per line) 1"),
+      "removed-window",
+    );
+    await user.type(
+      screen.getByLabelText("Window evidence ID 1"),
+      "renamed-window",
+    );
+    await user.click(
+      screen.getByRole("button", { name: "Review frozen inputs" }),
+    );
+    expect(screen.getByLabelText("Activity identity 1")).toHaveValue(
+      "keep-event",
+    );
+    expect(
+      screen.getByLabelText("Affected window evidence IDs (one per line) 1"),
+    ).toHaveValue("removed-window");
+    expect(
+      screen.getByLabelText("Activity time (explicit offset) 1"),
+    ).toHaveAttribute("aria-invalid", "true");
+    const field = screen.getByLabelText("Activity time (explicit offset) 1");
+    expect(
+      document.getElementById(field.getAttribute("aria-describedby")!),
+    ).toBeVisible();
+    screen.getByRole("button", { name: "Remove activity 1" }).focus();
+    await user.keyboard(" ");
+    expect(
+      screen.queryByLabelText("Activity identity 1"),
+    ).not.toBeInTheDocument();
+  });
   it("keyboard entry, explicit taxonomy/UNKNOWN, multiple items/buckets and no legacy conversion", async () => {
     const user = userEvent.setup();
     render(<ComposedForm projectId={PROJECT} draft={draftFixture()} />);
+    await user.tab();
+    expect(
+      screen.getByText("Technical scope and calibration limitations"),
+    ).toHaveFocus();
     await user.tab();
     expect(screen.getByLabelText("Repository / scope reference")).toHaveFocus();
     expect(
@@ -50,10 +124,10 @@ describe("focused complete-preflight accessible UI", () => {
     expect(screen.getByLabelText("Novelty 1")).toHaveValue("UNKNOWN");
     await user.click(screen.getByRole("button", { name: "Add work item" }));
     await user.click(
-      screen.getByRole("button", { name: "Add required bucket" }),
+      screen.getByRole("button", { name: "Add capacity window" }),
     );
     expect(screen.getByLabelText("Work item 2 ID")).toBeVisible();
-    expect(screen.getByLabelText("Bucket ID 2")).toBeVisible();
+    expect(screen.getByLabelText("Window evidence ID 2")).toBeVisible();
     expect(screen.getByText(/No legacy amount/)).toBeVisible();
   });
   it("field error summary focuses and entered evidence remains", async () => {
@@ -73,7 +147,11 @@ describe("focused complete-preflight accessible UI", () => {
     expect(screen.getByLabelText("Repository / scope reference")).toHaveValue(
       "repo/keep",
     );
-    expect(screen.getByText(/minimumCoherentScope/)).toBeVisible();
+    expect(document.getElementById("minimum-error")).toBeVisible();
+    expect(document.getElementById("minimum-error")).toHaveTextContent(
+      "Explicitly answer Yes or No",
+    );
+    expect(screen.getByRole("radio", { name: "Yes" })).not.toBeChecked();
   });
   it("explicit confirmation stays checked on save failure and never reports a saved plan", async () => {
     vi.stubGlobal("requestAnimationFrame", (callback: () => void) =>
@@ -103,7 +181,7 @@ describe("focused complete-preflight accessible UI", () => {
     );
     await user.click(
       screen.getByRole("checkbox", {
-        name: /confirm this exact required bucket set/,
+        name: /confirm this exact required capacity window set/,
       }),
     );
     await user.click(
@@ -117,7 +195,7 @@ describe("focused complete-preflight accessible UI", () => {
     ).toBeChecked();
     expect(
       screen.getByRole("checkbox", {
-        name: /confirm this exact required bucket set/,
+        name: /confirm this exact required capacity window set/,
       }),
     ).toBeChecked();
     expect(
@@ -171,7 +249,9 @@ describe("focused complete-preflight accessible UI", () => {
     }));
     const { unmount } = render(<ComposedResult attempt={await saved(input)} />);
     expect(
-      screen.getByRole("heading", { name: "NOT_COMPOSABLE" }),
+      screen.getByRole("heading", {
+        name: "Forecast cannot be used for a policy decision",
+      }),
     ).toBeVisible();
     expect(screen.queryByText(/Operating mode:/)).not.toBeInTheDocument();
     unmount();
@@ -179,7 +259,7 @@ describe("focused complete-preflight accessible UI", () => {
     rejected.buckets[0].availableCapacity.amount = "10001";
     render(<ComposedResult attempt={await saved(rejected)} />);
     expect(
-      screen.getByRole("heading", { name: "Policy INPUT_REJECTION" }),
+      screen.getByRole("heading", { name: "Policy inputs rejected" }),
     ).toBeVisible();
     expect(screen.queryByText(/Operating mode:/)).not.toBeInTheDocument();
   });
