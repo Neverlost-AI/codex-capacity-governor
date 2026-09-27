@@ -648,3 +648,17 @@ fieldset legend {
     flex-direction: column;
   }
 }
+.evidence-json {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  background: #f4f6f8;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  max-height: 38rem;
+  overflow: auto;
+  font-size: 0.85rem;
+}
+fieldset {
+  margin-block: 1rem;
+  padding: 1rem;
+}

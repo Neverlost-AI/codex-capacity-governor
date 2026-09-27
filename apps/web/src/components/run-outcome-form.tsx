@@ -1,4 +1,5 @@
 "use client";
+import { CsrfField } from "./local-session";
 
 import type { OutcomeObservationWithConsumption } from "@capacity-governor/contracts";
 import { useActionState } from "react";
@@ -390,6 +391,7 @@ export const RunOutcomeForm = ({
   );
   return (
     <form action={action} className="preflight-form outcome-form">
+      <CsrfField />
       <div className="section-heading">
         <p className="eyebrow">
           {current ? "Append-only correction" : "Initial factual observation"}

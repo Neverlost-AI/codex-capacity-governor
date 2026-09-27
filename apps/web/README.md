@@ -13,8 +13,12 @@ application package and an outward Drizzle persistence adapter.
 - T002 additionally persists `DevelopmentRun`, immutable
   `RunOutcomeObservation`, and categorized `ActualCapacityConsumption` records.
 
-The application does not forecast, calculate reserves, calibrate, or issue
-Governor decisions.
+Legacy draft/run flows do not forecast or issue Governor decisions. T005 adds
+a separate manual reviewed preflight invoking the real accepted forecast and
+policy engines, with immutable saved evidence and historical reopen. It does
+not calibrate or enable execution. See [T005 implementation notes](../../docs/TRANCHE_005_IMPLEMENTATION_NOTES.md)
+for supported loopback launch, pairing/session/CSRF requirements, migration,
+evidence reproduction and limits. All product reads/actions require pairing.
 
 ## Run-history persistence
 

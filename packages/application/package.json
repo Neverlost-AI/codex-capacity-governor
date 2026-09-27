@@ -7,7 +7,9 @@
     ".": "./src/index.ts"
   },
   "dependencies": {
-    "@capacity-governor/contracts": "workspace:*"
+    "@capacity-governor/contracts": "workspace:*",
+    "@capacity-governor/forecast-engine": "workspace:*",
+    "@capacity-governor/policy-engine": "workspace:*"
   },
   "scripts": {
     "typecheck": "tsc --noEmit"

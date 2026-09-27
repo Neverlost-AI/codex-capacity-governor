@@ -1,4 +1,5 @@
 "use client";
+import { CsrfField } from "./local-session";
 
 import { useActionState } from "react";
 import { createProjectAction } from "../app/actions";
@@ -47,6 +48,7 @@ export const ProjectForm = () => {
   const [state, action] = useActionState(createProjectAction, initialFormState);
   return (
     <form action={action} className="form-card" noValidate>
+      <CsrfField />
       <ProjectFormFields state={state} />
       <SubmitButton>Create project</SubmitButton>
     </form>

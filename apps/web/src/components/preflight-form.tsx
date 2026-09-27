@@ -1,4 +1,5 @@
 "use client";
+import { CsrfField } from "./local-session";
 
 import type { PreflightDraft } from "@capacity-governor/contracts";
 import { DateTime } from "luxon";
@@ -406,6 +407,7 @@ export const PreflightForm = ({
   );
   return (
     <form action={action} className="preflight-form" noValidate>
+      <CsrfField />
       <PreflightFormFields draft={draft} projectId={projectId} state={state} />
       <div className="sticky-actions">
         <p>Draft only · no forecast or Governor decision</p>

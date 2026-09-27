@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./local-session";
 
 test("create project, save a manual preflight draft, and reopen it", async ({
   page,

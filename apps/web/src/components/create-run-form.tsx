@@ -1,4 +1,5 @@
 "use client";
+import { CsrfField } from "./local-session";
 
 import { useActionState } from "react";
 import { createDevelopmentRunAction } from "../app/actions";
@@ -19,6 +20,7 @@ export const CreateRunForm = ({
 
   return (
     <form action={action} className="create-run-card">
+      <CsrfField />
       <input name="projectId" type="hidden" value={projectId} />
       <input name="preflightDraftId" type="hidden" value={preflightDraftId} />
       <div>

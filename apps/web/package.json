@@ -7,13 +7,15 @@
     "build": "next build",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsx src/server/db/migrate.ts",
-    "dev": "next dev",
-    "start": "next start",
+    "dev": "node scripts/local-launch.mjs dev",
+    "start": "node scripts/local-launch.mjs start",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@capacity-governor/application": "workspace:*",
     "@capacity-governor/contracts": "workspace:*",
+    "@capacity-governor/forecast-engine": "workspace:*",
+    "@capacity-governor/policy-engine": "workspace:*",
     "@electric-sql/pglite": "0.5.4",
     "drizzle-orm": "0.45.2",
     "luxon": "3.7.2",
