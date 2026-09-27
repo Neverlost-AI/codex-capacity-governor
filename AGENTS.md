@@ -25,3 +25,16 @@ Substantive work requires tests at the lowest useful level. Policy and forecast 
 Run the relevant type, lint, test, and build checks before requesting review. Do not weaken validation or delete failing tests merely to make a tranche pass.
 
 See `docs/DEVELOPMENT_WORKFLOW.md` for the tranche and review process.
+
+## Builder and reviewer workflow
+
+For a founder-authorized implementation tranche or requested builder/reviewer
+cycle, the main agent coordinates the repository skill
+`.agents/skills/governor-build-review/SKILL.md`. Delegate implementation to
+`governor_builder` and exact-commit review to a separate `governor_reviewer`
+subagent. The reviewer must never author implementation changes. Follow the
+skill's three-review limit, evidence handoff, and founder stop conditions.
+
+Workflow setup, planning, and review-only requests do not authorize a tranche.
+A technical review pass is not founder acceptance or merge permission. Existing
+scope boundaries, governing decisions, and permission settings still apply.
