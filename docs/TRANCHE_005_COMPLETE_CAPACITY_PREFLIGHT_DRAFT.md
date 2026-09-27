@@ -4,6 +4,7 @@
 
 - **Status:** DRAFT / NOT APPROVED — founder review required.
 - **Authority granted now:** planning only; no T005 implementation.
+- **Scope review:** F1-F7 accepted by the founder; F8 and F9 remain pending.
 - **Planning baseline:** merged main `1f0bdbf30cd4d37f1f3f17153308e28b7c298260`.
 - **Proposed implementation owner:** Codex, subject to founder assignment.
 - **Proposed implementation branch:** `feature/tranche-005-complete-capacity-preflight`.
@@ -24,9 +25,10 @@ A user supplies reviewed work characterization and independent manual capacity
 buckets, confirms the inputs, obtains a traceable result, and saves/reopens its
 immutable evidence. No development execution is performed by the application.
 
-The proposal is deliberately cold-start and manual-only. Comparable-history
-loading, governed-run linkage and outcome/calibration UI belong to T006. These
-scope recommendations require founder approval where identified below.
+The founder accepted a cold-start, manual-only T005 scope through F1-F7.
+Comparable-history loading, governed-run linkage and outcome/calibration UI
+belong to T006. F8/F9 and the final implementation assignment still require
+approval; accepting scope does not authorize code.
 
 ## Current implementation and compatibility assessment
 
@@ -81,27 +83,186 @@ must never expose an enabled execution/continue action implying authorization.
 An engine PROCEED result is a policy result, not founder approval to implement a
 repository tranche or authority for automatic execution.
 
-## Founder decisions required before implementation
+## Founder scope decisions and remaining review
 
-All rows are **HOLD pending founder review**. Recommendations are proposals,
-not defaults the builder may silently implement.
+The founder accepted F1-F7 as proposed in the preceding draft. Their choices are
+settled for this assignment and are not being reopened. F8/F9 remain proposals;
+the detailed sections below supersede their earlier high-level descriptions.
 
-| ID                                                 | Existing resolution and remaining question                                                                                                               | Recommended bounded V1 choice                                                                                                                                                                                                                                                                                                                                                                                                                       | Alternative / tradeoff                                                                                                                                  |
-| -------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| F1 — Minimum characterization and context identity | Decision 0003 settles category and seven factors; T001 does not supply them or repository identity. How is one reviewed scope identified?                | Require non-empty work items with all existing fields, permitting explicit UNKNOWN only where supported. Require an explicit repository reference without inspecting that repository. Keep the parent T001 tranche ID and assign each immutable composed revision its own scopeTrancheId; bind both engines and every receipt to that revision. Never infer factors from prose or copy legacy budget fields without explicit re-entry/confirmation. | Reuse the mutable T001 tranche ID directly, but a separate revision binding would still be required to avoid carrying authority across changed content. |
-| F2 — AI boundary                                   | Roadmap leaves AI inclusion open.                                                                                                                        | Defer all AI assistance and adapters; manual characterization only.                                                                                                                                                                                                                                                                                                                                                                                 | Optional proposal-only AI requires a separate input, privacy/provider and confirmation assignment.                                                      |
-| F3 — Review and finalization                       | Gate A forbids relaxing overrides; roadmap does not define application confirmation or finalization.                                                     | Confirm the complete revision before server evaluation. Evaluate and persist that frozen revision and the result together; a result acknowledgment is evidence only. No editable final result or additional authorization flag. Corrections require a new revision.                                                                                                                                                                                 | Preview then finalize is possible, but requires a separately defined stale-preview/concurrency protocol.                                                |
-| F4 — Guidance families                             | Engine reasons/stops are approved; new optimization heuristics are not.                                                                                  | Display existing per-bucket rule/reason/stop explanations and neutral next-step text: obtain fresh evidence, re-preflight after reset, explicitly define smaller scope, or preserve state. No model, context-size, parallelism or dependency optimization heuristics.                                                                                                                                                                               | Broader optimization guidance needs explicit rules and independent acceptance tests.                                                                    |
-| F5 — Saved-result lifecycle                        | Gate A settles 30-minute/event freshness, resets and immutable evidence; saved-result validity and input-change behavior remain unspecified.             | Treat reopened results as historical. A fresh review/evaluation is required before treating one as current guidance; never refresh observedAt automatically. Any material input/configuration/scope change produces a new revision. Display the original evaluation time and current reevaluation requirement; reuse Gate A checks rather than inventing a new TTL.                                                                                 | Reusable saved guidance needs an approved revalidation protocol, authoritative activity input and precise boundary tests.                               |
-| F6 — Persistence and negative evidence             | Architecture requires reproducible stored evaluations but does not name final tables or failure-record semantics.                                        | Store immutable composed input revisions and attempt records. Each attempt retains actual forecast/projection/policy outcomes or typed failure evidence; only a POLICY_EVALUATION yields a governed-plan snapshot, including restrictive decisions. Persist complete inputs/configurations/results atomically. Never fabricate a mode/decision for rejection or NOT_COMPOSABLE.                                                                     | Store only successful plans, but that loses negative evaluation evidence and needs founder approval.                                                    |
-| F7 — History and run linkage                       | T002 permits UNGUIDED only; T006 owns outcome/calibration composition.                                                                                   | Submit an explicit empty calibrationCandidates array in the T005 product flow. Do not load/import history, normalize actuals, add GUIDED runs or a plan reference to existing run contracts. T005 stores a plan ID for future linkage only.                                                                                                                                                                                                         | Governed run creation/history supply expands the assignment and requires explicit contract, migration and evidence rulings.                             |
-| F8 — Local provenance and trusted boundary         | T003 requires UPSTREAM_TRUSTED_BOUNDARY evidence; upstream authentication was explicitly deferred. What local boundary may establish the required claim? | Limit operation to a founder-confirmed, single-operator local prototype, recording explicit confirmation receipts bound to exact revision/bucket set and server record time. Do not claim actor-name authentication or accept browser-supplied trust flags. Founder must approve the local trust assumption and receipt-to-contract mapping, or hold any path capable of authorizing work.                                                          | Build identity authentication in a separate approved tranche, or restrict T005 to non-authorizing demonstrations. No implied security guarantee.        |
-| F9 — Product Brief source                          | Decision 0003 references a Product Brief, but no standalone brief is tracked in this checkout.                                                           | Founder confirms README's product definition, architecture, roadmap and accepted decisions are sufficient controlling sources for T005, or provides the missing brief for reconciliation.                                                                                                                                                                                                                                                           | Hold final assignment approval until the separate brief is supplied and reviewed.                                                                       |
+| Decision | Status                | Controlling choice                                                                                               |
+| -------- | --------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| F1       | ACCEPTED              | Accepted manual taxonomy; explicit repository reference; immutable revision scope identity.                      |
+| F2       | ACCEPTED              | AI assistance deferred.                                                                                          |
+| F3       | ACCEPTED              | Confirm frozen inputs, then evaluate and save; no editable final result.                                         |
+| F4       | ACCEPTED              | Existing deterministic explanations and neutral guidance only.                                                   |
+| F5       | ACCEPTED              | Reopened results are historical; current guidance requires reviewed reevaluation.                                |
+| F6       | ACCEPTED              | Immutable revision/attempt/plan evidence, including negative submitted evaluations.                              |
+| F7       | ACCEPTED              | Cold start only; governed-run linkage, outcome comparison and history loading follow in T006.                    |
+| F8       | HOLD — proposal ready | Loopback-only app, local pairing session and server-owned confirmation evidence as specified below.              |
+| F9       | HOLD — source found   | Use V0.2 as product context and accepted tracked decisions/assignments as controlling scope; see reconciliation. |
 
-These choices interact: F1/F8 define the binding of authoritative inputs; F3/F5
-define when confirmation applies; F6 determines what is retained; F7 keeps
-historical identity and actual normalization out of this tranche. Approval of F8
-must not be presented as resolving the deferred upstream authentication system.
+F1-F7 retain the exact choices accepted in the preceding draft. In particular,
+F1 requires explicit confirmation of legacy values rather than silent conversion;
+F6 retains negative submitted evaluations; and F7 does not add GUIDED run
+contracts. Technical organization may vary without changing those accepted
+meanings.
+
+F1/F8 bind authoritative inputs; F3/F5 define when confirmation applies; F6
+defines retained evidence; F7 keeps historical identity and actual normalization
+out of this tranche. The remaining detailed F8/F9 proposals follow.
+
+### F8 — Concrete local access and confirmation proposal (NOT APPROVED)
+
+**Recommendation:** add a minimal local access gate and server-owned confirmation
+receipts. This permits one local operator to submit explicit evidence under a
+documented operating assumption; it is not a human identity verification system.
+Accepting it must not be described as resolving general upstream authentication.
+
+#### Access restriction
+
+1. Supported development and built-app launch paths must explicitly bind Next.js
+   to `127.0.0.1`, using its supported `--hostname` option. Do not rely on the
+   installed default, which is `0.0.0.0`. Tests must verify the launch arguments
+   and fail closed for a requested non-loopback host. Direct unsupported launch
+   commands, reverse proxies, tunnels and port forwarding are outside this
+   local operating boundary; document that they invalidate its trust assumption.
+2. Use exactly one configured origin, `http://127.0.0.1:<port>`. Reject unexpected
+   Host values, proxy/forwarded-host requests, and state-changing requests with
+   missing or mismatching Origin. Do not enable cross-origin access or accept a
+   wildcard host. These guards apply to the application, not only the final
+   confirmation action. Framework defaults alone are not the acceptance proof.
+3. On each server start, generate an unpredictable local pairing secret with at
+   least 256 bits of entropy using the server runtime's existing cryptography
+   support. Present it only to the operator's local launch terminal. It is not
+   an OpenAI credential. Never put it in a URL, tracked file, general request
+   log, client bundle, persisted evaluation, or confirmation evidence.
+4. The operator enters that secret in the loopback pairing form. The server
+   validates it and creates a server-held session with an opaque cookie marked
+   HttpOnly and SameSite=Strict, host-only and without persistent browser expiry.
+   This proposal uses loopback HTTP and must not pretend the cookie has HTTPS
+   transport protection. All product data reads and mutations require the
+   paired session; only the pairing/health/static surfaces needed to enter it
+   are public. Clear pending challenges on session end; restart invalidates all
+   sessions/secrets. No browser-generated session or trust object is accepted.
+5. Pairing POST requires a server-issued bootstrap form token and exact Origin;
+   subsequent product mutations require server-issued, paired-session-bound
+   CSRF tokens in addition to Origin checking and cookie protections.
+   Confirmation challenges below bind the specific operation as well. No GET
+   request changes records.
+
+This protects against remote/LAN access through supported launches and prevents
+an unrelated web page from submitting an authoritative confirmation. It assumes
+a trusted OS account, trusted local browser and uncompromised app. It does not
+isolate hostile local processes, administrators or users sharing that account;
+local programs can forge headers. Host/Origin checks are additional controls,
+not actor authentication. Do not expose this prototype to other users or claim
+tenant isolation. A hosted/shared version needs separately approved identity,
+TLS, deployment and access controls.
+
+#### Exact input review and explicit confirmation
+
+1. The paired operator submits the work description, factors, required buckets,
+   observations, resets, reserve preferences, known activity/stop evidence and
+   explicit minimum-coherent-scope answer for review. The server validates them
+   and assigns the immutable revision ID. Both engines use that scopeTrancheId.
+2. The server owns a pending exact snapshot. Canonicalize it with a documented
+   locale-independent procedure and compute a SHA-256 digest. The digest covers
+   project/repository/parent tranche and revision identity, all work-item values,
+   bucket IDs and provider/window/reset tuples, raw decimal text/units,
+   observation/reset/activity times, reserve inputs, explicit attestations,
+   exclusions/acceptance criteria and selected complete engine configurations.
+   Secret tokens and subsequently generated evaluation times/receipts are not
+   input content. Preserve original factual strings; no Unicode or timezone
+   reinterpretation is introduced by hashing.
+3. Serve the review screen from that stored snapshot, displaying the exact
+   required bucket set and all material values. Issue an unpredictable,
+   one-use confirmation challenge tied server-side to the session, revision,
+   digest and bucket set. A hash supplied by the browser is never authoritative.
+4. The user explicitly confirms reviewed work inputs and required-bucket
+   membership. The minimum-coherent-scope answer is a separate explicit Yes/No
+   attestation, not a preselected true value; missing is not automatically false.
+   Confirmation of the bucket set does not attest that a scope is minimum.
+5. The confirmation POST sends the challenge/revision reference, session CSRF
+   evidence and explicit confirmation action. It cannot replace the stored
+   inputs or submit authoritative actorReference, recordedAt, provenance,
+   reviewed/trusted flags, bucket membership or an engine result. Unknown
+   authority fields are rejected. Editing an input invalidates the pending
+   challenge and produces a new revision/review.
+6. The server verifies session, origin, challenge ownership and unconsumed state,
+   revision, exact canonical digest and bucket-set equality. It takes record and
+   evaluation time from its injected clock, then records the confirmation and
+   evaluates that server-held snapshot. No capacity observation time is advanced
+   by confirmation; engine freshness rules still apply at evaluation time.
+7. Save confirmation, immutable revision and actual attempt/result in one
+   transaction. Claim the challenge once with a conditional operation; competing
+   submissions cannot authorize twice. A committed retry returns its existing
+   saved attempt, while a changed/session-mismatched or replayed challenge
+   cannot create another authorization. On transaction failure report no saved
+   result and allow a safe retry of the same operation. Do not hide consumed or
+   partially committed evidence with an overwrite.
+
+The durable receipt retains a generated receipt ID, revision/scope ID, canonical
+digest and canonicalization version, exact bucket IDs and composite identities,
+server record time, the explicit confirmations/minimum-scope value, and an opaque
+local-session actor reference. It records the access-boundary version and receipt
+reference; it contains no pairing secret, cookie, CSRF token or challenge secret.
+It proves what the admitted session submitted, not the legal identity or truth
+of the operator's manual claims.
+
+Only after these checks may the application construct Gate A
+UPSTREAM_TRUSTED_BOUNDARY provenance and Gate B reviewed-characterization/bucket
+authority from the durable receipt. The server-generated actor/reference and
+record time match the exact scope and bucket set. Existing policy/forecast
+schemas and semantics remain unchanged. Client trust flags cannot take this
+path. This is the concrete mapping requiring F8 approval.
+
+**User impact:** one pairing step each server session, followed by review and
+explicit confirmation for each input revision. No external account or provider
+credentials are needed. No reviewer/agent auto-confirmation is introduced.
+
+**Alternative:** loopback binding alone is simpler but does not substantiate the
+server's local-session provenance; I do not recommend it for an authorizing
+flow. If the pairing boundary is unacceptable, hold authorizing T005 paths or
+approve a separate identity/access tranche rather than accepting a browser flag.
+
+Required future tests include non-loopback launch rejection, wrong Host/Origin,
+missing/invalid session and CSRF evidence, denied unpaired data reads, secret-free
+audit records, review/receipt matching, input/bucket/digest tampering, missing
+explicit attestation, stale/other-session challenge, restart invalidation,
+double-submit/idempotent retry and atomic failure. These are assignment
+requirements, not tests or implementation added during this planning pass.
+
+Reference design guidance:
+[OWASP CSRF prevention](https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html).
+The installed Next.js CLI source confirms --hostname support and the current
+0.0.0.0 default. No startup scripts or request handling changed in this draft.
+
+### F9 — Product Brief found and reconciled (NOT APPROVED)
+
+Both original V0.1 (July 31, 2026) and later V0.2 (August 11, 2026) PDFs were
+found in the user's Downloads project materials. The configured Obsidian vault's
+Capacity Governor folder contained governance/T003 materials, not the brief.
+All PDF pages were extracted and relevant scope/example pages visually reviewed;
+V0.2 page 6 is blank. Paths, source hashes, page references and differences are
+recorded in [Product Brief reconciliation](PRODUCT_BRIEF_RECONCILIATION.md).
+
+**Recommendation for approval:** retain V0.2 as historical product vision, V0.1
+as origin context, and use the accepted tracked Decisions 0001-0003, accepted
+assignments and latest explicit founder T005 rulings as controlling semantics
+and bounded scope. README/architecture explain the product; the roadmap keeps
+the complete MVP sequence visible. The final approved T005 assignment controls
+this implementation. Neither PDF expands authorization by being discovered.
+
+The briefs confirm preflight, protected reserves, transparent ranges, outcomes
+and later learning. Their broader AI, credit/model-cost, optimization and runtime
+integration descriptions differ from accepted V1 semantics or bounded T005
+scope. F1-F7 remain accepted; the reconciliation does not reopen them. Governed
+outcomes/history remain T006, dogfooding T007 and external pilot T008. Broader
+unassigned capabilities are visible in the roadmap without being new MVP gates.
+
+**Remaining F9 choice:** accept this source precedence and reconciliation, or
+identify a specific brief requirement whose scheduling/authority needs a later
+founder ruling. No requirement is now blocked merely because the brief is absent.
 
 ## Technical scope after approval
 
@@ -146,7 +307,7 @@ The evaluated sequence is:
 1. Validate the project/draft association and approved confirmation/context.
 2. Freeze the reviewed input snapshot and take explicit server evaluation time.
 3. Invoke evaluateForecastV1 with complete accepted Gate B configuration and
-   the approved history boundary (recommended empty candidates).
+   the accepted F7 history boundary (empty candidates).
 4. For FORECAST_EVALUATION, invoke the existing projection for every required
    bucket. Preserve expected demand unchanged and uncertainty separately.
 5. If any projection is NOT_COMPOSABLE, retain that evidence and the forecast;
@@ -238,6 +399,9 @@ downgrading the app is safer than dropping new evidence tables.
 - `apps/web/e2e/**`: critical paths and conservative-family evidence.
 - Root/package manifests and test configuration only if essential for existing
   engine/application dependency wiring. New dependencies require approval.
+- If F8 is approved, narrow local launch/session/origin/CSRF/review-challenge
+  handling and tests in apps/web and existing scripts/run-e2e.mjs as required
+  for the same protected local flow; no external auth provider or new dependency.
 - Documentation directly needed to operate, test and review T005.
 
 No behavior changes in packages/policy-engine or packages/forecast-engine are
@@ -354,7 +518,7 @@ snapshots, and how to reproduce a saved evaluation without changing it.
 Stop affected implementation and report the smallest founder decision if:
 
 - any F1-F9 answer is absent or conflicts with a controlling source;
-- the missing Product Brief reveals a requirement not reconciled here;
+- a Product Brief requirement is not reconciled under the approved F9 precedence;
 - the proposed local boundary cannot honestly establish approved provenance;
 - a form or adapter requires an unsupported conversion, guessed timezone,
   inferred bucket/attestation or normalization of raw T002 evidence;
@@ -370,7 +534,8 @@ Do not resolve these with a guessed default, a hidden flag or a disclaimer.
 
 ## Founder review checklist
 
-For each row, reply ACCEPT, CHANGE (with replacement), or HOLD:
+F1-F7 are accepted and recorded above. No further approval of those choices is
+requested. Their accepted checklist remains:
 
 - F1: full accepted manual taxonomy, explicit repository reference and immutable
   revision scope identity.
@@ -382,9 +547,14 @@ For each row, reply ACCEPT, CHANGE (with replacement), or HOLD:
 - F6: immutable input/attempt/plan evidence, including negative outcomes,
   transactionally saved with no invented policy fields.
 - F7: cold-start flow only; history loading and governed-run linkage deferred.
-- F8: explicit local trust assumption and receipt mapping, or hold authorizing
-  paths until that boundary is separately approved.
-- F9: confirm available product sources suffice, or supply the Product Brief.
+
+Only F8/F9 require ACCEPT, CHANGE (with replacement), or HOLD:
+
+- F8: approve the concrete loopback/pairing/session, server-owned review snapshot
+  and one-use confirmation receipt boundary specified above, with its local-only
+  trust limits; or hold authorizing paths pending a different boundary.
+- F9: approve the found-brief reconciliation and source precedence specified
+  above; or identify a particular unresolved requirement for a founder ruling.
 
 After these decisions, separately approve the final assignment, owner and
 implementation authority. This draft alone is not safe authority to begin T005.

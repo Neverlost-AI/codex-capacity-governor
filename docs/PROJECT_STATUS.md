@@ -4,10 +4,10 @@
 
 This ledger records observed repository state and explicit founder acceptance.
 It grants no implementation, deployment, or merge authority. Accepted decision
-records and separately approved assignments remain controlling. The roadmap's
-original readiness labels and README's T002-era status have not yet been updated
-to reflect all subsequent merges; use the evidence below to distinguish that
-historical planning text from the current implementation state.
+records and separately approved assignments remain controlling. The roadmap now
+includes current progress and the remaining MVP; historical readiness prose in
+its original tranche descriptions and README's T002-era status must not override
+the accepted records and merge evidence below.
 
 ## Current accepted implementation
 
@@ -50,8 +50,12 @@ ledger was prepared; it was not merged as part of PR #9 acceptance.
 
 The draft is
 [Tranche 005 assignment](TRANCHE_005_COMPLETE_CAPACITY_PREFLIGHT_DRAFT.md).
-T001-T004 dependencies exist, but application confirmation, trust, saved-result
-lifecycle, guidance and persistence choices require founder review before code.
+T001-T004 dependencies exist. The founder accepted F1-F7 as proposed for T005:
+manual cold start, reviewed immutable revisions, confirmation/evaluate/save,
+existing guidance only, historical reopened results, immutable attempt/plan
+evidence and deferred governed-run/history loading. F8's concrete local
+access/server-receipt proposal and F9's found-brief reconciliation remain pending.
+Final assignment/implementation authority has not been granted.
 No T005 implementation branch or migrations have been created. T006-T008,
 deployment and external pilot work remain unauthorized.
 
@@ -59,10 +63,13 @@ deployment and external pilot work remain unauthorized.
 
 Reviewed README's product definition, architecture context, development
 workflow, roadmap, Decisions 0001-0003, prior assignments and actual application,
-contract, engine and database boundaries. No standalone Product Brief exists in
-the tracked checkout, although Decision 0003 references one. Do not claim that
-missing source was read; founder review must supply it or confirm the available
-product definition is sufficient for this assignment.
+contract, engine and database boundaries. A later authorized read-only search
+located original V0.1 and later V0.2 Product Brief PDFs in Downloads and the
+Capacity Governor folder in the configured Obsidian vault. Both briefs were read;
+the folder contained governance/T003 materials rather than the brief itself.
+No standalone brief is tracked. [Source reconciliation](PRODUCT_BRIEF_RECONCILIATION.md)
+records exact provenance, hashes and scope differences for F9 approval. Discovery
+does not override later accepted decisions or F1-F7.
 
 This documentation pass did not rerun product test suites. Existing independent
 T004 and workflow review results are historical evidence, not a new full-suite

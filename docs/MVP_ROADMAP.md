@@ -4,7 +4,12 @@
 
 This is the founder-reviewable master roadmap for the Codex Capacity Governor MVP. It describes sequencing, dependencies, decision gates, evidence, and possible ownership lanes. It is a planning and governance document only.
 
-**Roadmap inclusion is not implementation authorization.** Only a separately founder-approved, bounded tranche assignment grants authority to implement work. At present, only [Tranche 001: Manual Preflight Draft](TRANCHE_001_MANUAL_PREFLIGHT_DRAFT.md) is fully specified and assigned.
+**Roadmap inclusion is not implementation authorization.** Only a separately founder-approved, bounded tranche assignment grants authority to implement work. T001-T004 are now accepted; Gate A and Gate B are closed. T005 is at scope review: F1-F7 accepted, F8/F9 pending, and implementation not authorized. See [project status](PROJECT_STATUS.md) and the [T005 draft](TRANCHE_005_COMPLETE_CAPACITY_PREFLIGHT_DRAFT.md).
+
+The progress table below supersedes historical readiness and ownership statements
+in the original tranche descriptions. Accepted assignments and decision records
+remain controlling. This update preserves the full MVP sequence rather than
+treating T005 as the whole product.
 
 The founder retains ownership of product meaning, Governor policy rules, forecasting method, reserve philosophy, prioritization, and acceptance. Codex and technical collaborators may research or propose options, but they must not silently decide founder-controlled semantics.
 
@@ -42,31 +47,34 @@ Codex is the first supported coding agent, while platform-specific assumptions r
 
 ## Readiness vocabulary
 
-| State | Meaning |
-| --- | --- |
-| `FULLY_SPECIFIED` | A bounded assignment exists with explicit acceptance and stop conditions. Implementation still requires the assignment to be approved and granted to an owner. |
-| `IMPLEMENTATION_READY_DRAFT` | The intended vertical slice is defined well enough to convert into an exact assignment after its dependencies and named founder decisions are resolved. It is not authorized. |
-| `ARCHITECTURE_READY` | Purpose, boundaries, interfaces, and evidence are understood at roadmap level, but an implementation assignment and possibly founder decisions are still required. |
-| `BLOCKED_ON_FOUNDER_DECISION` | Implementation must not begin until the named founder gate is resolved and recorded. |
-| `OUTCOME_DEFINED` | The validation activity and evidence sought are defined; engineering and operational prerequisites remain subject to separate approval. |
-| `POST_MVP` | Explicitly excluded from the required MVP. |
+| State                         | Meaning                                                                                                                                                                       |
+| ----------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `FULLY_SPECIFIED`             | A bounded assignment exists with explicit acceptance and stop conditions. Implementation still requires the assignment to be approved and granted to an owner.                |
+| `IMPLEMENTATION_READY_DRAFT`  | The intended vertical slice is defined well enough to convert into an exact assignment after its dependencies and named founder decisions are resolved. It is not authorized. |
+| `ARCHITECTURE_READY`          | Purpose, boundaries, interfaces, and evidence are understood at roadmap level, but an implementation assignment and possibly founder decisions are still required.            |
+| `BLOCKED_ON_FOUNDER_DECISION` | Implementation must not begin until the named founder gate is resolved and recorded.                                                                                          |
+| `OUTCOME_DEFINED`             | The validation activity and evidence sought are defined; engineering and operational prerequisites remain subject to separate approval.                                       |
+| `POST_MVP`                    | Explicitly excluded from the required MVP.                                                                                                                                    |
 
-`CURRENT_COLLABORATOR_TRANCHE` is an execution marker, not a readiness state. It currently applies only to Tranche 001. Future ownership labels are planning guidance, not assignment or permission.
+`ACCEPTED` records completed founder acceptance; `CLOSED` records an accepted
+founder gate. Neither state grants new implementation authority.
+`CURRENT_COLLABORATOR_TRANCHE` was the original T001 execution marker; it is not
+an active future assignment. Future ownership labels remain planning guidance.
 
 ## Roadmap at a glance
 
-| Stage | Readiness | Primary role in the MVP | Suggested ownership lane |
-| --- | --- | --- | --- |
-| Tranche 001 — Manual Preflight Draft | `FULLY_SPECIFIED` + `CURRENT_COLLABORATOR_TRANCHE` | Establish project/manual-draft, persistence, validation, UI, and testing patterns. | Technical collaborator |
-| Tranche 002 — Run and Outcome History Foundation | `IMPLEMENTATION_READY_DRAFT` | Establish auditable run/outcome capture without forecasting or policy. | Shared |
-| Founder Decision Gate A — Governor Policy Semantics | `BLOCKED_ON_FOUNDER_DECISION` | Approve deterministic budget, reserve, mode, decision, and stop rules. | Founder + Codex |
-| Tranche 003 — Deterministic Governor Policy Engine V1 | `ARCHITECTURE_READY` + `BLOCKED_ON_FOUNDER_DECISION` | Implement approved policy as a pure, explainable engine. | Founder + Codex |
-| Founder Decision Gate B — Forecasting Method | `BLOCKED_ON_FOUNDER_DECISION` | Approve range, confidence, inputs, cold-start, and error semantics. | Founder + Codex |
-| Tranche 004 — Forecast Engine V1 | `ARCHITECTURE_READY` + `BLOCKED_ON_FOUNDER_DECISION` | Produce auditable planning ranges for policy consumption. | Founder + Codex |
-| Tranche 005 — Complete Capacity Preflight | `ARCHITECTURE_READY` | Compose manual characterization, forecast, policy, and guidance into the first recognizable Governor experience. | Shared |
-| Tranche 006 — Outcome and Calibration Loop | `ARCHITECTURE_READY` | Compare governed forecasts with actual runs and feed evidence into future planning. | Shared |
-| Tranche 007 — Governor Dogfooding | `OUTCOME_DEFINED` | Govern development of the Governor and assess internal usefulness and calibration. | Founder + Codex |
-| Tranche 008 — Hosted External Pilot | `OUTCOME_DEFINED` | Collect exploratory evidence from approximately 3–5 developers for about one week. | Shared |
+| Stage                                                 | Readiness                             | Primary role in the MVP                                                               | Suggested ownership lane         |
+| ----------------------------------------------------- | ------------------------------------- | ------------------------------------------------------------------------------------- | -------------------------------- |
+| Tranche 001 — Manual Preflight Draft                  | `ACCEPTED`                            | Project/manual-draft persistence, validation, UI and tests.                           | Accepted foundation              |
+| Tranche 002 — Run and Outcome History Foundation      | `ACCEPTED`                            | Factual UNGUIDED run/outcome capture with append-only amendments.                     | Accepted foundation              |
+| Founder Decision Gate A — Governor Policy Semantics   | `CLOSED`                              | Decision 0002 governs multi-bucket policy semantics.                                  | Founder                          |
+| Tranche 003 — Deterministic Governor Policy Engine V1 | `ACCEPTED`                            | Pure policy engine; PR #3 merged.                                                     | Accepted foundation              |
+| Founder Decision Gate B — Forecasting Method          | `CLOSED`                              | Decision 0003 governs forecast method and composition mapping.                        | Founder                          |
+| Tranche 004 — Forecast Engine V1                      | `ACCEPTED`                            | Pure forecast/projection/comparison; PR #7 merged.                                    | Accepted foundation              |
+| Tranche 005 — Complete Capacity Preflight             | `BLOCKED_ON_FOUNDER_DECISION` — F8/F9 | Manual local cold-start composition; F1-F7 accepted; draft PR #10, no implementation. | Proposed Codex, not yet assigned |
+| Tranche 006 — Outcome and Calibration Loop            | `ARCHITECTURE_READY`                  | Compare governed forecasts with actual runs and feed evidence into future planning.   | Shared                           |
+| Tranche 007 — Governor Dogfooding                     | `OUTCOME_DEFINED`                     | Govern development of the Governor and assess internal usefulness and calibration.    | Founder + Codex                  |
+| Tranche 008 — Hosted External Pilot                   | `OUTCOME_DEFINED`                     | Collect exploratory evidence from approximately 3–5 developers for about one week.    | Shared                           |
 
 The ordering above expresses dependency and learning sequence, not a promise that every stage is one pull request or that work may begin automatically.
 
@@ -453,9 +461,11 @@ Compose accepted project/preflight entry, task/scope characterization, Forecast 
 
 ### 3. Readiness state
 
-`ARCHITECTURE_READY`.
-
-This does not mean implementation-ready: Gate A, Gate B, prerequisite tranches, and a separate assignment must be accepted first.
+Scope review in progress. F1-F7 are founder-accepted in the
+[T005 assignment draft](TRANCHE_005_COMPLETE_CAPACITY_PREFLIGHT_DRAFT.md).
+F8 (concrete local access/provenance boundary) and F9 (found Product Brief
+reconciliation/source precedence) remain pending. A final approved assignment
+and explicit implementation authorization are still required.
 
 ### 4. Dependencies
 
@@ -472,6 +482,16 @@ This does not mean implementation-ready: Gate A, Gate B, prerequisite tranches, 
 - Which optimization guidance families appear in V1 and how they relate to deterministic rule explanations.
 - User review/edit/confirmation points before a governed plan becomes final.
 - Preflight expiration/re-evaluation rules when budget, reset timing, scope, forecast configuration, or policy version changes.
+
+The latest founder review accepted the draft's F1-F7: full existing manual
+taxonomy and immutable scope revisions, AI deferred, confirm inputs before
+evaluation/save, existing explanation/guidance only, historical reopened results,
+immutable negative/positive evaluation evidence, and cold start with governed
+outcomes/history in T006. Only F8/F9 remain open for T005 scope review.
+
+The original V0.1 and later V0.2 Product Briefs have been located and read. See
+[source reconciliation](PRODUCT_BRIEF_RECONCILIATION.md). Their discovery does
+not expand T005 or override accepted Gate A/B decisions.
 
 ### 6. User-visible completion condition
 
@@ -786,6 +806,29 @@ Shared: founder owns pilot policy, participants, evidence boundary, and acceptan
 
 ---
 
+## Remaining MVP and broader product visibility
+
+| Remaining work                      | Purpose and prerequisite                                                                                                                                                                                                                                                                    | Authority now                                               |
+| ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
+| T005 — Complete Capacity Preflight  | Compose and persist accepted engine evidence behind a manual local UI. F8/F9 and final assignment approval required.                                                                                                                                                                        | Documentation planning only.                                |
+| T006 — Outcome and Calibration Loop | Link governed runs to immutable plans, record outcomes/adherence, establish compatible actual evidence, compare forecast versus actual and provide transparent history to later forecasts. Requires accepted T005 and bounded evidence/migration decisions. Preserve T002 UNGUIDED history. | Not assigned or authorized.                                 |
+| T007 — Governor Dogfooding          | Exercise the complete T005/T006 loop, preserve negative/incomplete runs and evaluate usefulness/forecast error under an approved protocol.                                                                                                                                                  | Not started or authorized.                                  |
+| T008 — Hosted External Pilot        | Separately approve hosted identity/tenancy, privacy, operations and participant protocol after dogfooding.                                                                                                                                                                                  | Not started or authorized; local F8 is not hosted approval. |
+
+The briefs also describe broader whole-project decomposition/sequencing,
+model/context/parallelism optimization, richer project/portfolio allocations,
+brief upload, simulated capacity and runtime Codex skill/plugin integration.
+These are visible product follow-ups with no current tranche assignment or
+implementation authority. They are not silently added to T005, deleted from the
+vision, or made new MVP prerequisites. Founder prioritization must determine any
+future bounded assignment. AI remains an optional separately reviewed proposal;
+automatic provider access and commercial/team/API features retain their existing
+post-MVP boundaries.
+
+The older briefs' complete-loop goal requires T005 plus T006. T007 then examines
+internal evidence and T008 is the separately approved external pilot. The manual
+T005 slice alone does not complete the learning loop or demonstrate savings.
+
 ## Post-MVP and stretch boundary
 
 The following are documented for context but are not part of the required MVP and carry readiness `POST_MVP`:
@@ -816,10 +859,11 @@ Neverlost OS participation remains a completely separate decision. This roadmap 
 
 The roadmap intentionally leaves these questions open until their named decision point:
 
-- Gate A budget units, normalization, reserve formulas, thresholds, precedence, reset/defer rules, uncertainty, and stop behavior.
-- Gate B forecast method, range/confidence meanings, cold-start behavior, comparable history, and error calculation.
-- Tranche 002 outcome, validation, remaining-capacity, correction, and evidence-amendment vocabulary.
-- Tranche 005 minimum characterization, optional AI-analysis scope, user confirmation, guidance families, and preflight expiry.
+- Gate A, Gate B and T002 vocabulary are resolved by accepted Decisions
+  0002, 0003 and 0001 respectively; their existing semantics are not open questions.
+- Tranche 005 F8 local access/server confirmation provenance and F9 Product Brief
+  reconciliation/source precedence; F1-F7 are accepted, final implementation
+  assignment still pending.
 - Tranche 006 comparable-run, adherence, evidence amendment, and calibration-adjustment behavior.
 - Dogfooding sample sufficiency and external-pilot entry criteria.
 - External-pilot hosting, identity/tenancy, privacy, retention/deletion, support, and incident policy.
