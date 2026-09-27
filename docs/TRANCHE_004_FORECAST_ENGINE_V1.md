@@ -2,16 +2,32 @@
 
 ## Assignment status
 
-- **Status:** Founder-approved; implementation authorized — 2026-09-23
+- **Status:** `FOUNDER_APPROVED` — implementation accepted and PR #7 merged
 - **Type:** Bounded pure-domain implementation tranche
 - **Controlling decision:**
   `docs/decisions/0003-gate-b-forecasting-method-v1.md`
-- **Founder approval date:** 2026-09-23
+- **Assignment approval date:** 2026-09-23
+- **Implementation acceptance date:** 2026-09-26 (America/Denver)
+- **Accepted implementation commit:** `8e9e491aedf93aa59375ed0195cc2f8994447479`
+- **Accepted pull request:** [PR #7](https://github.com/Neverlost-AI/codex-capacity-governor/pull/7)
+- **Merge commit:** `0d7cc7c225b0e1ef3ecd3b3a08f57f33923e26d0`
+- **Merged at:** 2026-09-27 03:12:50 UTC
 - **Implementation owner:** Codex
 - **Founder-approved pre-authorization baseline:** `e272ccbdac7a6caf316db1b348a7a3bfaa717b0b`
 - **Implementation branch:** `feature/tranche-004-forecast-engine-v1`
 - **Pull-request target:** `main`
 - **Product and acceptance owner:** Founder
+
+The founder explicitly accepted the implementation at the commit above, citing
+the completed independent technical review, and authorized PR #7 to merge only
+if its head still matched. The head matched and GitHub reported the PR clean and
+mergeable, with no required checks reported. The merge tree is identical to the
+accepted implementation tree.
+
+Historical reset-cycle ambiguity and upstream evidence authentication remain
+deferred. This acceptance does not authorize T005 implementation, deployment, or
+additional scope. The assignment below remains the record of the approved T004
+implementation boundary.
 
 This document is the founder-approved bounded implementation authority for
 Tranche 004. Founder approval on 2026-09-23 authorizes Codex to implement only
