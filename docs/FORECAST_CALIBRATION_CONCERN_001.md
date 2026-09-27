@@ -31,7 +31,7 @@ Each new observation had a distinct run/candidate/evidence/normalization referen
 the full rounded range returned for that run, a constant supplied actual, and
 `currentEvidence: true`. Every previous observation was supplied to the next run.
 Recorded times stayed at the fixture's preceding-day timestamp, inside the
-preferred 180-day history window and before evaluation. Minimum adjustment history
+accepted 90-day history window and before evaluation. Minimum adjustment history
 remained three; public EXPECTED rounding remained upward to 100 bp.
 
 For isolation, every synthetic history bucket used the same explicit reset-cycle
