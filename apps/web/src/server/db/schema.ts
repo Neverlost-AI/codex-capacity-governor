@@ -1,4 +1,8 @@
 import { sql } from "drizzle-orm";
+import type {
+  ComposedAttempt,
+  ComposedRevision,
+} from "@capacity-governor/contracts";
 import {
   type AnyPgColumn,
   check,
@@ -240,5 +244,36 @@ export const actualCapacityConsumptions = pgTable(
       "actual_capacity_consumptions_manual",
       sql`${table.source} = 'manual'`,
     ),
+  ],
+);
+
+export const composedPreflightRevisions = pgTable(
+  "composed_preflight_revisions",
+  {
+    id: uuid("id").primaryKey(),
+    projectId: uuid("project_id")
+      .notNull()
+      .references(() => projects.id, { onDelete: "restrict" }),
+    preflightDraftId: uuid("preflight_draft_id")
+      .notNull()
+      .references(() => preflightDrafts.id, { onDelete: "restrict" }),
+    canonicalDigest: text("canonical_digest").notNull(),
+    snapshot: jsonb("snapshot").$type<ComposedRevision>().notNull(),
+  },
+);
+export const preflightEvaluationAttempts = pgTable(
+  "preflight_evaluation_attempts",
+  {
+    id: uuid("id").primaryKey(),
+    revisionId: uuid("revision_id")
+      .notNull()
+      .references(() => composedPreflightRevisions.id, {
+        onDelete: "restrict",
+      }),
+    recordedAt: timestamp("recorded_at", { withTimezone: true }).notNull(),
+    snapshot: jsonb("snapshot").$type<ComposedAttempt>().notNull(),
+  },
+  (table) => [
+    uniqueIndex("preflight_attempts_revision_unique").on(table.revisionId),
   ],
 );

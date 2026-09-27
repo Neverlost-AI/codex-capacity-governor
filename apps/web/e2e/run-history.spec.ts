@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./local-session";
 
 test("create an unguided run, record its outcome, reopen it, and append an amendment", async ({
   page,
@@ -34,7 +34,10 @@ test("create an unguided run, record its outcome, reopen it, and append an amend
   await expect(
     page.getByRole("heading", { name: "Unguided development run" }),
   ).toBeVisible();
-  await expect(page.getByText("UNGUIDED", { exact: true })).toBeVisible();
+  const unguidedLabels = page.getByText("UNGUIDED", { exact: true });
+  await expect(unguidedLabels).toHaveCount(2);
+  await expect(unguidedLabels.nth(0)).toBeVisible();
+  await expect(unguidedLabels.nth(1)).toBeVisible();
 
   await page
     .getByRole("combobox", { name: "Run outcome" })

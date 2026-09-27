@@ -1,7 +1,9 @@
 import { defineConfig, devices } from "@playwright/test";
 
-const managesWebServer =
-  process.env.CAPACITY_GOVERNOR_E2E_EXTERNAL_SERVER !== "1";
+if (process.env.CAPACITY_GOVERNOR_E2E_EXTERNAL_SERVER !== "1")
+  throw new Error(
+    "Use pnpm test:e2e: its supported local launcher captures runtime pairing in memory.",
+  );
 
 export default defineConfig({
   testDir: "./apps/web/e2e",
@@ -13,23 +15,10 @@ export default defineConfig({
   reporter: "list",
   timeout: 60_000,
   use: {
-    baseURL: "http://localhost:3100",
+    baseURL: "http://127.0.0.1:3100",
     screenshot: "only-on-failure",
-    trace: "retain-on-failure",
+    trace: "off", // Pairing/cookie/CSRF/challenge secrets must not enter trace artifacts.
   },
-  webServer: managesWebServer
-    ? {
-        command: "node node_modules/next/dist/bin/next dev --port 3100",
-        cwd: "apps/web",
-        env: {
-          ...process.env,
-          DATABASE_URL: "pglite://e2e",
-        },
-        reuseExistingServer: false,
-        timeout: 120_000,
-        url: "http://localhost:3100",
-      }
-    : undefined,
   projects: [
     {
       name: "chromium",

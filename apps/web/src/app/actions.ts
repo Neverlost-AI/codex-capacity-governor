@@ -19,6 +19,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { ZodError } from "zod";
 import { getApplicationService } from "../server/application";
+import { requireLocalAccess } from "../server/access";
 import {
   amendRunOutcomeFormSchema,
   localResetToIso,
@@ -36,6 +37,13 @@ const formValues = (formData: FormData): Record<string, string> =>
       typeof value === "string" ? value : "",
     ]),
   );
+
+const authorizedValues = async (formData: FormData) => {
+  await requireLocalAccess(formData.get("csrf"), true);
+  const values = formValues(formData);
+  delete values.csrf;
+  return values;
+};
 
 const zodState = (
   error: ZodError,
@@ -75,7 +83,7 @@ export const createProjectAction = async (
   _previous: FormActionState,
   formData: FormData,
 ): Promise<FormActionState> => {
-  const values = formValues(formData);
+  const values = await authorizedValues(formData);
   const result = projectFormSchema.safeParse(values);
   if (!result.success) {
     return zodState(result.error, values);
@@ -98,7 +106,7 @@ export const savePreflightAction = async (
   _previous: FormActionState,
   formData: FormData,
 ): Promise<FormActionState> => {
-  const values = formValues(formData);
+  const values = await authorizedValues(formData);
   const result = preflightFormSchema.safeParse(values);
   if (!result.success) {
     return zodState(result.error, values);
@@ -230,7 +238,7 @@ export const createDevelopmentRunAction = async (
   _previous: FormActionState,
   formData: FormData,
 ): Promise<FormActionState> => {
-  const values = formValues(formData);
+  const values = await authorizedValues(formData);
   const result = createDevelopmentRunInputSchema.safeParse(values);
   if (!result.success) return zodState(result.error, values);
 
@@ -264,7 +272,7 @@ export const recordRunOutcomeAction = async (
   _previous: FormActionState,
   formData: FormData,
 ): Promise<FormActionState> => {
-  const values = formValues(formData);
+  const values = await authorizedValues(formData);
   const result = runOutcomeFormSchema.safeParse(values);
   if (!result.success) return zodState(result.error, values);
 
@@ -302,7 +310,7 @@ export const amendRunOutcomeAction = async (
   _previous: FormActionState,
   formData: FormData,
 ): Promise<FormActionState> => {
-  const values = formValues(formData);
+  const values = await authorizedValues(formData);
   const result = amendRunOutcomeFormSchema.safeParse(values);
   if (!result.success) return zodState(result.error, values);
 

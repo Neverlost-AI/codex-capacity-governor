@@ -46,7 +46,7 @@ ledger was prepared; it was not merged as part of PR #9 acceptance.
 
 ## Next unfinished tranche
 
-**T005 — Complete Capacity Preflight: finalized scope-review assignment; no implementation authority.**
+**T005 — Complete Capacity Preflight: local implementation candidate prepared; independent review and founder acceptance pending.**
 
 The finalized assignment is
 [Tranche 005 assignment](TRANCHE_005_COMPLETE_CAPACITY_PREFLIGHT.md).
@@ -56,10 +56,22 @@ existing guidance only, historical reopened results, immutable attempt/plan
 evidence and deferred governed-run/history loading. F8's concrete single-operator
 local access/server-receipt boundary and F9's source precedence are now accepted.
 Manual T005 does not automatically remove broader features from the first MVP.
-Independent exact-commit documentation review and separate implementation
-authorization remain required. No authorization is inferred from finalized prose.
-No T005 implementation branch or migrations have been created. T006-T008,
-deployment and external pilot work remain unauthorized.
+PR #10's finalized scope documentation was independently reviewed at exact head
+`c0c66cc5d989027f6b30d19e37baa042ffb20a84`, explicitly founder-accepted, and
+normally merged at `2026-09-27T05:54:22Z` in
+`8b790754cf167d73a76857e4e1e27e86d4793e20`.
+[PR #10 acceptance comment](https://github.com/Neverlost-AI/codex-capacity-governor/pull/10#issuecomment-5853155596)
+records that acceptance. The founder then expressly authorized COMPLETE T005
+implementation, additive migrations, required tests, bounded fixes and local
+commits on `feature/tranche-005-complete-capacity-preflight` from that accepted
+baseline. This later explicit grant supersedes the assignment's historical
+no-implementation-authority prose only; its settled F1-F9 requirements remain
+controlling. Push, PR creation, implementation merge, deployment, T006-T008 and
+external pilot work remain unauthorized.
+
+[T005 implementation notes](TRANCHE_005_IMPLEMENTATION_NOTES.md) record the actual
+implementation boundary, checks and remaining gates. No technical review pass
+or successful test run is founder acceptance.
 
 ## Sources and limits
 
@@ -80,6 +92,8 @@ diagnostic is not production usage evidence or a full-suite verification.
 Decision 0003 and engine formulas remain unchanged. The accepted builder/reviewer
 development workflow is not a Governor-to-Codex runtime integration.
 
-This documentation pass did not rerun product test suites. Existing independent
-T004 and workflow review results are historical evidence, not a new full-suite
-verification of merged main.
+The T005 candidate ran its own unit, coverage, type, lint, build, migration and
+dev/built browser checks, with actual results and the Windows checkout formatting
+discrepancy recorded in its implementation notes. Existing independent T004 and
+workflow review results remain historical evidence, not review of this candidate
+or a new verification of merged main. No implementation review attempt has run.

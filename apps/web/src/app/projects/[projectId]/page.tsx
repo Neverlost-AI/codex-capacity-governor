@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { CreateRunForm } from "../../../components/create-run-form";
 import { PreflightForm } from "../../../components/preflight-form";
 import { getApplicationService } from "../../../server/application";
+import { getComposedService } from "../../../server/composed-application";
 
 export const dynamic = "force-dynamic";
 
@@ -18,11 +19,13 @@ export default async function ProjectPage({
 
   let result;
   let runs;
+  let evaluations;
   try {
     const service = await getApplicationService();
-    [result, runs] = await Promise.all([
+    [result, runs, evaluations] = await Promise.all([
       service.getProject(projectId),
       service.listProjectRuns(projectId),
+      (await getComposedService()).list(projectId),
     ]);
   } catch (error) {
     if (error instanceof ProjectNotFoundError) notFound();
@@ -59,6 +62,38 @@ export default async function ProjectPage({
         </span>
       </header>
       <PreflightForm draft={result.preflightDraft} projectId={projectId} />
+      <section aria-labelledby="composed-heading">
+        <h2 id="composed-heading">Complete capacity preflight</h2>
+        <p>
+          The draft above is manual structural evidence, not a complete policy
+          input. No legacy unit/reset/reserve conversion occurs.
+        </p>
+        {result.preflightDraft ? (
+          <Link href={`/projects/${projectId}/preflight/new`}>
+            Create reviewed capacity preflight
+          </Link>
+        ) : (
+          <p>Save a manual structural draft first.</p>
+        )}
+        <h3>Historical saved evaluations</h3>
+        <ul>
+          {evaluations.map((attempt) => (
+            <li key={attempt.id}>
+              <Link
+                href={`/projects/${projectId}/preflight/results/${attempt.id}`}
+              >
+                {attempt.revision.input.title} · {attempt.evaluationTime} ·{" "}
+                {attempt.policy?.kind === "POLICY_EVALUATION"
+                  ? attempt.policy.aggregateDecision
+                  : (attempt.policy?.kind ??
+                    (attempt.forecast.kind === "INPUT_REJECTION"
+                      ? "INPUT_REJECTION"
+                      : "NOT_COMPOSABLE"))}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </section>
       <section
         aria-labelledby="run-history-heading"
         className="run-history-section"

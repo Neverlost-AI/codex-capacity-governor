@@ -83,6 +83,12 @@ importers:
       '@capacity-governor/contracts':
         specifier: workspace:*
         version: link:../../packages/contracts
+      '@capacity-governor/forecast-engine':
+        specifier: workspace:*
+        version: link:../../packages/forecast-engine
+      '@capacity-governor/policy-engine':
+        specifier: workspace:*
+        version: link:../../packages/policy-engine
       '@electric-sql/pglite':
         specifier: 0.5.4
         version: 0.5.4
@@ -113,6 +119,12 @@ importers:
       '@capacity-governor/contracts':
         specifier: workspace:*
         version: link:../contracts
+      '@capacity-governor/forecast-engine':
+        specifier: workspace:*
+        version: link:../forecast-engine
+      '@capacity-governor/policy-engine':
+        specifier: workspace:*
+        version: link:../policy-engine
 
   packages/contracts:
     dependencies:

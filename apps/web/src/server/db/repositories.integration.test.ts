@@ -57,7 +57,7 @@ describe("PostgreSQL persistence adapter", () => {
     connection = undefined;
   });
 
-  it("applies the additive Tranche 001 and Tranche 002 schema", async () => {
+  it("applies the additive Tranche 001, Tranche 002 and Tranche 005 schema", async () => {
     connection = await createDatabaseConnection("pglite://memory");
     const result = await connection.db.execute(sql`
       select tablename
@@ -67,8 +67,10 @@ describe("PostgreSQL persistence adapter", () => {
     `);
     expect(result.rows.map((row) => row.tablename)).toEqual([
       "actual_capacity_consumptions",
+      "composed_preflight_revisions",
       "development_runs",
       "preflight_drafts",
+      "preflight_evaluation_attempts",
       "projects",
       "run_outcome_observations",
     ]);
