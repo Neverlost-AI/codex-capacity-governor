@@ -10,9 +10,26 @@ The Governor treats AI coding capacity as a finite development budget to plan be
 
 The application implements the founder-approved Tranche 001 manual preflight
 workflow and Tranche 002 factual run/outcome history. Tranche 002 records only
-explicitly `UNGUIDED` runs, manual evidence, and append-only amendments. Governor
-policy, forecasting, calibration, AI analysis, and automatic capacity retrieval
-remain unimplemented.
+explicitly `UNGUIDED` runs, manual evidence, and append-only amendments.
+Founder-accepted T003 provides the pure deterministic multi-bucket policy engine;
+accepted T004 provides pure forecasting, policy-demand projection, comparison
+helpers and supplied-history adjustment. Neither is yet composed into the app.
+
+[T005](docs/TRANCHE_005_COMPLETE_CAPACITY_PREFLIGHT.md) has accepted scope for a
+manual, single-operator local, cold-start preflight; implementation is not yet
+authorized. It supplies one part of the complete preflight → outcome → comparison
+loop. Governed outcome linkage, automatic history loading and comparison UI
+follow in T006, subject to separate approval and the unresolved
+[calibration concern](docs/FORECAST_CALIBRATION_CONCERN_001.md).
+AI analysis, automatic capacity retrieval and Governor-to-Codex runtime
+integration remain unimplemented; broader MVP placement is retained in the
+[roadmap](docs/MVP_ROADMAP.md), not decided by accepting manual T005.
+
+The accepted builder/reviewer workflow governs repository development only:
+a builder authors changes, a separate reviewer checks an exact commit, and the
+founder retains approval gates. It is not a runtime Codex integration and does
+not execute Governor plans. Current startup commands below are the existing
+T001/T002 development path, not the planned T005 local-access security boundary.
 
 ## Local development
 
