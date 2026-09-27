@@ -43,10 +43,13 @@ confidence, separation of AI characterization from deterministic policy, and
 the full forecast-to-actual learning loop. Both reject private-account access,
 credential/cookie collection and unsupported savings claims.
 
-The tracked roadmap preserves the full loop. T005 supplies the composed manual
-preflight and immutable plan baseline; it is not represented as completing the
-whole MVP. T006 supplies governed outcomes/comparison/history input; T007 gathers
-internal evidence; T008 is a separately authorized hosted external pilot.
+The tracked roadmap preserves the full loop. Accepted/merged T005 supplies the
+composed manual preflight and immutable plan baseline; it is not the complete
+first prototype. Proposed T006 supplies governed outcomes/comparison/factual
+history; required T007 gathers formal internal evidence and local release
+checks. A history-informed forecast loader may instead belong to the fuller
+product, pending founder placement and method decisions. T008 is a separately
+authorized hosted public demo/pilot, not a synonym for local prototype use.
 
 ## Differences and accepted source reconciliation
 
@@ -58,9 +61,9 @@ internal evidence; T008 is a separately authorized hosted external pilot.
 | Credit amounts, separate investigation allocation, selected-model/expected-output cost factors                       | V0.2 pp. 3-4, 9              | Historical illustrative model differs from Decisions 0002/0003. V1 uses independent bucket basis points, residual implementation and two protected reserves, accepted seven factor adders and 100 bp/work-point prior. Credits/model prices/investigation reserves require later approved mappings/semantics. |
 | AI-assisted decomposition in the required user flow                                                                  | V0.2 pp. 7-8                 | F2 explicitly accepts manual-only T005 and defers AI. This is an intentional later founder scope ruling, not evidence that the brief required no AI. AI remains a visible optional future proposal.                                                                                                           |
 | Model/context/parallelism/dependency optimization report                                                             | V0.2 pp. 4-5, 7              | F4 accepts existing deterministic explanations and neutral next steps only. Broader optimization heuristics remain unassigned; none is invented to satisfy the older vision.                                                                                                                                  |
-| Full preflight-to-history loop, actual outcomes and project comparison                                               | V0.2 pp. 4-5, 7, 11          | Required full MVP objective remains visible. F7 schedules governed linkage, actual compatibility, comparison and history loading in T006. Existing T002 UNGUIDED history is preserved.                                                                                                                        |
+| Full preflight-to-history loop, actual outcomes and project comparison                                               | V0.2 pp. 4-5, 7, 11          | The first local prototype needs governed outcomes and queryable history after T005. F7 deferred linkage/comparison/history loading from T005, but the newer milestone wording places history-informed future forecasts in the fuller product. Exact T006 loader placement is an open founder decision. T002 UNGUIDED history is preserved. |
 | Project/repository/general allocations beyond one run                                                                | V0.2 p. 9                    | No portfolio allocation, general reserve or fungible global balance is implied by T005. Current buckets remain independent. Broader allocation requires later founder prioritization and semantics.                                                                                                           |
-| Paste/upload brief, user/session state and future integration                                                        | V0.2 pp. 7-8                 | T001 text intake plus T005 manual characterization covers the bounded input path. Upload parsing, external identity and runtime integration are not authorized. Minimal local session capability is accepted F8 for the single-operator prototype, not a claimed hosted authentication system.                |
+| Paste/upload brief, user/session state and future integration                                                        | V0.2 pp. 7-8                 | T001 text intake plus T005 manual characterization covers the bounded input path, not paste/upload of an MVP/tranche spec or human review of AI-assisted decomposition. Those fuller-product workflows need separate assignments. Minimal T005 local pairing is not hosted identity; runtime integration remains unassigned. |
 | Public hackathon demonstration and later distribution/commercial tiers                                               | V0.2 pp. 7, 10-11; V0.1 p. 7 | Historical delivery/market context does not authorize hosting or billing. Current roadmap T008 owns separately approved external pilot preparation; commercial work remains excluded.                                                                                                                         |
 | Forecast-error/effectiveness/accuracy improvement measures                                                           | V0.1 p. 7; V0.2 p. 10        | Evidence questions, not proven results. Decision 0003 controls bucket-specific comparison and no overall accuracy percentage. T006/T007/T008 provide later evidence, without unsupported claims.                                                                                                              |
 
@@ -94,7 +97,9 @@ controlling for planning, not new implementation authority.
 | Category                                                                  | Features and current treatment                                                                                                                                                                                         | Founder authority still needed                                                                                                    |
 | ------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
 | Deferred from T005; first-MVP membership and tranche placement unresolved | Optional AI characterization; whole-project decomposition/sequencing; model/context/parallelism guidance; paste/upload parsing; basic Governor-to-Codex runtime integration. These stay visible in the product vision. | Decide whether each belongs in the first MVP and assign a bounded tranche if included. None is removed by manual T005 acceptance. |
-| Assigned to a later roadmap tranche, not yet authorized                   | T006 governed outcomes, compatible actuals, forecast-versus-actual comparison and history loading; T007 complete-loop dogfooding; T008 external pilot and its hosted boundary.                                         | Approve exact assignments and prerequisite decisions. Calibration concern 001 must be resolved before T006.                       |
+| First-prototype stages, not yet authorized                                | T006 governed outcomes, reviewed compatible actuals, per-bucket comparison and factual history; required T007 internal dogfooding/local release readiness.                                   | Approve T006 semantic/migration decisions and T007 protocol/checklist. Concern 001's pre-T006 gate effect and loader placement require founder ruling. |
+| Fuller-product capabilities needing bounded assignments                   | History-informed future forecasts via approved Gate B/T004 pure capability plus a reviewed loader/method; paste/upload MVP/tranche spec; human-reviewed AI-assisted decomposition.             | Decide loader placement, concern 001/V2 method and cross-version evidence rules; scope intake and AI review separately. No implementation authority. |
+| Separately gated hosted stage                                              | T008 external public demo/pilot.                                                                                                                                                                  | Approve hosted identity, privacy/retention, operations and participant protocol independently of local F8. |
 | Proposed exclusion from the first MVP, pending founder decision           | Rich project/portfolio allocation and purchased-credit/model-price cost forecasting. Recommendation: defer these beyond the first MVP to avoid unapproved fungibility and provider-cost semantics.                     | ACCEPT/CHANGE/HOLD each proposed exclusion separately. This recommendation is not an accepted exclusion.                          |
 
 Existing accepted post-MVP boundaries (billing, Claude Code, enterprise/team
@@ -112,5 +117,9 @@ briefs' improvement goals remain evidence questions rather than proven claims.
 
 [Calibration concern 001](FORECAST_CALIBRATION_CONCERN_001.md) records possible
 feedback drift from applying actual/originalExpected ratios to the cold-start
-baseline when originalExpected was already adjusted. It is unresolved before
-T006; no accepted method or Decision 0003 is changed here.
+baseline when originalExpected was already adjusted. The
+[T006 analysis](T006_CALIBRATION_AND_MILESTONES_DRAFT.md) proposes options but no
+accepted method or Decision 0003 change. The founder must resolve the concern
+and decide whether its existing pre-T006 gate blocks an outcome-only T006 or
+only history loading. The proposed first-MVP exclusions above remain proposals,
+not approved narrowing of the broader product.

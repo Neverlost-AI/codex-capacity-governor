@@ -4,7 +4,7 @@
 
 This is the founder-reviewable master roadmap for the Codex Capacity Governor MVP. It describes sequencing, dependencies, decision gates, evidence, and possible ownership lanes. It is a planning and governance document only.
 
-**Roadmap inclusion is not implementation authorization.** T001-T004 are accepted; Gate A and Gate B are closed. T005's F1-F9 scope decisions are accepted and its manual, local, cold-start assignment is finalized for review, but implementation is not authorized. See [project status](PROJECT_STATUS.md) and the [T005 assignment](TRANCHE_005_COMPLETE_CAPACITY_PREFLIGHT.md). Only an explicit founder implementation grant and accepted baseline authorize a build.
+**Roadmap inclusion is not implementation authorization.** T001-T005 are accepted; Gate A and Gate B are closed. T005's manual, local, cold-start implementation was founder-accepted and merged through PR #11. See [project status](PROJECT_STATUS.md). T006 remains a [draft assignment](TRANCHE_006_GOVERNED_OUTCOMES_DRAFT.md) with open founder decisions and no implementation grant. Only an explicit founder implementation grant and accepted baseline authorize a new build.
 
 The progress table below supersedes historical readiness and ownership statements
 in the original tranche descriptions. Accepted assignments and decision records
@@ -71,8 +71,8 @@ an active future assignment. Future ownership labels remain planning guidance.
 | Tranche 003 — Deterministic Governor Policy Engine V1 | `ACCEPTED`                       | Pure policy engine; PR #3 merged.                                                           | Accepted foundation              |
 | Founder Decision Gate B — Forecasting Method          | `CLOSED`                         | Decision 0003 governs forecast method and composition mapping.                              | Founder                          |
 | Tranche 004 — Forecast Engine V1                      | `ACCEPTED`                       | Pure forecast/projection/comparison; PR #7 merged.                                          | Accepted foundation              |
-| Tranche 005 — Complete Capacity Preflight             | `FULLY_SPECIFIED` — final review | Manual local cold-start composition; F1-F9 accepted; PR #10, implementation not authorized. | Proposed Codex, not yet assigned |
-| Tranche 006 — Outcome and Calibration Loop            | `ARCHITECTURE_READY`             | Compare governed forecasts with actual runs and feed evidence into future planning.         | Shared                           |
+| Tranche 005 — Complete Capacity Preflight             | `ACCEPTED`                      | Manual local cold-start composition; F1-F9 accepted; PR #11 merged.                          | Accepted foundation              |
+| Tranche 006 — Governed Outcomes and Comparison        | `BLOCKED_ON_FOUNDER_DECISION`   | Proposed first-prototype outcomes, comparison and factual history; loader placement open.   | Shared                           |
 | Tranche 007 — Governor Dogfooding                     | `OUTCOME_DEFINED`                | Govern development of the Governor and assess internal usefulness and calibration.          | Founder + Codex                  |
 | Tranche 008 — Hosted External Pilot                   | `OUTCOME_DEFINED`                | Collect exploratory evidence from approximately 3–5 developers for about one week.          | Shared                           |
 
@@ -462,10 +462,11 @@ Compose accepted project/preflight entry, task/scope characterization, Forecast 
 ### 3. Readiness state
 
 F1-F9 are founder-accepted in the finalized
-[T005 assignment](TRANCHE_005_COMPLETE_CAPACITY_PREFLIGHT.md).
-It is manual, local and cold-start: one part of preflight → outcome → comparison,
-not the complete product loop. Exact-commit documentation review and an explicit
-implementation grant remain required; PR #10 must not be merged without authorization.
+[T005 assignment](TRANCHE_005_COMPLETE_CAPACITY_PREFLIGHT.md), and PR #11 was
+accepted and merged. This paragraph updates current status; the older detailed
+stage description below retains its planning context. T005 is manual, local and
+cold-start: one part of preflight → outcome → comparison, not the complete
+prototype or product loop.
 
 ### 4. Dependencies
 
@@ -557,15 +558,23 @@ Shared: founder/Codex own semantic composition and acceptance; a technical colla
 
 ### 1. Tranche name
 
-Outcome and Calibration Loop.
+Governed Outcomes and Comparison (proposed first-prototype T006). The prior
+“Outcome and Calibration Loop” label bundled an automatic loader; its placement
+is now an explicit founder decision, not silently removed from the product.
 
 ### 2. Purpose
 
-Record what actually happened after a governed run, compare it with the original forecast and plan, and make evidence available to improve later forecasts without claiming advanced machine-learning calibration.
+Record what actually happened after a governed run, compare it with the original
+forecast and plan when compatible, and make factual history queryable. Whether
+this tranche also loads history into later forecasts is open; the
+[milestone analysis](T006_CALIBRATION_AND_MILESTONES_DRAFT.md) recommends a
+separate fuller-product loader after a founder-approved method decision.
 
 ### 3. Readiness state
 
-`ARCHITECTURE_READY`.
+`BLOCKED_ON_FOUNDER_DECISION`. The [draft assignment](TRANCHE_006_GOVERNED_OUTCOMES_DRAFT.md)
+is substantial but not approved. Exact linkage, normalization, adherence,
+method-gate and loader placement decisions are outstanding.
 
 ### 4. Dependencies
 
@@ -581,18 +590,26 @@ Record what actually happened after a governed run, compare it with the original
 - How remaining capacity is reconciled with consumption and manually reported platform state.
 - How “Governor guidance followed” is represented, including partial adherence and unknown.
 - Comparable-run criteria and minimum evidence quality.
-- Which calibration adjustments may be automatic, suggested, or founder-reviewed.
+- Whether history-informed future forecasts stay in T006 or move to a
+  separately assigned fuller-product tranche; resolve concern 001 and a
+  versioned method decision before any loader.
 - Correction/amendment policy for historical evidence.
 
 ### 6. User-visible completion condition
 
-A user opens a governed run and records actual consumption, outcome, validation result, remaining capacity, unexpected failures, deferred work, and whether guidance was followed. The system displays a transparent forecast-versus-actual comparison, approved forecast-error measures, comparable prior runs where valid, and calibration history used for future planning.
+A user opens an immutable governed attempt, records factual consumption,
+outcome, validation, remaining snapshot, unexpected failures and deferred work,
+and sees a transparent per-bucket comparison when actuals are reviewed and
+compatible. Approved adherence evidence is displayed distinctly from the
+settled T002 recording vocabulary. Factual/amended history is queryable; a
+future-forecast history loader is conditional on the open placement and method
+decisions.
 
 ### 7. Expected architectural surfaces
 
-- `packages/contracts` outcome, comparison, adherence, and calibration-observation schemas.
-- `packages/application` record/amend outcome, compare, history-query, and calibration-input use cases.
-- `packages/forecast-engine` approved comparable-history/calibration behavior.
+- `packages/contracts` governed linkage, outcome, comparison, adherence, and reviewed-normalization schemas.
+- `packages/application` record/amend outcome, compare, and history-query use cases.
+- `packages/forecast-engine` existing pure comparison semantics; a loader/V2 engine change only under a separate approved scope.
 - Persistence adapter/migrations preserving original forecast/plan/outcome facts and revisions.
 - `apps/web` outcome capture and comparison/history views.
 
@@ -611,16 +628,23 @@ A user opens a governed run and records actual consumption, outcome, validation 
 - Comparable/incomparable prior-run tests and no-history behavior.
 - Persistence audit/history tests proving original snapshots and negative results remain recoverable.
 - Application and UI tests for completed, partial, failed, validation, failure, deferred-work, and adherence states.
-- End-to-end governed plan → outcome → comparison → later preflight-history-input flow.
+- End-to-end governed plan → outcome → comparison → historical reopen flow.
+- If separately approved, loader/V2 tests for later preflight history input,
+  recursive-bias regression, compatibility and deterministic replay.
 - Regression tests proving policy decisions are not retrospectively mutated.
 
 ### 10. Acceptance gate
 
-Founder review confirms comparison math matches Gate B, evidence remains auditable, incomplete and negative outcomes are visible, calibration is transparent and conservative, and no accuracy claim exceeds the recorded evidence.
+Founder review confirms comparison math matches Gate B, evidence remains
+auditable, incomplete and negative outcomes are visible, and no accuracy claim
+exceeds recorded evidence. Automatic calibration is accepted only if explicitly
+included by a new founder placement/method decision and implementation grant.
 
 ### 11. What it unlocks next
 
-The complete MVP learning loop and sufficient structured evidence for Governor dogfooding.
+The first-prototype outcome/history path and structured evidence for a separately
+approved T007 dogfooding protocol. A future history-informed forecast loader is
+still needed for the fuller product if not included in T006.
 
 ### 12. Suggested ownership lane
 
@@ -812,9 +836,9 @@ Shared: founder owns pilot policy, participants, evidence boundary, and acceptan
 
 | Remaining work                      | Purpose and prerequisite                                                                                                                                                                                                                                                                    | Authority now                                               |
 | ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
-| T005 — Complete Capacity Preflight  | Compose and persist accepted engine evidence behind a manual local cold-start UI. F1-F9 accepted; final documentation review and explicit implementation grant required.                                                                                                                    | Documentation planning only.                                |
-| T006 — Outcome and Calibration Loop | Link governed runs to immutable plans, record outcomes/adherence, establish compatible actual evidence, compare forecast versus actual and provide transparent history to later forecasts. Requires accepted T005 and bounded evidence/migration decisions. Preserve T002 UNGUIDED history. | Not assigned or authorized.                                 |
-| T007 — Governor Dogfooding          | Exercise the complete T005/T006 loop, preserve negative/incomplete runs and evaluate usefulness/forecast error under an approved protocol.                                                                                                                                                  | Not started or authorized.                                  |
+| T005 — Complete Capacity Preflight  | Manual local cold-start composition and immutable preflight evidence; PR #11 accepted and merged. | Accepted foundation, not the whole prototype. |
+| T006 — Governed Outcomes and Comparison | Proposed governed run linkage, factual outcomes/amendments, reviewed compatible actuals, comparison and queryable history. Preserve T002 UNGUIDED history; loader placement is open. | Draft only; founder gates outstanding. |
+| T007 — Governor Dogfooding          | Required internal use of the T005/T006 first-prototype path under an approved evidence and local release-readiness protocol. Existing proto-dogfooding is not formal T007. | Not started or authorized. |
 | T008 — Hosted External Pilot        | Separately approve hosted identity/tenancy, privacy, operations and participant protocol after dogfooding.                                                                                                                                                                                  | Not started or authorized; local F8 is not hosted approval. |
 
 The briefs also describe broader whole-project decomposition/sequencing,
@@ -825,8 +849,9 @@ MVP. Their placement must be distinguished explicitly:
 
 | Placement                                                       | Work                                                                                                                                                                                                      | Current decision status                                                                                                           |
 | --------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| Deferred from T005; first-MVP membership/assignment unresolved  | Optional AI characterization, whole-project decomposition/sequencing, model/context/parallelism guidance, brief upload/parsing, basic Governor-to-Codex runtime integration and simulated capacity feeds. | Founder must decide inclusion and a bounded assignment. Not silently excluded from the first MVP.                                 |
-| Assigned to a later tranche                                     | T006 governed outcomes, compatible actuals, comparison and history loading; T007 full-loop dogfooding; T008 hosted external pilot.                                                                        | Named roadmap work, not implementation authorization. T006 has an unresolved method prerequisite below.                           |
+| Deferred from T005; fuller-product assignment/membership unresolved | Paste/upload MVP/tranche specification intake; human-reviewed AI-assisted decomposition; model/context/parallelism guidance; whole-project sequencing; basic Governor-to-Codex runtime integration and simulated capacity feeds. | Founder must bound each chosen capability. Manual input remains supported; none was removed by T005 acceptance. |
+| First-prototype stages, not yet authorized | T006 governed outcomes, compatible actuals, comparison and factual history; required T007 local dogfooding/release-readiness. | T006 has open semantic gates. T007 needs a protocol/checklist and separate release decision. |
+| Fuller-product history-informed forecasting | Approved Gate B/T004 pure capability exists, but T005 supplies no candidates. A reviewed loader and likely V2 method must be separately assigned unless founder explicitly keeps them in T006. | Placement and concern 001 resolution are open. No history loader is authorized. |
 | Proposed exclusion from the first MVP, pending founder decision | Rich project/portfolio allocation and purchased-credit/model-price cost forecasting.                                                                                                                      | Recommendation only: defer beyond the first MVP. Separate ACCEPT/CHANGE/HOLD required for each; no accepted exclusion is implied. |
 
 Automatic provider access and commercial/team/API features retain their existing
@@ -845,13 +870,18 @@ percentages rather than purchased-credit cost estimates.
 ratios are applied to the cold-start baseline even when originalExpected was
 already historically adjusted. A synthetic repeated-identical-workload diagnostic
 exposes drift/oscillation away from stable actuals; it does not establish real
-prediction accuracy. Before T006 assignment/implementation, separately review
-and resolve the method concern and repeatability evidence. Do not change Decision
-0003 or engine formulas through T005 or silently enable a history loader.
+prediction accuracy. [The planning analysis](T006_CALIBRATION_AND_MILESTONES_DRAFT.md)
+proposes a distinct baseline-denominator V2 and milestone options. Resolve the
+documented pre-T006 concern gate and repeatability evidence with the founder;
+decide whether outcome-only T006 may proceed while loader method work remains
+separately gated. Do not change Decision 0003 or silently enable a loader.
 
-The older briefs' complete-loop goal requires T005 plus T006. T007 then examines
-internal evidence and T008 is the separately approved external pilot. The manual
-T005 slice alone does not complete the learning loop or demonstrate savings.
+The first local prototype requires T005 plus T006 outcomes/history, then formal
+T007 internal dogfooding and local release checks. The fuller product still
+requires history-informed forecasts and separately scoped paste/upload and
+human-reviewed AI decomposition. T008 is a separately approved hosted public
+demo/pilot, not a local-prototype release or automatic next step. The manual
+T005 slice alone does not complete the loop or demonstrate savings.
 
 ## Post-MVP and stretch boundary
 
@@ -885,12 +915,16 @@ The roadmap intentionally leaves these questions open until their named decision
 
 - Gate A, Gate B and T002 vocabulary are resolved by accepted Decisions
   0002, 0003 and 0001 respectively; their existing semantics are not open questions.
-- Tranche 005 F1-F9 are resolved. Exact-commit documentation review and a separate
-  implementation grant remain pending; broader MVP placement above is separate.
+- Tranche 005 F1-F9, implementation acceptance and PR #11 merge are complete;
+  broader product placement above remains separate.
 - Pre-T006 calibration concern 001: repeated workloads with adjusted original
-  expectations may drift. Resolve through a separate reviewed method decision.
-- Tranche 006 comparable-run, adherence, evidence amendment, and calibration-adjustment behavior.
-- Dogfooding sample sufficiency and external-pilot entry criteria.
+  expectations may drift. Resolve through a separate reviewed method decision
+  before a loader; founder must rule on its outcome-only T006 gate effect.
+- Tranche 006 governed linkage, actual normalization, comparable-run, adherence
+  and evidence-amendment behavior; loader placement is open.
+- T007 local release-readiness checklist/protocol, sample sufficiency and
+  separate founder release decision; fuller-product intake/AI/loader assignments.
+- T008 external-pilot entry criteria and hosted authority.
 - External-pilot hosting, identity/tenancy, privacy, retention/deletion, support, and incident policy.
 
 These are explicit governance boundaries, not missing implementation details for a collaborator to fill in.

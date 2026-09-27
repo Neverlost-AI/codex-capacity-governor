@@ -8,19 +8,19 @@ The Governor treats AI coding capacity as a finite development budget to plan be
 
 ## Repository status
 
-The application implements the founder-approved Tranche 001 manual preflight
-workflow and Tranche 002 factual run/outcome history. Tranche 002 records only
-explicitly `UNGUIDED` runs, manual evidence, and append-only amendments.
-Founder-accepted T003 provides the pure deterministic multi-bucket policy engine;
-accepted T004 provides pure forecasting, policy-demand projection, comparison
-helpers and supplied-history adjustment. Neither is yet composed into the app.
+The application implements the accepted T001 manual draft, T002 factual
+`UNGUIDED` run/outcome history, and T005 manual, single-operator local,
+cold-start composed preflight. T003 remains the pure deterministic multi-bucket
+policy engine; T004 remains pure forecasting, policy-demand projection,
+comparison helpers and supplied-history adjustment. T005 composes the engines
+and saves immutable reviewed inputs and attempts, including negative results.
 
-[T005](docs/TRANCHE_005_COMPLETE_CAPACITY_PREFLIGHT.md) has accepted scope for a
-manual, single-operator local, cold-start preflight; implementation is not yet
-authorized. It supplies one part of the complete preflight → outcome → comparison
-loop. Governed outcome linkage, automatic history loading and comparison UI
-follow in T006, subject to separate approval and the unresolved
-[calibration concern](docs/FORECAST_CALIBRATION_CONCERN_001.md).
+[T005](docs/TRANCHE_005_COMPLETE_CAPACITY_PREFLIGHT.md) was founder-accepted and
+merged in PR #11. It supplies the preflight part of the loop, not governed
+outcomes or history-informed future forecasts. The proposed
+[T006 assignment](docs/TRANCHE_006_GOVERNED_OUTCOMES_DRAFT.md) addresses outcomes
+and comparison; placement of the automatic history loader is open, and the
+[calibration concern](docs/FORECAST_CALIBRATION_CONCERN_001.md) remains unresolved.
 AI analysis, automatic capacity retrieval and Governor-to-Codex runtime
 integration remain unimplemented; broader MVP placement is retained in the
 [roadmap](docs/MVP_ROADMAP.md), not decided by accepting manual T005.
@@ -28,8 +28,8 @@ integration remain unimplemented; broader MVP placement is retained in the
 The accepted builder/reviewer workflow governs repository development only:
 a builder authors changes, a separate reviewer checks an exact commit, and the
 founder retains approval gates. It is not a runtime Codex integration and does
-not execute Governor plans. Current startup commands below are the existing
-T001/T002 development path, not the planned T005 local-access security boundary.
+not execute Governor plans. Supported local startup uses T005's loopback-only
+pairing, exact-origin and server-confirmation boundary; it is not hosted identity.
 
 ## Local development
 
@@ -49,7 +49,11 @@ pnpm db:migrate
 pnpm dev
 ```
 
-Open `http://localhost:3000`. The migration command and application startup both apply committed migrations idempotently. Tests use an embedded PGlite build of PostgreSQL by default, so unit/integration verification does not require Docker.
+Open `http://127.0.0.1:3000` and pair using the launch-terminal secret. Do not
+expose the local app through a proxy, tunnel, port forward or unsupported launch
+path. The migration command and application startup both apply committed
+migrations idempotently. Tests use an embedded PGlite build of PostgreSQL by
+default, so unit/integration verification does not require Docker.
 
 Required verification:
 
