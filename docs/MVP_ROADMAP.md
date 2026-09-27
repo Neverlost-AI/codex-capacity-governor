@@ -4,7 +4,7 @@
 
 This is the founder-reviewable master roadmap for the Codex Capacity Governor MVP. It describes sequencing, dependencies, decision gates, evidence, and possible ownership lanes. It is a planning and governance document only.
 
-**Roadmap inclusion is not implementation authorization.** Only a separately founder-approved, bounded tranche assignment grants authority to implement work. At present, only [Tranche 001: Manual Preflight Draft](TRANCHE_001_MANUAL_PREFLIGHT_DRAFT.md) is fully specified and assigned.
+**Roadmap inclusion is not implementation authorization.** Only a separately founder-approved, bounded tranche assignment grants authority to implement work. The T004 acceptance update below records completed work; it does not authorize subsequent tranches. Other planning entries retain their original roadmap state and must be read alongside their controlling decisions and assignments.
 
 The founder retains ownership of product meaning, Governor policy rules, forecasting method, reserve philosophy, prioritization, and acceptance. Codex and technical collaborators may research or propose options, but they must not silently decide founder-controlled semantics.
 
@@ -50,6 +50,7 @@ Codex is the first supported coding agent, while platform-specific assumptions r
 | `BLOCKED_ON_FOUNDER_DECISION` | Implementation must not begin until the named founder gate is resolved and recorded. |
 | `OUTCOME_DEFINED` | The validation activity and evidence sought are defined; engineering and operational prerequisites remain subject to separate approval. |
 | `POST_MVP` | Explicitly excluded from the required MVP. |
+| `FOUNDER_APPROVED` | The founder has accepted the implementation at an explicitly recorded commit. Acceptance grants no authority for later tranches or deployment. |
 
 `CURRENT_COLLABORATOR_TRANCHE` is an execution marker, not a readiness state. It currently applies only to Tranche 001. Future ownership labels are planning guidance, not assignment or permission.
 
@@ -62,7 +63,7 @@ Codex is the first supported coding agent, while platform-specific assumptions r
 | Founder Decision Gate A — Governor Policy Semantics | `BLOCKED_ON_FOUNDER_DECISION` | Approve deterministic budget, reserve, mode, decision, and stop rules. | Founder + Codex |
 | Tranche 003 — Deterministic Governor Policy Engine V1 | `ARCHITECTURE_READY` + `BLOCKED_ON_FOUNDER_DECISION` | Implement approved policy as a pure, explainable engine. | Founder + Codex |
 | Founder Decision Gate B — Forecasting Method | `BLOCKED_ON_FOUNDER_DECISION` | Approve range, confidence, inputs, cold-start, and error semantics. | Founder + Codex |
-| Tranche 004 — Forecast Engine V1 | `ARCHITECTURE_READY` + `BLOCKED_ON_FOUNDER_DECISION` | Produce auditable planning ranges for policy consumption. | Founder + Codex |
+| Tranche 004 — Forecast Engine V1 | `FOUNDER_APPROVED` — PR #7 merged | Produce auditable planning ranges for policy consumption. | Founder + Codex |
 | Tranche 005 — Complete Capacity Preflight | `ARCHITECTURE_READY` | Compose manual characterization, forecast, policy, and guidance into the first recognizable Governor experience. | Shared |
 | Tranche 006 — Outcome and Calibration Loop | `ARCHITECTURE_READY` | Compare governed forecasts with actual runs and feed evidence into future planning. | Shared |
 | Tranche 007 — Governor Dogfooding | `OUTCOME_DEFINED` | Govern development of the Governor and assess internal usefulness and calibration. | Founder + Codex |
@@ -382,7 +383,7 @@ Implement the approved Gate B method as a transparent, deterministic planning en
 
 ### 3. Readiness state
 
-`ARCHITECTURE_READY` + `BLOCKED_ON_FOUNDER_DECISION` (Gate B).
+`FOUNDER_APPROVED` — implementation accepted on 2026-09-26 (America/Denver) at `8e9e491aedf93aa59375ed0195cc2f8994447479`; [PR #7](https://github.com/Neverlost-AI/codex-capacity-governor/pull/7) merged as `0d7cc7c225b0e1ef3ecd3b3a08f57f33923e26d0`. See the [T004 assignment status](TRANCHE_004_FORECAST_ENGINE_V1.md#assignment-status) for the acceptance record.
 
 ### 4. Dependencies
 
@@ -431,13 +432,15 @@ The output interface must be cleanly consumable by `packages/policy-engine` with
 
 Founder review confirms agreement with Gate B, no false precision, traceable assumptions, deterministic/versioned output, clean policy interface, manual fallback, and no unsupported performance claim.
 
+This gate was satisfied by the founder's explicit acceptance of the implementation commit recorded above. Historical reset-cycle ambiguity and upstream evidence authentication remain deferred. No T005 implementation, deployment, or additional scope is authorized by this acceptance.
+
 ### 11. What it unlocks next
 
 Composition of forecast with deterministic policy in Tranche 005 and quantitative comparison in Tranche 006.
 
 ### 12. Suggested ownership lane
 
-Founder + Codex for the first method implementation and verification. This is guidance only; no implementation is currently authorized.
+Founder + Codex for the accepted T004 implementation and verification. Later work requires separate authorization.
 
 ---
 
