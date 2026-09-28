@@ -150,6 +150,15 @@ describe("governed local operator UI", () => {
     });
     vi.stubGlobal("fetch", fetchMock);
     render(<GovernedOutcomeForm history={data} csrf="csrf" />);
+    expect(screen.getByLabelText("Run outcome")).toHaveValue("");
+    expect(screen.getByLabelText("Independent validation result")).toHaveValue(
+      "",
+    );
+    await user.selectOptions(screen.getByLabelText("Run outcome"), "COMPLETED");
+    await user.selectOptions(
+      screen.getByLabelText("Independent validation result"),
+      "NOT_RUN",
+    );
     expect(screen.getByLabelText("Operator-reported adherence")).toHaveValue(
       "",
     );
@@ -170,6 +179,63 @@ describe("governed local operator UI", () => {
       "Review every entered bucket usage",
     );
     expect(fetchMock).not.toHaveBeenCalled();
+  });
+  it.each([
+    { runOutcome: "", validationResult: "PASSED", missing: "Run outcome" },
+    {
+      runOutcome: "FAILED",
+      validationResult: "",
+      missing: "Independent validation result",
+    },
+  ])("blocks a new outcome when $missing is not selected", async (choice) => {
+    const user = userEvent.setup();
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+    render(<GovernedOutcomeForm history={await history()} csrf="csrf" />);
+    if (choice.runOutcome)
+      await user.selectOptions(
+        screen.getByLabelText("Run outcome"),
+        choice.runOutcome,
+      );
+    if (choice.validationResult)
+      await user.selectOptions(
+        screen.getByLabelText("Independent validation result"),
+        choice.validationResult,
+      );
+    await user.selectOptions(
+      screen.getByLabelText("Operator-reported adherence"),
+      "UNKNOWN",
+    );
+    await user.click(screen.getByRole("button", { name: "Save outcome" }));
+    expect(screen.getByLabelText(choice.missing)).toBeInvalid();
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+  it("sends separately selected outcome and validation values", async () => {
+    const user = userEvent.setup();
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: false,
+      json: async () => ({ error: "Injected save failure" }),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    render(<GovernedOutcomeForm history={await history()} csrf="csrf" />);
+    await user.selectOptions(screen.getByLabelText("Run outcome"), "PARTIAL");
+    await user.selectOptions(
+      screen.getByLabelText("Independent validation result"),
+      "INCONCLUSIVE",
+    );
+    await user.selectOptions(
+      screen.getByLabelText("Operator-reported adherence"),
+      "UNKNOWN",
+    );
+    await user.click(screen.getByRole("button", { name: "Save outcome" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "Injected save failure",
+    );
+    const saved = JSON.parse(fetchMock.mock.calls[0][1].body as string);
+    expect(saved.input).toMatchObject({
+      runOutcome: "PARTIAL",
+      validationResult: "INCONCLUSIVE",
+    });
   });
   it("shows a changed-reset actual under its recorded identity, not the issued identity", async () => {
     const data = await mismatchedHistory();
@@ -221,6 +287,18 @@ describe("governed local operator UI", () => {
     expect(reset).toHaveValue("later-cycle");
     expect(profile).toHaveValue("older-profile");
     expect(reviewed).not.toBeChecked();
+    expect(screen.getByLabelText("Run outcome")).toHaveValue("COMPLETED");
+    expect(screen.getByLabelText("Independent validation result")).toHaveValue(
+      "PASSED",
+    );
+    const outcomeConfirmed = screen.getByRole("checkbox", {
+      name: /Confirm this run outcome for the new amendment version/,
+    });
+    const validationConfirmed = screen.getByRole("checkbox", {
+      name: /Confirm this independent validation result for the new amendment version/,
+    });
+    expect(outcomeConfirmed).not.toBeChecked();
+    expect(validationConfirmed).not.toBeChecked();
     expect(
       within(row).getByText(/Recorded identity differs from the issued/),
     ).toBeVisible();
@@ -234,6 +312,10 @@ describe("governed local operator UI", () => {
     );
     await user.click(screen.getByRole("button", { name: "Append amendment" }));
     expect(fetchMock).not.toHaveBeenCalled();
+    await user.click(outcomeConfirmed);
+    await user.click(screen.getByRole("button", { name: "Append amendment" }));
+    expect(fetchMock).not.toHaveBeenCalled();
+    await user.click(validationConfirmed);
     await user.click(reviewed);
     await user.click(screen.getByRole("button", { name: "Append amendment" }));
     expect(await screen.findByRole("alert")).toHaveTextContent(
@@ -246,6 +328,10 @@ describe("governed local operator UI", () => {
       reviewed: true,
     });
     expect(retained.predecessorId).toBe(data.observations[0].id);
+    expect(retained.input).toMatchObject({
+      runOutcome: "COMPLETED",
+      validationResult: "PASSED",
+    });
 
     await user.clear(reset);
     await user.type(reset, "cycle-1");
@@ -259,6 +345,35 @@ describe("governed local operator UI", () => {
       resetCycleId: "cycle-1",
       bucketProfileVersion: issuedProfile,
       reviewed: true,
+    });
+    await user.selectOptions(screen.getByLabelText("Run outcome"), "PARTIAL");
+    expect(outcomeConfirmed).not.toBeChecked();
+    await user.click(screen.getByRole("button", { name: "Append amendment" }));
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    await user.click(outcomeConfirmed);
+    await user.click(screen.getByRole("button", { name: "Append amendment" }));
+    const changedOutcome = JSON.parse(
+      fetchMock.mock.calls[2][1].body as string,
+    );
+    expect(changedOutcome.input).toMatchObject({
+      runOutcome: "PARTIAL",
+      validationResult: "PASSED",
+    });
+    await user.selectOptions(
+      screen.getByLabelText("Independent validation result"),
+      "FAILED",
+    );
+    expect(validationConfirmed).not.toBeChecked();
+    await user.click(screen.getByRole("button", { name: "Append amendment" }));
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+    await user.click(validationConfirmed);
+    await user.click(screen.getByRole("button", { name: "Append amendment" }));
+    const changedValidation = JSON.parse(
+      fetchMock.mock.calls[3][1].body as string,
+    );
+    expect(changedValidation.input).toMatchObject({
+      runOutcome: "PARTIAL",
+      validationResult: "FAILED",
     });
     expect(JSON.stringify(data.observations[0])).toBe(original);
   });

@@ -23,11 +23,14 @@ export function GovernedOutcomeForm({
 }) {
   const latest = history.observations.at(-1);
   const [runOutcome, setRunOutcome] = useState<
-    "COMPLETED" | "PARTIAL" | "FAILED"
-  >(latest?.runOutcome ?? "COMPLETED");
+    "COMPLETED" | "PARTIAL" | "FAILED" | ""
+  >(latest?.runOutcome ?? "");
   const [validationResult, setValidationResult] = useState<
-    "NOT_RUN" | "PASSED" | "PARTIAL" | "FAILED" | "INCONCLUSIVE"
-  >(latest?.validationResult ?? "NOT_RUN");
+    "NOT_RUN" | "PASSED" | "PARTIAL" | "FAILED" | "INCONCLUSIVE" | ""
+  >(latest?.validationResult ?? "");
+  const [runOutcomeConfirmed, setRunOutcomeConfirmed] = useState(false);
+  const [validationResultConfirmed, setValidationResultConfirmed] =
+    useState(false);
   const [adherence, setAdherence] = useState<
     "FOLLOWED" | "PARTIALLY_FOLLOWED" | "NOT_FOLLOWED" | "UNKNOWN" | ""
   >("");
@@ -99,6 +102,16 @@ export function GovernedOutcomeForm({
   const submit = async (event: React.FormEvent) => {
     event.preventDefault();
     setError("");
+    if (!runOutcome || !validationResult) {
+      setError(
+        "Choose both run outcome and independent validation result explicitly.",
+      );
+      return;
+    }
+    if (latest && (!runOutcomeConfirmed || !validationResultConfirmed)) {
+      setError("Confirm both copied choices for this outcome amendment.");
+      return;
+    }
     if (!adherence) {
       setError("Choose operator-reported adherence explicitly.");
       return;
@@ -195,24 +208,41 @@ export function GovernedOutcomeForm({
       <label>
         Run outcome{" "}
         <select
+          required
           value={runOutcome}
-          onChange={(event) =>
-            setRunOutcome(event.target.value as typeof runOutcome)
-          }
+          onChange={(event) => {
+            setRunOutcome(event.target.value as typeof runOutcome);
+            setRunOutcomeConfirmed(false);
+          }}
         >
+          <option value="">Choose explicitly</option>
           <option>COMPLETED</option>
           <option>PARTIAL</option>
           <option>FAILED</option>
         </select>
       </label>
+      {latest ? (
+        <label>
+          <input
+            type="checkbox"
+            required
+            checked={runOutcomeConfirmed}
+            onChange={(event) => setRunOutcomeConfirmed(event.target.checked)}
+          />{" "}
+          Confirm this run outcome for the new amendment version
+        </label>
+      ) : null}
       <label>
         Independent validation result{" "}
         <select
+          required
           value={validationResult}
-          onChange={(event) =>
-            setValidationResult(event.target.value as typeof validationResult)
-          }
+          onChange={(event) => {
+            setValidationResult(event.target.value as typeof validationResult);
+            setValidationResultConfirmed(false);
+          }}
         >
+          <option value="">Choose explicitly</option>
           <option>NOT_RUN</option>
           <option>PASSED</option>
           <option>PARTIAL</option>
@@ -220,6 +250,20 @@ export function GovernedOutcomeForm({
           <option>INCONCLUSIVE</option>
         </select>
       </label>
+      {latest ? (
+        <label>
+          <input
+            type="checkbox"
+            required
+            checked={validationResultConfirmed}
+            onChange={(event) =>
+              setValidationResultConfirmed(event.target.checked)
+            }
+          />{" "}
+          Confirm this independent validation result for the new amendment
+          version
+        </label>
+      ) : null}
       <label>
         Operator-reported adherence{" "}
         <select

@@ -107,7 +107,25 @@ test("paired saved attempt → one-use link → completed exact actual → amend
     return response.status;
   }, submitted);
   expect(replay).toBe(400);
+  const runOutcome = page.getByLabel("Run outcome");
+  const validationResult = page.getByLabel("Independent validation result");
+  await expect(runOutcome).toHaveValue("");
+  await expect(validationResult).toHaveValue("");
   await page.getByLabel("Operator-reported adherence").selectOption("FOLLOWED");
+  await page.getByRole("button", { name: "Save outcome" }).click();
+  expect(
+    await runOutcome.evaluate(
+      (element: HTMLSelectElement) => element.validity.valueMissing,
+    ),
+  ).toBe(true);
+  await runOutcome.selectOption("COMPLETED");
+  await page.getByRole("button", { name: "Save outcome" }).click();
+  expect(
+    await validationResult.evaluate(
+      (element: HTMLSelectElement) => element.validity.valueMissing,
+    ),
+  ).toBe(true);
+  await validationResult.selectOption("PASSED");
   await page.getByLabel(/IMPLEMENTATION actual/).fill("14");
   await page
     .getByLabel("Factual source reference")
@@ -132,12 +150,36 @@ test("paired saved attempt → one-use link → completed exact actual → amend
   await expect(
     page.getByText(/issued-expected calibration ratio/i),
   ).toBeVisible();
+  await expect(runOutcome).toHaveValue("COMPLETED");
+  await expect(validationResult).toHaveValue("PASSED");
   const implementation = page.getByRole("group", {
     name: "short IMPLEMENTATION usage",
   });
   await page
     .getByLabel("Amendment reason")
     .fill("Corrected manual reading and recorded later cycle");
+  const confirmRunOutcome = page.getByRole("checkbox", {
+    name: /Confirm this run outcome for the new amendment version/,
+  });
+  const confirmValidation = page.getByRole("checkbox", {
+    name: /Confirm this independent validation result for the new amendment version/,
+  });
+  await expect(confirmRunOutcome).not.toBeChecked();
+  await expect(confirmValidation).not.toBeChecked();
+  await page.getByRole("button", { name: "Append amendment" }).click();
+  expect(
+    await confirmRunOutcome.evaluate(
+      (element: HTMLInputElement) => element.validity.valueMissing,
+    ),
+  ).toBe(true);
+  await confirmRunOutcome.check();
+  await page.getByRole("button", { name: "Append amendment" }).click();
+  expect(
+    await confirmValidation.evaluate(
+      (element: HTMLInputElement) => element.validity.valueMissing,
+    ),
+  ).toBe(true);
+  await confirmValidation.check();
   await page.getByLabel("Operator-reported adherence").selectOption("FOLLOWED");
   await page.getByLabel(/IMPLEMENTATION actual/).fill("13");
   await implementation
@@ -172,6 +214,8 @@ test("paired saved attempt → one-use link → completed exact actual → amend
   await page
     .getByLabel("Amendment reason")
     .fill("Corrected reviewed cycle and profile evidence");
+  await confirmRunOutcome.check();
+  await confirmValidation.check();
   await page.getByLabel("Operator-reported adherence").selectOption("FOLLOWED");
   await implementation.getByLabel("Recorded reset cycle ID").fill("cycle-1");
   await implementation
@@ -190,7 +234,10 @@ test("paired saved attempt → one-use link → completed exact actual → amend
   await page
     .getByLabel("Amendment reason")
     .fill("Incomplete after reassessment");
+  await confirmValidation.check();
   await page.getByLabel("Run outcome").selectOption("PARTIAL");
+  await expect(confirmRunOutcome).not.toBeChecked();
+  await confirmRunOutcome.check();
   await page.getByLabel("Operator-reported adherence").selectOption("UNKNOWN");
   await page
     .getByLabel(/I reviewed this exact manual value/)
@@ -206,6 +253,8 @@ test("paired saved attempt → one-use link → completed exact actual → amend
     .click();
   await expect(page).toHaveURL(runUrl);
   await expect(page.getByText(/Current version 4/)).toBeVisible();
+  await expect(runOutcome).toHaveValue("PARTIAL");
+  await expect(validationResult).toHaveValue("PASSED");
 });
 
 test("restrictive saved result is factual, never permission", async ({
@@ -224,6 +273,10 @@ test("restrictive saved result is factual, never permission", async ({
     .check();
   await page.getByRole("button", { name: "Create one governed run" }).click();
   await expect(page.getByText(/did not authorize work/)).toBeVisible();
+  await page.getByLabel("Run outcome").selectOption("COMPLETED");
+  await page
+    .getByLabel("Independent validation result")
+    .selectOption("NOT_RUN");
   await page.getByLabel("Operator-reported adherence").selectOption("FOLLOWED");
   await page.getByRole("button", { name: "Save outcome" }).click();
   await expect(page.getByText(/Outcome could not be saved/)).toBeVisible();
