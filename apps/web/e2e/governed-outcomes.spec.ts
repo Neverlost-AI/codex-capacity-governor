@@ -109,8 +109,14 @@ test("paired saved attempt → one-use link → completed exact actual → amend
     return response.status;
   }, submitted);
   expect(replay).toBe(400);
-  const runOutcome = page.getByLabel("Run outcome");
-  const validationResult = page.getByLabel("Independent validation result");
+  const runOutcome = page.getByRole("combobox", {
+    name: "Run outcome",
+    exact: true,
+  });
+  const validationResult = page.getByRole("combobox", {
+    name: "Independent validation result",
+    exact: true,
+  });
   await expect(runOutcome).toHaveValue("");
   await expect(validationResult).toHaveValue("");
   await page.getByLabel("Operator-reported adherence").selectOption("FOLLOWED");
@@ -239,7 +245,7 @@ test("paired saved attempt → one-use link → completed exact actual → amend
     .getByLabel("Amendment reason")
     .fill("Incomplete after reassessment");
   await confirmValidation.check();
-  await page.getByLabel("Run outcome").selectOption("PARTIAL");
+  await runOutcome.selectOption("PARTIAL");
   await expect(confirmRunOutcome).not.toBeChecked();
   await confirmRunOutcome.check();
   await page.getByLabel("Operator-reported adherence").selectOption("UNKNOWN");
@@ -279,12 +285,19 @@ test("restrictive saved result is factual, never permission", async ({
   await page.getByRole("button", { name: "Create one governed run" }).click();
   await expect(page.getByText(/did not authorize work/)).toBeVisible();
   await page.waitForLoadState("networkidle");
-  await page.getByLabel("Run outcome").selectOption("COMPLETED");
+  const runOutcome = page.getByRole("combobox", {
+    name: "Run outcome",
+    exact: true,
+  });
+  await runOutcome.selectOption("COMPLETED");
   await page
-    .getByLabel("Independent validation result")
+    .getByRole("combobox", {
+      name: "Independent validation result",
+      exact: true,
+    })
     .selectOption("NOT_RUN");
   await page.getByLabel("Operator-reported adherence").selectOption("FOLLOWED");
-  await expect(page.getByLabel("Run outcome")).toHaveValue("COMPLETED");
+  await expect(runOutcome).toHaveValue("COMPLETED");
   await page.getByRole("button", { name: "Save outcome" }).click();
   await expect(page.getByText(/Outcome could not be saved/)).toBeVisible();
 });
