@@ -95,6 +95,12 @@ export default async function GovernedRunPage({
               .
             </p>
             {history.attempt.revision.input.buckets.map((bucket) => {
+              const issued =
+                history.attempt.forecast.kind === "FORECAST_EVALUATION"
+                  ? history.attempt.forecast.bucketResults.find(
+                      (result) => result.bucket.bucketId === bucket.bucketId,
+                    )?.bucket
+                  : undefined;
               const comparison = item.comparisons.find(
                 (entry) => entry.bucketId === bucket.bucketId,
               );
@@ -107,20 +113,43 @@ export default async function GovernedRunPage({
                   aria-label={`${bucket.bucketId} comparison`}
                 >
                   <h4>
-                    {bucket.bucketId} · {bucket.providerId} ·{" "}
-                    {bucket.capacityWindowId} · {bucket.resetCycleId}
+                    Issued forecast identity: bucket {bucket.bucketId} ·
+                    provider {bucket.providerId} · window{" "}
+                    {bucket.capacityWindowId} · reset {bucket.resetCycleId} ·
+                    profile {issued?.bucketProfileVersion ?? "unavailable"}
                   </h4>
                   {usage.length ? (
                     <ul>
-                      {usage.map((entry) => (
-                        <li key={entry.category}>
-                          {entry.category}: {entry.rawValue} {entry.rawUnit} ={" "}
-                          {entry.normalizedBasisPoints} bp · source{" "}
-                          {entry.sourceReference} · observed {entry.observedAt}{" "}
-                          · cycle assertion {entry.exactCycleOnly} · reviewed{" "}
-                          {entry.reviewedAt}
-                        </li>
-                      ))}
+                      {usage.map((entry) => {
+                        const identityMismatch =
+                          entry.bucketId !== bucket.bucketId ||
+                          entry.providerId !== bucket.providerId ||
+                          entry.capacityWindowId !== bucket.capacityWindowId ||
+                          entry.resetCycleId !== bucket.resetCycleId ||
+                          entry.bucketProfileVersion !==
+                            issued?.bucketProfileVersion;
+                        return (
+                          <li key={entry.category}>
+                            {entry.category}: {entry.rawValue} {entry.rawUnit} ={" "}
+                            {entry.normalizedBasisPoints} bp · source{" "}
+                            {entry.sourceReference} · observed{" "}
+                            {entry.observedAt} · cycle assertion{" "}
+                            {entry.exactCycleOnly} · reviewed {entry.reviewedAt}
+                            . Recorded identity: bucket {entry.bucketId} ·
+                            provider {entry.providerId} · window{" "}
+                            {entry.capacityWindowId} · reset{" "}
+                            {entry.resetCycleId} · profile{" "}
+                            {entry.bucketProfileVersion}.
+                            {identityMismatch ? (
+                              <strong>
+                                {" "}
+                                Recorded identity differs from issued forecast
+                                identity; this actual is not comparable.
+                              </strong>
+                            ) : null}
+                          </li>
+                        );
+                      })}
                     </ul>
                   ) : (
                     <p>No bucket usage entered; unknown, not zero.</p>

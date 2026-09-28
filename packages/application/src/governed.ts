@@ -37,6 +37,27 @@ const sortedIdentities = (
   }[],
 ) => values.map(identity).sort();
 
+/** Compare ISO instants without discarding fractional precision below a millisecond. */
+const isTimestampAfter = (observedAt: string, recordedAt: string): boolean => {
+  const parts = (value: string) => {
+    const match = /^(.+:\d{2})(?:\.(\d+))?(Z|[+-]\d{2}:\d{2})$/.exec(value);
+    if (!match) throw new Error("Invalid observation timestamp");
+    const wholeSecond = Date.parse(`${match[1]}${match[3]}`);
+    if (!Number.isFinite(wholeSecond))
+      throw new Error("Invalid observation timestamp");
+    return { wholeSecond, fraction: match[2] ?? "" };
+  };
+  const observed = parts(observedAt);
+  const recorded = parts(recordedAt);
+  if (observed.wholeSecond !== recorded.wholeSecond)
+    return observed.wholeSecond > recorded.wholeSecond;
+  const length = Math.max(observed.fraction.length, recorded.fraction.length);
+  return (
+    observed.fraction.padEnd(length, "0") >
+    recorded.fraction.padEnd(length, "0")
+  );
+};
+
 /** Exact decimal multiplication by 100. Never passes a factual amount through Number. */
 export const normalizeManualUsage = (
   raw: string,
@@ -232,11 +253,11 @@ export const createGovernedService = (dependencies: GovernedDependencies) => {
       throw new Error("FOLLOWED requires original PROCEED");
     if (
       parsed.remainingCapacity &&
-      Date.parse(parsed.remainingCapacity.observedAt) > Date.parse(now)
+      isTimestampAfter(parsed.remainingCapacity.observedAt, now)
     )
       throw new Error("Future remaining observation");
     const usage: GovernedUsage[] = parsed.usage.map((entry) => {
-      if (Date.parse(entry.observedAt) > Date.parse(now))
+      if (isTimestampAfter(entry.observedAt, now))
         throw new Error("Future usage observation");
       const required = attempt.revision.input.buckets.find(
         (bucket) => bucket.bucketId === entry.bucketId,
@@ -381,11 +402,16 @@ export const createGovernedService = (dependencies: GovernedDependencies) => {
       for (const item of observations) {
         if (
           (item.adherence === "FOLLOWED" && link.decision !== "PROCEED") ||
+          (item.remainingCapacity &&
+            isTimestampAfter(
+              item.remainingCapacity.observedAt,
+              item.recordedAt,
+            )) ||
           item.usage.some(
             (entry) =>
               entry.reviewedBy !== item.reviewerActorReference ||
               entry.reviewedAt !== item.recordedAt ||
-              Date.parse(entry.observedAt) > Date.parse(item.recordedAt) ||
+              isTimestampAfter(entry.observedAt, item.recordedAt) ||
               entry.normalizationVersion !== "manual-percent-bp-v1" ||
               entry.normalizedBasisPoints !==
                 normalizeManualUsage(entry.rawValue, entry.rawUnit) ||

@@ -319,6 +319,68 @@ describe("T006 governed link, outcome and comparison", () => {
     );
     expect(saved.usage[0].normalizedBasisPoints).toBe("100");
   });
+  it("rejects sub-millisecond future usage and remaining snapshots, including on reopen", async () => {
+    const { attempt, service, observations } = await setup();
+    const link = await service.create(
+      PROJECT,
+      attempt.id,
+      "local-session:test",
+      "confirmation",
+    );
+    const subMillisecondFuture = "2026-09-26T12:00:00.0001+00:00";
+    await expect(
+      service.record(
+        link.id,
+        input([{ ...actual(), observedAt: subMillisecondFuture }]),
+        "local-session:test",
+      ),
+    ).rejects.toThrow("Future usage observation");
+    await expect(
+      service.record(
+        link.id,
+        {
+          ...input(),
+          remainingCapacity: {
+            amount: 10,
+            unit: "manual capacity units",
+            observedAt: subMillisecondFuture,
+            source: "manual",
+          },
+        },
+        "local-session:test",
+      ),
+    ).rejects.toThrow("Future remaining observation");
+    expect(observations.has(link.id)).toBe(false);
+
+    const saved = await service.record(
+      link.id,
+      input([actual()]),
+      "local-session:test",
+    );
+    observations.set(link.id, [
+      {
+        ...saved,
+        usage: [{ ...saved.usage[0], observedAt: subMillisecondFuture }],
+      },
+    ]);
+    await expect(service.reopen(link.id)).rejects.toThrow(
+      "Governed outcome evidence integrity mismatch",
+    );
+    observations.set(link.id, [
+      {
+        ...saved,
+        remainingCapacity: {
+          amount: 10,
+          unit: "manual capacity units",
+          observedAt: subMillisecondFuture,
+          source: "manual",
+        },
+      },
+    ]);
+    await expect(service.reopen(link.id)).rejects.toThrow(
+      "Governed outcome evidence integrity mismatch",
+    );
+  });
   it("restrictive decision never becomes FOLLOWED or authorizing; failure leaves no partial outcome", async () => {
     const { attempt, service, setFailAppend, observations } = await setup(
       (scope) => {

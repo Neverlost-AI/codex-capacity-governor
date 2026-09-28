@@ -14,6 +14,15 @@ import {
 } from "../../../../packages/application/test/composed-fixture";
 import { GovernedLinkReview } from "./governed-link-review";
 import { GovernedOutcomeForm } from "./governed-outcome-form";
+import GovernedRunPage from "../app/projects/[projectId]/governed/[runId]/page";
+
+const reopenMock = vi.hoisted(() => vi.fn());
+vi.mock("../server/access", () => ({
+  requireLocalAccess: async () => ({ session: { csrf: "csrf" } }),
+}));
+vi.mock("../server/governed-application", () => ({
+  getGovernedService: async () => ({ reopen: reopenMock }),
+}));
 
 afterEach(() => {
   cleanup();
@@ -109,5 +118,76 @@ describe("governed local operator UI", () => {
       "Review every entered bucket usage",
     );
     expect(fetchMock).not.toHaveBeenCalled();
+  });
+  it("shows a changed-reset actual under its recorded identity, not the issued identity", async () => {
+    const data = await history();
+    if (data.attempt.forecast.kind !== "FORECAST_EVALUATION")
+      throw new Error("Expected eligible attempt");
+    const bucket = data.attempt.forecast.bucketResults[0].bucket;
+    const recordedAt = data.attempt.recordedAt;
+    data.observations = [
+      {
+        id: "00000000-0000-4000-8000-000000000056",
+        runId: data.link.id,
+        runOutcome: "COMPLETED",
+        validationResult: "PASSED",
+        adherence: "FOLLOWED",
+        unexpectedFailures: [],
+        deferredWork: [],
+        recordedAt,
+        reviewerActorReference: "local-session:test",
+        usage: [
+          {
+            bucketId: bucket.bucketId,
+            providerId: bucket.providerId,
+            capacityWindowId: bucket.capacityWindowId,
+            resetCycleId: "later-cycle",
+            bucketProfileVersion: bucket.bucketProfileVersion,
+            category: "IMPLEMENTATION",
+            rawValue: "1",
+            rawUnit: "PERCENT",
+            normalizedBasisPoints: "100",
+            sourceReference: "manual later-cycle reading",
+            observedAt: recordedAt,
+            exactCycleOnly: "YES",
+            reviewedBy: "local-session:test",
+            reviewedAt: recordedAt,
+            normalizationVersion: "manual-percent-bp-v1",
+          },
+        ],
+        comparisons: [
+          {
+            bucketId: bucket.bucketId,
+            unavailableDetail: "BUCKET_OR_PROFILE_MISMATCH",
+            comparison: {
+              kind: "UNAVAILABLE",
+              candidateId: "00000000-0000-4000-8000-000000000057",
+              bucketId: bucket.bucketId,
+              reasonId: "COMPARISON_ACTUAL_UNAVAILABLE_OR_INCOMPATIBLE",
+            },
+          },
+        ],
+      },
+    ];
+    reopenMock.mockResolvedValue(data);
+    render(
+      await GovernedRunPage({
+        params: Promise.resolve({ projectId: PROJECT, runId: data.link.id }),
+      }),
+    );
+    expect(
+      screen.getByRole("heading", { name: /Issued forecast identity/ }),
+    ).toHaveTextContent("reset cycle-1");
+    const recorded = screen
+      .getByText(/Recorded identity differs from issued forecast identity/)
+      .closest("li");
+    expect(recorded).toHaveTextContent("Recorded identity: bucket short");
+    expect(recorded).toHaveTextContent("reset later-cycle");
+    expect(recorded).toHaveTextContent("this actual is not comparable");
+    expect(
+      screen
+        .getAllByText(/BUCKET_OR_PROFILE_MISMATCH/)
+        .find((element) => element.tagName === "P"),
+    ).toBeVisible();
   });
 });
