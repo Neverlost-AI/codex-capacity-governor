@@ -8,6 +8,7 @@ if (process.env.CAPACITY_GOVERNOR_E2E_EXTERNAL_SERVER !== "1")
 export default defineConfig({
   testDir: "./apps/web/e2e",
   fullyParallel: false,
+  workers: 1,
   expect: {
     timeout: 30_000,
   },
