@@ -2,10 +2,14 @@
 
 ## Status and authority
 
-UNRESOLVED METHOD CONCERN — resolve before T006 assignment/implementation.
-Recorded at founder direction, not a revision to Decision 0003 or engine formulas.
-T005 remains cold-start only, with an empty calibration-candidate set; this concern
-does not authorize loading history or changing accepted T004 behavior.
+UNRESOLVED METHOD CONCERN — blocks **automatic history loading**, not the
+founder-accepted outcome-only T006 assignment or a separately granted T006
+implementation. The founder explicitly narrowed this gate through
+[Decision 0006](decisions/0006-t006-governed-outcome-recording-v1.md) on
+2026-09-27. The original diagnostic and unresolved method question remain.
+This is not a revision to Decision 0003 or engine formulas. T005/T006 preflights
+remain cold-start with an empty calibration-candidate set; this concern does not
+authorize loading history or changing accepted T004 behavior.
 
 ## Concern
 
@@ -51,7 +55,7 @@ also corrected the caller's result-field access to `bucketResults[].roundedRange
 No dependency install, source/config edit or new test was performed. This limited
 diagnostic is not a rerun of repository verification suites.
 
-## Required resolution before T006
+## Required resolution before any automatic history loader
 
 - Reproduce sequential identical-workload cases as reviewed deterministic tests,
   including baseline-matching, higher and lower actuals, mixed cold/adjusted
@@ -67,6 +71,10 @@ diagnostic is not a rerun of repository verification suites.
 - Keep partial/failed observations out of completed-run statistics and preserve
   original observations. Do not reinterpret T002 raw evidence as normalized actuals.
 
-Decision 0003 remains byte-unchanged. No accuracy/savings claim, new calibration
-formula, cross-bucket conversion or historical reset-cycle ruling follows from
-this document. The unresolved question gates T006, not acceptance of a manual T005.
+Decision 0003 remains byte-unchanged. Decision 0005 remains draft. No
+accuracy/savings claim, new calibration formula, cross-bucket conversion or
+historical reset-cycle ruling follows from this document. The unresolved method
+question gates an automatic history-informed forecast loader, **not** recording
+governed outcomes, append-only corrections, compatible comparisons or factual
+history under outcome-only T006. A later loader requires its own accepted
+versioned method and separate implementation grant.

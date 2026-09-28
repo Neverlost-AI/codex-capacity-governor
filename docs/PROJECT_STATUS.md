@@ -17,6 +17,7 @@ the accepted records and merge evidence below.
 | T002 run/outcome history      | Decision 0001; accepted assignment; PR #2 merged                                                                                                                 | UNGUIDED runs and factual append-only outcome amendments; migration `0001`.                              |
 | T003 deterministic policy     | Decision 0002; accepted assignment; PR #3 merged in `d19c9f105dcc159ffbd917ae3f9416552151806c`                                                                   | Pure multi-bucket evaluation; no application/plan persistence.                                           |
 | T004 forecast                 | Decision 0003; accepted assignment; founder-approved head `8e9e491aedf93aa59375ed0195cc2f8994447479`; PR #7 merged in `0d7cc7c225b0e1ef3ecd3b3a08f57f33923e26d0` | Pure forecast, projection and comparison helpers; no composed preflight, history loading or persistence. |
+| T005 composed local preflight | Decision 0004/F1-F9; founder-accepted head `8681c05ea6eb7c48a71953e22c99c48e389e5206`; PR #11 normally merged in `82e2b96fbeeef69f7dae06fc416705392da54ccf` | Manual cold-start reviewed revisions, paired confirmation, immutable forecast/policy attempts and historical reopen. No governed outcomes or history loader. |
 | Builder/reviewer workflow     | Founder-approved head `a72721f74d01aeea23cb849ebb46c97a7eed5c15`; PR #9 merged in `1f0bdbf30cd4d37f1f3f17153308e28b7c298260`                                     | Repository instructions and agent/skill configuration only.                                              |
 
 T004's historical reset-cycle ambiguity and upstream evidence authentication
@@ -44,34 +45,58 @@ ledger was prepared; it was not merged as part of PR #9 acceptance.
 - Durable GitHub acceptance record:
   [PR #9 acceptance comment](https://github.com/Neverlost-AI/codex-capacity-governor/pull/9#issuecomment-5852420784).
 
-## Next unfinished tranche
+## T005 acceptance and verification
 
-**T005 — Complete Capacity Preflight: local implementation candidate prepared; independent review and founder acceptance pending.**
+The [T005 assignment](TRANCHE_005_COMPLETE_CAPACITY_PREFLIGHT.md) and Decision
+0004 remain historical scope records; their pre-implementation authority prose
+must not be read as today's status. The founder separately granted T005
+implementation after PR #10's accepted scope merge, then explicitly accepted
+PR #11's exact final head `8681c05ea6eb7c48a71953e22c99c48e389e5206`.
+[PR #11 acceptance comment](https://github.com/Neverlost-AI/codex-capacity-governor/pull/11#issuecomment-5860581395)
+records that acceptance. PR #11 was normally merged into main as
+`82e2b96fbeeef69f7dae06fc416705392da54ccf`. Independent exact-commit
+review attempt 2 returned PASS. The reviewer did not author changes or grant
+founder acceptance.
 
-The finalized assignment is
-[Tranche 005 assignment](TRANCHE_005_COMPLETE_CAPACITY_PREFLIGHT.md).
-T001-T004 dependencies exist. The founder accepted F1-F7 as proposed for T005:
-manual cold start, reviewed immutable revisions, confirmation/evaluate/save,
-existing guidance only, historical reopened results, immutable attempt/plan
-evidence and deferred governed-run/history loading. F8's concrete single-operator
-local access/server-receipt boundary and F9's source precedence are now accepted.
-Manual T005 does not automatically remove broader features from the first MVP.
-PR #10's finalized scope documentation was independently reviewed at exact head
-`c0c66cc5d989027f6b30d19e37baa042ffb20a84`, explicitly founder-accepted, and
-normally merged at `2026-09-27T05:54:22Z` in
-`8b790754cf167d73a76857e4e1e27e86d4793e20`.
-[PR #10 acceptance comment](https://github.com/Neverlost-AI/codex-capacity-governor/pull/10#issuecomment-5853155596)
-records that acceptance. The founder then expressly authorized COMPLETE T005
-implementation, additive migrations, required tests, bounded fixes and local
-commits on `feature/tranche-005-complete-capacity-preflight` from that accepted
-baseline. This later explicit grant supersedes the assignment's historical
-no-implementation-authority prose only; its settled F1-F9 requirements remain
-controlling. Push, PR creation, implementation merge, deployment, T006-T008 and
-external pilot work remain unauthorized.
+The [implementation notes](TRANCHE_005_IMPLEMENTATION_NOTES.md) retain the
+detailed verification ledger. Builder final checks included 360/360 unit tests,
+coverage, lint, typecheck, build, migration generation, and dev/built browser
+E2E. The independent reviewer reran a focused 20-test set, full 360-test suite,
+lint and typecheck, and inspected 16 browser screenshots. The final builder
+format check on the Windows checkout still reported 36 unchanged CRLF paths;
+canonical LF Git objects were 121/121 PASS. This is not an all-green checkout
+format claim. The earlier overlapping heavy-run timeout cause remains
+unresolved; subsequent isolated checks passed without weakening timeouts.
+Two nonblocking T005 UI test-coverage gaps remain follow-up candidates:
+optional reset/reserve rendering branches in the review summary, and an
+activity test that types `removed-window` but never actually removes a capacity
+window. Separately, the builder noted low unit line coverage
+in the access wrapper/legacy actions despite real guarded E2E coverage. These
+limitations do not reopen T005 acceptance or authorize work.
 
-[T005 implementation notes](TRANCHE_005_IMPLEMENTATION_NOTES.md) record the actual
-implementation boundary, checks and remaining gates. No technical review pass
-or successful test run is founder acceptance.
+## Next accepted scope and milestone boundary
+
+The founder accepted T6-1–T6-7 and clarified that a run covers one bounded
+development attempt, including normal coding, testing, fixes, prompts and agent
+handoffs. [Decision 0006](decisions/0006-t006-governed-outcome-recording-v1.md)
+records those choices; the [T006 assignment](TRANCHE_006_GOVERNED_OUTCOMES.md)
+sets the outcome-only scope, tests and stop conditions. **T006 implementation is
+not authorized** until a separate grant names the exact accepted `main` baseline
+and branch. The [calibration/milestone analysis](T006_CALIBRATION_AND_MILESTONES_DRAFT.md)
+and [draft method successor](decisions/0005-calibration-baseline-ratio-draft.md)
+remain method/T007 planning, not a loader grant. Concern 001 is narrowed to block
+automatic history loading, not outcome-only T006. Its method question, T004's
+historical reset-cycle comparability and upstream evidence authentication remain
+unresolved/deferred. Later preflights stay cold-start.
+
+The first local prototype is T005 plus governed outcomes/history, followed by
+required T007 internal dogfooding and local release-readiness checks under a
+future approved protocol and separate founder release decision. Existing
+proto-dogfooding records are not formal T007 evidence. The fuller product also
+seeks paste/upload specification intake, human-reviewed AI decomposition and
+history-informed forecasting; the first two lack bounded assignments. T008's
+hosted public demo/pilot is separately gated for identity, privacy and
+operations. None of these stages follows automatically from PR #11.
 
 ## Sources and limits
 
@@ -86,14 +111,8 @@ records exact provenance, hashes and accepted source precedence, with later
 assignments and proposed first-MVP exclusions distinguished from T005 deferrals.
 Discovery does not override later accepted decisions or F1-F9.
 
-[Calibration concern 001](FORECAST_CALIBRATION_CONCERN_001.md) is unresolved and
-must be resolved before T006. The docs-only read-only synthetic repeated-workload
-diagnostic is not production usage evidence or a full-suite verification.
-Decision 0003 and engine formulas remain unchanged. The accepted builder/reviewer
-development workflow is not a Governor-to-Codex runtime integration.
-
-The T005 candidate ran its own unit, coverage, type, lint, build, migration and
-dev/built browser checks, with actual results and the Windows checkout formatting
-discrepancy recorded in its implementation notes. Existing independent T004 and
-workflow review results remain historical evidence, not review of this candidate
-or a new verification of merged main. No implementation review attempt has run.
+[Calibration concern 001](FORECAST_CALIBRATION_CONCERN_001.md) is unresolved. Its
+synthetic repeated-workload diagnostic is not production usage evidence or a
+full-suite verification. Decision 0003 and engine formulas remain unchanged.
+The accepted builder/reviewer development workflow is not a Governor-to-Codex
+runtime integration. This planning packet is not implementation verification.
