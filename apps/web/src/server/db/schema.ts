@@ -2,6 +2,8 @@ import { sql } from "drizzle-orm";
 import type {
   ComposedAttempt,
   ComposedRevision,
+  GovernedLink,
+  GovernedObservation,
 } from "@capacity-governor/contracts";
 import {
   type AnyPgColumn,
@@ -275,5 +277,94 @@ export const preflightEvaluationAttempts = pgTable(
   },
   (table) => [
     uniqueIndex("preflight_attempts_revision_unique").on(table.revisionId),
+  ],
+);
+
+// T006 is additive: neither the UNGUIDED table nor its check constraint changes.
+export const governedRuns = pgTable(
+  "governed_runs",
+  {
+    id: uuid("id").primaryKey(),
+    projectId: uuid("project_id")
+      .notNull()
+      .references(() => projects.id, { onDelete: "restrict" }),
+    attemptId: uuid("attempt_id")
+      .notNull()
+      .references(() => preflightEvaluationAttempts.id, {
+        onDelete: "restrict",
+      }),
+    confirmedAt: timestamp("confirmed_at", { withTimezone: true }).notNull(),
+    snapshot: jsonb("snapshot").$type<GovernedLink>().notNull(),
+  },
+  (table) => [
+    uniqueIndex("governed_runs_attempt_unique").on(table.attemptId),
+    index("governed_runs_project_confirmed_idx").on(
+      table.projectId,
+      table.confirmedAt,
+    ),
+  ],
+);
+
+export const governedOutcomeVersions = pgTable(
+  "governed_outcome_versions",
+  {
+    id: uuid("id").primaryKey(),
+    runId: uuid("run_id")
+      .notNull()
+      .references(() => governedRuns.id, { onDelete: "restrict" }),
+    predecessorId: uuid("predecessor_id").references(
+      (): AnyPgColumn => governedOutcomeVersions.id,
+      { onDelete: "restrict" },
+    ),
+    recordedAt: timestamp("recorded_at", { withTimezone: true }).notNull(),
+    snapshot: jsonb("snapshot").$type<GovernedObservation>().notNull(),
+  },
+  (table) => [
+    uniqueIndex("governed_outcomes_one_initial")
+      .on(table.runId)
+      .where(sql`${table.predecessorId} is null`),
+    uniqueIndex("governed_outcomes_one_successor")
+      .on(table.predecessorId)
+      .where(sql`${table.predecessorId} is not null`),
+    index("governed_outcomes_run_recorded_idx").on(
+      table.runId,
+      table.recordedAt,
+    ),
+  ],
+);
+
+export const governedBucketUsage = pgTable(
+  "governed_bucket_usage",
+  {
+    id: uuid("id").primaryKey(),
+    outcomeId: uuid("outcome_id")
+      .notNull()
+      .references(() => governedOutcomeVersions.id, { onDelete: "restrict" }),
+    bucketId: text("bucket_id").notNull(),
+    providerId: text("provider_id").notNull(),
+    capacityWindowId: text("capacity_window_id").notNull(),
+    resetCycleId: text("reset_cycle_id").notNull(),
+    category: text("category").notNull(),
+    rawValue: text("raw_value").notNull(),
+    rawUnit: text("raw_unit").notNull(),
+    normalizedBasisPoints: text("normalized_basis_points").notNull(),
+  },
+  (table) => [
+    uniqueIndex("governed_usage_exact_bucket_category_unique").on(
+      table.outcomeId,
+      table.bucketId,
+      table.providerId,
+      table.capacityWindowId,
+      table.resetCycleId,
+      table.category,
+    ),
+    check(
+      "governed_usage_category",
+      sql`${table.category} in ('IMPLEMENTATION', 'CORRECTION', 'VALIDATION')`,
+    ),
+    check(
+      "governed_usage_unit",
+      sql`${table.rawUnit} in ('PERCENT', 'BASIS_POINTS')`,
+    ),
   ],
 );

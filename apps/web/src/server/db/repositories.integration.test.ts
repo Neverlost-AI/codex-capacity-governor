@@ -57,7 +57,7 @@ describe("PostgreSQL persistence adapter", () => {
     connection = undefined;
   });
 
-  it("applies the additive Tranche 001, Tranche 002 and Tranche 005 schema", async () => {
+  it("applies the additive Tranche 001, 002, 005 and 006 schema", async () => {
     connection = await createDatabaseConnection("pglite://memory");
     const result = await connection.db.execute(sql`
       select tablename
@@ -69,6 +69,9 @@ describe("PostgreSQL persistence adapter", () => {
       "actual_capacity_consumptions",
       "composed_preflight_revisions",
       "development_runs",
+      "governed_bucket_usage",
+      "governed_outcome_versions",
+      "governed_runs",
       "preflight_drafts",
       "preflight_evaluation_attempts",
       "projects",

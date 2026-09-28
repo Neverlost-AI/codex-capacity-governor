@@ -64,11 +64,20 @@ type Review = {
   result?: ComposedAttempt;
   inFlight?: Promise<ComposedAttempt>;
 };
+type GovernedReview = {
+  sessionToken: string;
+  projectId: string;
+  attemptId: string;
+  binding: string;
+  challenge: string;
+  createdAt: number;
+};
 export class LocalBoundary {
   private readonly secret = token();
   private readonly sessions = new Map<string, LocalSession>();
   private readonly bootstraps = new Map<string, number>();
   private readonly reviews = new Map<string, Review>();
+  private readonly governedReviews = new Map<string, GovernedReview>();
   constructor(private readonly now: () => number = Date.now) {}
   presentPairingSecret(present: (secret: string) => void) {
     present(this.secret);
@@ -111,6 +120,82 @@ export class LocalBoundary {
     this.sessions.delete(cookie);
     for (const [id, review] of this.reviews)
       if (review.sessionToken === cookie) this.reviews.delete(id);
+    for (const [id, review] of this.governedReviews)
+      if (review.sessionToken === cookie) this.governedReviews.delete(id);
+  }
+  private governedBinding(attempt: ComposedAttempt) {
+    return localDigest(
+      canonicalizeComposed({
+        attemptId: attempt.id,
+        projectId: attempt.revision.input.projectId,
+        draftId: attempt.revision.input.preflightDraftId,
+        revisionId: attempt.revision.id,
+        revisionDigest: attempt.receipt.canonicalDigest,
+        receiptId: attempt.receipt.id,
+        resultFamily: attempt.policy?.kind ?? attempt.forecast.kind,
+        buckets: attempt.receipt.buckets
+          .map((bucket) => [
+            bucket.bucketId,
+            bucket.providerId,
+            bucket.capacityWindowId,
+            bucket.resetCycleId,
+          ])
+          .sort((left, right) =>
+            JSON.stringify(left).localeCompare(JSON.stringify(right)),
+          ),
+      }),
+    );
+  }
+  reviewGoverned(cookie: string, attempt: ComposedAttempt) {
+    this.session(cookie);
+    const challenge = token();
+    this.governedReviews.set(challenge, {
+      sessionToken: cookie,
+      projectId: attempt.revision.input.projectId,
+      attemptId: attempt.id,
+      binding: this.governedBinding(attempt),
+      challenge,
+      createdAt: this.now(),
+    });
+    return { challenge, attempt: structuredClone(attempt) };
+  }
+  async confirmGoverned(
+    cookie: string,
+    request: {
+      projectId: string;
+      attemptId: string;
+      challenge: string;
+      confirmedExactAttempt: true;
+    },
+    reread: (projectId: string, attemptId: string) => Promise<ComposedAttempt>,
+    create: (
+      projectId: string,
+      attemptId: string,
+      actor: string,
+      reference: string,
+    ) => Promise<unknown>,
+  ) {
+    const session = this.session(cookie);
+    const review = this.governedReviews.get(request.challenge);
+    if (
+      !review ||
+      review.sessionToken !== cookie ||
+      review.projectId !== request.projectId ||
+      review.attemptId !== request.attemptId ||
+      request.confirmedExactAttempt !== true ||
+      this.now() - review.createdAt > 30 * 60 * 1000
+    )
+      throw new Error("Governed confirmation missing, stale or mismatched");
+    this.governedReviews.delete(request.challenge); // one use, including failures
+    const attempt = await reread(request.projectId, request.attemptId);
+    if (this.governedBinding(attempt) !== review.binding)
+      throw new Error("Governed confirmation evidence changed");
+    return create(
+      request.projectId,
+      request.attemptId,
+      session.actorReference,
+      localDigest(review.challenge),
+    );
   }
   review(cookie: string, revision: ComposedRevision) {
     this.session(cookie);
