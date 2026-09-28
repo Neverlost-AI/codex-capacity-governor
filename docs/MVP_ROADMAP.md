@@ -573,8 +573,11 @@ separate fuller-product loader after a founder-approved method decision.
 ### 3. Readiness state
 
 `BLOCKED_ON_FOUNDER_DECISION`. The [draft assignment](TRANCHE_006_GOVERNED_OUTCOMES_DRAFT.md)
-is substantial but not approved. Exact linkage, normalization, adherence,
-method-gate and loader placement decisions are outstanding.
+now contains exact outcome-only recommendations and a seven-row
+**ACCEPT / CHANGE / HOLD** founder sheet, but none is approved. Exact linkage,
+normalization, adherence, concern-001 gate narrowing and loader placement remain
+founder decisions. The existing concern record still blocks T006 until explicitly
+revised by the founder.
 
 ### 4. Dependencies
 
@@ -643,8 +646,11 @@ included by a new founder placement/method decision and implementation grant.
 ### 11. What it unlocks next
 
 The first-prototype outcome/history path and structured evidence for a separately
-approved T007 dogfooding protocol. A future history-informed forecast loader is
-still needed for the fuller product if not included in T006.
+approved T007 dogfooding protocol. A [small proposed T007 protocol](T006_CALIBRATION_AND_MILESTONES_DRAFT.md)
+now defines real internal episodes, controlled edge-case rehearsals and local
+release criteria for founder review; it is not approved. A future
+history-informed forecast loader is still needed for the fuller product if not
+included in T006.
 
 ### 12. Suggested ownership lane
 

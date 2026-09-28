@@ -92,7 +92,7 @@ adopt a PDF requirement into T005, and accepting T005 does not automatically
 remove that requirement from the MVP. The following placement distinctions are
 controlling for planning, not new implementation authority.
 
-## Broader product placement — three distinct categories
+## Broader product placement — five distinct categories
 
 | Category                                                                  | Features and current treatment                                                                                                                                                                                         | Founder authority still needed                                                                                                    |
 | ------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
