@@ -1,0 +1,1154 @@
+{
+  "id": "6b990545-838d-48d3-a919-b16bf5dc3154",
+  "prevId": "6c735d7a-ac22-4d49-8bd8-f86f80e32ee9",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "public.actual_capacity_consumptions": {
+      "name": "actual_capacity_consumptions",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "outcome_observation_id": {
+          "name": "outcome_observation_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "category": {
+          "name": "category",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "amount": {
+          "name": "amount",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "unit": {
+          "name": "unit",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "source": {
+          "name": "source",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "recorded_at": {
+          "name": "recorded_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "actual_capacity_consumptions_observation_category_unique": {
+          "name": "actual_capacity_consumptions_observation_category_unique",
+          "columns": [
+            {
+              "expression": "outcome_observation_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "category",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "actual_capacity_consumptions_outcome_observation_id_run_outcome_observations_id_fk": {
+          "name": "actual_capacity_consumptions_outcome_observation_id_run_outcome_observations_id_fk",
+          "tableFrom": "actual_capacity_consumptions",
+          "tableTo": "run_outcome_observations",
+          "columnsFrom": ["outcome_observation_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "actual_capacity_consumptions_category": {
+          "name": "actual_capacity_consumptions_category",
+          "value": "\"actual_capacity_consumptions\".\"category\" in ('IMPLEMENTATION', 'CORRECTION', 'VALIDATION', 'OTHER')"
+        },
+        "actual_capacity_consumptions_nonnegative": {
+          "name": "actual_capacity_consumptions_nonnegative",
+          "value": "\"actual_capacity_consumptions\".\"amount\" >= 0"
+        },
+        "actual_capacity_consumptions_finite": {
+          "name": "actual_capacity_consumptions_finite",
+          "value": "\"actual_capacity_consumptions\".\"amount\" not in ('Infinity'::float8, '-Infinity'::float8, 'NaN'::float8)"
+        },
+        "actual_capacity_consumptions_unit_nonempty": {
+          "name": "actual_capacity_consumptions_unit_nonempty",
+          "value": "btrim(\"actual_capacity_consumptions\".\"unit\") <> ''"
+        },
+        "actual_capacity_consumptions_manual": {
+          "name": "actual_capacity_consumptions_manual",
+          "value": "\"actual_capacity_consumptions\".\"source\" = 'manual'"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.composed_preflight_revisions": {
+      "name": "composed_preflight_revisions",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "project_id": {
+          "name": "project_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "preflight_draft_id": {
+          "name": "preflight_draft_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "canonical_digest": {
+          "name": "canonical_digest",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "snapshot": {
+          "name": "snapshot",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "composed_preflight_revisions_project_id_projects_id_fk": {
+          "name": "composed_preflight_revisions_project_id_projects_id_fk",
+          "tableFrom": "composed_preflight_revisions",
+          "tableTo": "projects",
+          "columnsFrom": ["project_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "composed_preflight_revisions_preflight_draft_id_preflight_drafts_id_fk": {
+          "name": "composed_preflight_revisions_preflight_draft_id_preflight_drafts_id_fk",
+          "tableFrom": "composed_preflight_revisions",
+          "tableTo": "preflight_drafts",
+          "columnsFrom": ["preflight_draft_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.development_runs": {
+      "name": "development_runs",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "project_id": {
+          "name": "project_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "preflight_draft_id": {
+          "name": "preflight_draft_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "guidance_kind": {
+          "name": "guidance_kind",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "development_runs_project_created_at_idx": {
+          "name": "development_runs_project_created_at_idx",
+          "columns": [
+            {
+              "expression": "project_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "created_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "development_runs_project_id_projects_id_fk": {
+          "name": "development_runs_project_id_projects_id_fk",
+          "tableFrom": "development_runs",
+          "tableTo": "projects",
+          "columnsFrom": ["project_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "development_runs_preflight_draft_id_preflight_drafts_id_fk": {
+          "name": "development_runs_preflight_draft_id_preflight_drafts_id_fk",
+          "tableFrom": "development_runs",
+          "tableTo": "preflight_drafts",
+          "columnsFrom": ["preflight_draft_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "development_runs_unguided_only": {
+          "name": "development_runs_unguided_only",
+          "value": "\"development_runs\".\"guidance_kind\" = 'UNGUIDED'"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.governed_bucket_usage": {
+      "name": "governed_bucket_usage",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "outcome_id": {
+          "name": "outcome_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "bucket_id": {
+          "name": "bucket_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "provider_id": {
+          "name": "provider_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "capacity_window_id": {
+          "name": "capacity_window_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "reset_cycle_id": {
+          "name": "reset_cycle_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "category": {
+          "name": "category",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "raw_value": {
+          "name": "raw_value",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "raw_unit": {
+          "name": "raw_unit",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "normalized_basis_points": {
+          "name": "normalized_basis_points",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "governed_usage_exact_bucket_category_unique": {
+          "name": "governed_usage_exact_bucket_category_unique",
+          "columns": [
+            {
+              "expression": "outcome_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "bucket_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "provider_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "capacity_window_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "reset_cycle_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "category",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "governed_bucket_usage_outcome_id_governed_outcome_versions_id_fk": {
+          "name": "governed_bucket_usage_outcome_id_governed_outcome_versions_id_fk",
+          "tableFrom": "governed_bucket_usage",
+          "tableTo": "governed_outcome_versions",
+          "columnsFrom": ["outcome_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "governed_usage_category": {
+          "name": "governed_usage_category",
+          "value": "\"governed_bucket_usage\".\"category\" in ('IMPLEMENTATION', 'CORRECTION', 'VALIDATION')"
+        },
+        "governed_usage_unit": {
+          "name": "governed_usage_unit",
+          "value": "\"governed_bucket_usage\".\"raw_unit\" in ('PERCENT', 'BASIS_POINTS')"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.governed_outcome_versions": {
+      "name": "governed_outcome_versions",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "run_id": {
+          "name": "run_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "predecessor_id": {
+          "name": "predecessor_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "recorded_at": {
+          "name": "recorded_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "snapshot": {
+          "name": "snapshot",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "governed_outcomes_one_initial": {
+          "name": "governed_outcomes_one_initial",
+          "columns": [
+            {
+              "expression": "run_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "where": "\"governed_outcome_versions\".\"predecessor_id\" is null",
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "governed_outcomes_one_successor": {
+          "name": "governed_outcomes_one_successor",
+          "columns": [
+            {
+              "expression": "predecessor_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "where": "\"governed_outcome_versions\".\"predecessor_id\" is not null",
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "governed_outcomes_run_recorded_idx": {
+          "name": "governed_outcomes_run_recorded_idx",
+          "columns": [
+            {
+              "expression": "run_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "recorded_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "governed_outcome_versions_run_id_governed_runs_id_fk": {
+          "name": "governed_outcome_versions_run_id_governed_runs_id_fk",
+          "tableFrom": "governed_outcome_versions",
+          "tableTo": "governed_runs",
+          "columnsFrom": ["run_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "governed_outcome_versions_predecessor_id_governed_outcome_versions_id_fk": {
+          "name": "governed_outcome_versions_predecessor_id_governed_outcome_versions_id_fk",
+          "tableFrom": "governed_outcome_versions",
+          "tableTo": "governed_outcome_versions",
+          "columnsFrom": ["predecessor_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.governed_runs": {
+      "name": "governed_runs",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "project_id": {
+          "name": "project_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "attempt_id": {
+          "name": "attempt_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "confirmed_at": {
+          "name": "confirmed_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "snapshot": {
+          "name": "snapshot",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "governed_runs_attempt_unique": {
+          "name": "governed_runs_attempt_unique",
+          "columns": [
+            {
+              "expression": "attempt_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "governed_runs_project_confirmed_idx": {
+          "name": "governed_runs_project_confirmed_idx",
+          "columns": [
+            {
+              "expression": "project_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "confirmed_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "governed_runs_project_id_projects_id_fk": {
+          "name": "governed_runs_project_id_projects_id_fk",
+          "tableFrom": "governed_runs",
+          "tableTo": "projects",
+          "columnsFrom": ["project_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "governed_runs_attempt_id_preflight_evaluation_attempts_id_fk": {
+          "name": "governed_runs_attempt_id_preflight_evaluation_attempts_id_fk",
+          "tableFrom": "governed_runs",
+          "tableTo": "preflight_evaluation_attempts",
+          "columnsFrom": ["attempt_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.preflight_drafts": {
+      "name": "preflight_drafts",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "project_id": {
+          "name": "project_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "tranche_id": {
+          "name": "tranche_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "tranche_title": {
+          "name": "tranche_title",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "tranche_brief": {
+          "name": "tranche_brief",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "explicit_exclusions": {
+          "name": "explicit_exclusions",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "acceptance_criteria": {
+          "name": "acceptance_criteria",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "available_budget_amount": {
+          "name": "available_budget_amount",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "available_budget_unit": {
+          "name": "available_budget_unit",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "available_budget_source": {
+          "name": "available_budget_source",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "reset_at": {
+          "name": "reset_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "reset_timezone": {
+          "name": "reset_timezone",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "reset_notes": {
+          "name": "reset_notes",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "correction_minimum_amount": {
+          "name": "correction_minimum_amount",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "correction_minimum_unit": {
+          "name": "correction_minimum_unit",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "correction_target_share": {
+          "name": "correction_target_share",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "validation_minimum_amount": {
+          "name": "validation_minimum_amount",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "validation_minimum_unit": {
+          "name": "validation_minimum_unit",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "validation_target_share": {
+          "name": "validation_target_share",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "assumptions": {
+          "name": "assumptions",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "open_questions": {
+          "name": "open_questions",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "preflight_drafts_project_id_unique": {
+          "name": "preflight_drafts_project_id_unique",
+          "columns": [
+            {
+              "expression": "project_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "preflight_drafts_project_id_projects_id_fk": {
+          "name": "preflight_drafts_project_id_projects_id_fk",
+          "tableFrom": "preflight_drafts",
+          "tableTo": "projects",
+          "columnsFrom": ["project_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "preflight_budget_nonnegative": {
+          "name": "preflight_budget_nonnegative",
+          "value": "\"preflight_drafts\".\"available_budget_amount\" >= 0"
+        },
+        "preflight_correction_minimum_pair": {
+          "name": "preflight_correction_minimum_pair",
+          "value": "(\"preflight_drafts\".\"correction_minimum_amount\" is null) = (\"preflight_drafts\".\"correction_minimum_unit\" is null)"
+        },
+        "preflight_validation_minimum_pair": {
+          "name": "preflight_validation_minimum_pair",
+          "value": "(\"preflight_drafts\".\"validation_minimum_amount\" is null) = (\"preflight_drafts\".\"validation_minimum_unit\" is null)"
+        },
+        "preflight_correction_minimum_nonnegative": {
+          "name": "preflight_correction_minimum_nonnegative",
+          "value": "\"preflight_drafts\".\"correction_minimum_amount\" is null or \"preflight_drafts\".\"correction_minimum_amount\" >= 0"
+        },
+        "preflight_validation_minimum_nonnegative": {
+          "name": "preflight_validation_minimum_nonnegative",
+          "value": "\"preflight_drafts\".\"validation_minimum_amount\" is null or \"preflight_drafts\".\"validation_minimum_amount\" >= 0"
+        },
+        "preflight_correction_share_range": {
+          "name": "preflight_correction_share_range",
+          "value": "\"preflight_drafts\".\"correction_target_share\" is null or \"preflight_drafts\".\"correction_target_share\" between 0 and 1"
+        },
+        "preflight_validation_share_range": {
+          "name": "preflight_validation_share_range",
+          "value": "\"preflight_drafts\".\"validation_target_share\" is null or \"preflight_drafts\".\"validation_target_share\" between 0 and 1"
+        },
+        "preflight_manual_source": {
+          "name": "preflight_manual_source",
+          "value": "\"preflight_drafts\".\"available_budget_source\" = 'manual'"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.preflight_evaluation_attempts": {
+      "name": "preflight_evaluation_attempts",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "revision_id": {
+          "name": "revision_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "recorded_at": {
+          "name": "recorded_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "snapshot": {
+          "name": "snapshot",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "preflight_attempts_revision_unique": {
+          "name": "preflight_attempts_revision_unique",
+          "columns": [
+            {
+              "expression": "revision_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "preflight_evaluation_attempts_revision_id_composed_preflight_revisions_id_fk": {
+          "name": "preflight_evaluation_attempts_revision_id_composed_preflight_revisions_id_fk",
+          "tableFrom": "preflight_evaluation_attempts",
+          "tableTo": "composed_preflight_revisions",
+          "columnsFrom": ["revision_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.projects": {
+      "name": "projects",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.run_outcome_observations": {
+      "name": "run_outcome_observations",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "run_id": {
+          "name": "run_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "supersedes_observation_id": {
+          "name": "supersedes_observation_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "run_outcome": {
+          "name": "run_outcome",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "validation_result": {
+          "name": "validation_result",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "unexpected_failures": {
+          "name": "unexpected_failures",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "deferred_work": {
+          "name": "deferred_work",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "notes": {
+          "name": "notes",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "remaining_capacity_amount": {
+          "name": "remaining_capacity_amount",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "remaining_capacity_unit": {
+          "name": "remaining_capacity_unit",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "remaining_capacity_observed_at": {
+          "name": "remaining_capacity_observed_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "remaining_capacity_source": {
+          "name": "remaining_capacity_source",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "amendment_reason": {
+          "name": "amendment_reason",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "recorded_at": {
+          "name": "recorded_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "run_outcome_observations_one_initial_per_run": {
+          "name": "run_outcome_observations_one_initial_per_run",
+          "columns": [
+            {
+              "expression": "run_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "where": "\"run_outcome_observations\".\"supersedes_observation_id\" is null",
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "run_outcome_observations_one_successor": {
+          "name": "run_outcome_observations_one_successor",
+          "columns": [
+            {
+              "expression": "supersedes_observation_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "where": "\"run_outcome_observations\".\"supersedes_observation_id\" is not null",
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "run_outcome_observations_run_recorded_at_idx": {
+          "name": "run_outcome_observations_run_recorded_at_idx",
+          "columns": [
+            {
+              "expression": "run_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "recorded_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "run_outcome_observations_run_id_development_runs_id_fk": {
+          "name": "run_outcome_observations_run_id_development_runs_id_fk",
+          "tableFrom": "run_outcome_observations",
+          "tableTo": "development_runs",
+          "columnsFrom": ["run_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "run_outcome_observations_supersedes_observation_id_run_outcome_observations_id_fk": {
+          "name": "run_outcome_observations_supersedes_observation_id_run_outcome_observations_id_fk",
+          "tableFrom": "run_outcome_observations",
+          "tableTo": "run_outcome_observations",
+          "columnsFrom": ["supersedes_observation_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "run_outcome_observations_run_outcome": {
+          "name": "run_outcome_observations_run_outcome",
+          "value": "\"run_outcome_observations\".\"run_outcome\" in ('COMPLETED', 'PARTIAL', 'FAILED')"
+        },
+        "run_outcome_observations_validation_result": {
+          "name": "run_outcome_observations_validation_result",
+          "value": "\"run_outcome_observations\".\"validation_result\" in ('NOT_RUN', 'PASSED', 'PARTIAL', 'FAILED', 'INCONCLUSIVE')"
+        },
+        "run_outcome_observations_remaining_all_or_none": {
+          "name": "run_outcome_observations_remaining_all_or_none",
+          "value": "(\n        \"run_outcome_observations\".\"remaining_capacity_amount\" is null\n        and \"run_outcome_observations\".\"remaining_capacity_unit\" is null\n        and \"run_outcome_observations\".\"remaining_capacity_observed_at\" is null\n        and \"run_outcome_observations\".\"remaining_capacity_source\" is null\n      ) or (\n        \"run_outcome_observations\".\"remaining_capacity_amount\" is not null\n        and \"run_outcome_observations\".\"remaining_capacity_unit\" is not null\n        and \"run_outcome_observations\".\"remaining_capacity_observed_at\" is not null\n        and \"run_outcome_observations\".\"remaining_capacity_source\" is not null\n      )"
+        },
+        "run_outcome_observations_remaining_nonnegative": {
+          "name": "run_outcome_observations_remaining_nonnegative",
+          "value": "\"run_outcome_observations\".\"remaining_capacity_amount\" is null or \"run_outcome_observations\".\"remaining_capacity_amount\" >= 0"
+        },
+        "run_outcome_observations_remaining_finite": {
+          "name": "run_outcome_observations_remaining_finite",
+          "value": "\"run_outcome_observations\".\"remaining_capacity_amount\" is null or \"run_outcome_observations\".\"remaining_capacity_amount\" not in ('Infinity'::float8, '-Infinity'::float8, 'NaN'::float8)"
+        },
+        "run_outcome_observations_remaining_unit_nonempty": {
+          "name": "run_outcome_observations_remaining_unit_nonempty",
+          "value": "\"run_outcome_observations\".\"remaining_capacity_unit\" is null or btrim(\"run_outcome_observations\".\"remaining_capacity_unit\") <> ''"
+        },
+        "run_outcome_observations_remaining_manual": {
+          "name": "run_outcome_observations_remaining_manual",
+          "value": "\"run_outcome_observations\".\"remaining_capacity_source\" is null or \"run_outcome_observations\".\"remaining_capacity_source\" = 'manual'"
+        },
+        "run_outcome_observations_amendment_pair": {
+          "name": "run_outcome_observations_amendment_pair",
+          "value": "(\"run_outcome_observations\".\"supersedes_observation_id\" is null) = (\"run_outcome_observations\".\"amendment_reason\" is null)"
+        },
+        "run_outcome_observations_amendment_reason_nonempty": {
+          "name": "run_outcome_observations_amendment_reason_nonempty",
+          "value": "\"run_outcome_observations\".\"amendment_reason\" is null or btrim(\"run_outcome_observations\".\"amendment_reason\") <> ''"
+        }
+      },
+      "isRLSEnabled": false
+    }
+  },
+  "enums": {},
+  "schemas": {},
+  "sequences": {},
+  "roles": {},
+  "policies": {},
+  "views": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}

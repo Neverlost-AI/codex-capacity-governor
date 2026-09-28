@@ -6,6 +6,7 @@ import { CreateRunForm } from "../../../components/create-run-form";
 import { PreflightForm } from "../../../components/preflight-form";
 import { getApplicationService } from "../../../server/application";
 import { getComposedService } from "../../../server/composed-application";
+import { getGovernedService } from "../../../server/governed-application";
 
 export const dynamic = "force-dynamic";
 
@@ -20,12 +21,14 @@ export default async function ProjectPage({
   let result;
   let runs;
   let evaluations;
+  let governed;
   try {
     const service = await getApplicationService();
-    [result, runs, evaluations] = await Promise.all([
+    [result, runs, evaluations, governed] = await Promise.all([
       service.getProject(projectId),
       service.listProjectRuns(projectId),
       (await getComposedService()).list(projectId),
+      (await getGovernedService()).list(projectId),
     ]);
   } catch (error) {
     if (error instanceof ProjectNotFoundError) notFound();
@@ -93,6 +96,24 @@ export default async function ProjectPage({
             </li>
           ))}
         </ul>
+        <h3>Governed bounded runs</h3>
+        <p>
+          Each link records an exact historical attempt; it does not refresh
+          guidance. Later preflights remain cold-start.
+        </p>
+        <ul>
+          {governed.map((history) => (
+            <li key={history.link.id}>
+              <Link href={`/projects/${projectId}/governed/${history.link.id}`}>
+                {history.attempt.revision.input.title} · {history.link.decision}{" "}
+                · {history.observations.at(-1)?.runOutcome ?? "outcome unknown"}
+              </Link>
+              {!history.link.authorizesWork
+                ? " · work recorded despite non-authorizing decision"
+                : ""}
+            </li>
+          ))}
+        </ul>
       </section>
       <section
         aria-labelledby="run-history-heading"
@@ -102,7 +123,7 @@ export default async function ProjectPage({
           <p className="eyebrow">Factual execution evidence</p>
           <h2 id="run-history-heading">Development run history</h2>
           <p>
-            Runs recorded here are unguided. They contain no forecast,
+            The legacy runs below remain unguided. They contain no forecast,
             affordability result, operating mode, or Governor decision.
           </p>
         </div>

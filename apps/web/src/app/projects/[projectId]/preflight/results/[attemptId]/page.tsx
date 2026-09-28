@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getComposedService } from "../../../../../../server/composed-application";
 import { requireLocalAccess } from "../../../../../../server/access";
 import { ComposedResult } from "../../../../../../components/composed-result";
+import { GovernedLinkReview } from "../../../../../../components/governed-link-review";
 export const dynamic = "force-dynamic";
 export default async function ResultPage({
   params,
@@ -9,7 +10,7 @@ export default async function ResultPage({
   params: Promise<{ projectId: string; attemptId: string }>;
 }) {
   const { projectId, attemptId } = await params;
-  await requireLocalAccess();
+  const { session } = await requireLocalAccess();
   let attempt;
   try {
     attempt = await (await getComposedService()).reopen(projectId, attemptId);
@@ -32,6 +33,7 @@ export default async function ResultPage({
     <div className="narrow-shell">
       <Link href={`/projects/${projectId}`}>Back to project</Link>
       <ComposedResult attempt={attempt} />
+      <GovernedLinkReview attempt={attempt} csrf={session.csrf} />
       <Link href={`/projects/${projectId}/preflight/new`}>
         Create a new reviewed evaluation
       </Link>

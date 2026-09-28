@@ -279,3 +279,4 @@ export interface CalibrationObservation {
   recordedAt: ISODateTime;
 }
 export * from "./composed";
+export * from "./governed";

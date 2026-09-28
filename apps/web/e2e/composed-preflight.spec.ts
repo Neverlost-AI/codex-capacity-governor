@@ -404,6 +404,12 @@ for (const family of [
       await expect(
         page.getByText(/Expected implementation usage 108%/),
       ).toBeVisible();
+      await expect(
+        page.getByText(/cannot establish a governed run/),
+      ).toBeVisible();
+      await expect(
+        page.getByRole("button", { name: "Review exact saved attempt" }),
+      ).toHaveCount(0);
     }
     if (family === "STALE") {
       const aggregateRules = page

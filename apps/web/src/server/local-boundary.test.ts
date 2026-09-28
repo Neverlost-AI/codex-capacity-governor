@@ -20,6 +20,103 @@ const paired = (boundary = new LocalBoundary()) => {
   return { boundary, cookie, secret };
 };
 describe("server-held single-operator local boundary", () => {
+  it("governed link uses one-use session-bound exact attempt/revision/receipt/bucket evidence", async () => {
+    const { boundary, cookie } = paired();
+    const other = paired(boundary);
+    const h = harness();
+    const revision = await h.service.prepare(inputFixture());
+    const attempt = await h.service.confirm(
+      revision,
+      "local-session:test",
+      digest(canonicalizeComposed(revision)),
+    );
+    const reviewed = boundary.reviewGoverned(cookie, attempt);
+    const request = {
+      projectId: attempt.revision.input.projectId,
+      attemptId: attempt.id,
+      challenge: reviewed.challenge,
+      confirmedExactAttempt: true as const,
+    };
+    const reread = async () => attempt;
+    const create = async (
+      _project: string,
+      _attempt: string,
+      _actor: string,
+      reference: string,
+    ) => ({ reference });
+    await expect(
+      boundary.confirmGoverned(other.cookie, request, reread, create),
+    ).rejects.toThrow("mismatched");
+    await expect(
+      boundary.confirmGoverned(
+        cookie,
+        { ...request, projectId: revision.id },
+        reread,
+        create,
+      ),
+    ).rejects.toThrow("mismatched");
+    const changed = structuredClone(attempt);
+    changed.receipt.buckets[0].resetCycleId = "other-cycle";
+    await expect(
+      boundary.confirmGoverned(cookie, request, async () => changed, create),
+    ).rejects.toThrow("changed");
+    await expect(
+      boundary.confirmGoverned(cookie, request, reread, create),
+    ).rejects.toThrow("missing");
+    const retry = boundary.reviewGoverned(cookie, attempt);
+    const result = await boundary.confirmGoverned(
+      cookie,
+      { ...request, challenge: retry.challenge },
+      reread,
+      create,
+    );
+    expect((result as { reference: string }).reference).toBe(
+      localDigest(retry.challenge),
+    );
+    expect((result as { reference: string }).reference).not.toBe(
+      retry.challenge,
+    );
+    await expect(
+      boundary.confirmGoverned(
+        cookie,
+        { ...request, challenge: retry.challenge },
+        reread,
+        create,
+      ),
+    ).rejects.toThrow("missing");
+  });
+  it("expires a governed link challenge without creating a run", async () => {
+    let clock = 0;
+    const boundary = new LocalBoundary(() => clock);
+    const { cookie } = paired(boundary);
+    const h = harness();
+    const revision = await h.service.prepare(inputFixture());
+    const attempt = await h.service.confirm(
+      revision,
+      "local-session:test",
+      digest(canonicalizeComposed(revision)),
+    );
+    const { challenge } = boundary.reviewGoverned(cookie, attempt);
+    clock = 30 * 60 * 1000 + 1;
+    let created = false;
+    await expect(
+      boundary.confirmGoverned(
+        cookie,
+        {
+          projectId: attempt.revision.input.projectId,
+          attemptId: attempt.id,
+          challenge,
+          confirmedExactAttempt: true,
+        },
+        async () => attempt,
+        async () => {
+          created = true;
+          return {};
+        },
+      ),
+    ).rejects.toThrow("stale");
+    expect(created).toBe(false);
+  });
   it("256-bit runtime pairing, one-use bootstrap, HttpOnly-cookie authority not browser objects", () => {
     const boundary = new LocalBoundary();
     let secret = "";
