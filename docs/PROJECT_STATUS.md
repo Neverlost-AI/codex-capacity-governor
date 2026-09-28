@@ -74,18 +74,20 @@ window. Separately, the builder noted low unit line coverage
 in the access wrapper/legacy actions despite real guarded E2E coverage. These
 limitations do not reopen T005 acceptance or authorize work.
 
-## Next proposed work and milestone boundary
+## Next accepted scope and milestone boundary
 
-The [T006 assignment draft](TRANCHE_006_GOVERNED_OUTCOMES_DRAFT.md),
-[calibration/milestone analysis](T006_CALIBRATION_AND_MILESTONES_DRAFT.md) and
-[draft method successor](decisions/0005-calibration-baseline-ratio-draft.md)
-are founder-review planning only. T006 implementation is not authorized.
-Concern 001 remains unresolved and T004's historical reset-cycle comparability
-and upstream evidence authentication remain deferred. The founder must decide
-whether the first-prototype T006 slice captures outcomes/comparison/factual
-history with cold-start future forecasts, or also loads history after a
-versioned method decision. The newer milestone wording favors a separate
-fuller-product loader, but this is not yet an accepted scope revision.
+The founder accepted T6-1–T6-7 and clarified that a run covers one bounded
+development attempt, including normal coding, testing, fixes, prompts and agent
+handoffs. [Decision 0006](decisions/0006-t006-governed-outcome-recording-v1.md)
+records those choices; the [T006 assignment](TRANCHE_006_GOVERNED_OUTCOMES.md)
+sets the outcome-only scope, tests and stop conditions. **T006 implementation is
+not authorized** until a separate grant names the exact accepted `main` baseline
+and branch. The [calibration/milestone analysis](T006_CALIBRATION_AND_MILESTONES_DRAFT.md)
+and [draft method successor](decisions/0005-calibration-baseline-ratio-draft.md)
+remain method/T007 planning, not a loader grant. Concern 001 is narrowed to block
+automatic history loading, not outcome-only T006. Its method question, T004's
+historical reset-cycle comparability and upstream evidence authentication remain
+unresolved/deferred. Later preflights stay cold-start.
 
 The first local prototype is T005 plus governed outcomes/history, followed by
 required T007 internal dogfooding and local release-readiness checks under a

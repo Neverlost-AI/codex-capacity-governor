@@ -17,10 +17,12 @@ and saves immutable reviewed inputs and attempts, including negative results.
 
 [T005](docs/TRANCHE_005_COMPLETE_CAPACITY_PREFLIGHT.md) was founder-accepted and
 merged in PR #11. It supplies the preflight part of the loop, not governed
-outcomes or history-informed future forecasts. The proposed
-[T006 assignment](docs/TRANCHE_006_GOVERNED_OUTCOMES_DRAFT.md) addresses outcomes
-and comparison; placement of the automatic history loader is open, and the
-[calibration concern](docs/FORECAST_CALIBRATION_CONCERN_001.md) remains unresolved.
+outcomes or history-informed future forecasts. The founder-accepted
+[T006 assignment](docs/TRANCHE_006_GOVERNED_OUTCOMES.md) bounds outcome,
+comparison and viewable-history work; **implementation still needs a separate
+grant**. The automatic history loader is deferred, and the
+[calibration method concern](docs/FORECAST_CALIBRATION_CONCERN_001.md) remains
+unresolved before that loader.
 AI analysis, automatic capacity retrieval and Governor-to-Codex runtime
 integration remain unimplemented; broader MVP placement is retained in the
 [roadmap](docs/MVP_ROADMAP.md), not decided by accepting manual T005.
