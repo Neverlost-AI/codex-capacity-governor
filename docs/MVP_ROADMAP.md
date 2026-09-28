@@ -73,7 +73,7 @@ an active future assignment. Future ownership labels remain planning guidance.
 | Tranche 004 — Forecast Engine V1                      | `ACCEPTED`                       | Pure forecast/projection/comparison; PR #7 merged.                                          | Accepted foundation              |
 | Tranche 005 — Complete Capacity Preflight             | `ACCEPTED`                      | Manual local cold-start composition; F1-F9 accepted; PR #11 merged.                          | Accepted foundation              |
 | Tranche 006 — Governed Outcomes and Comparison        | `ACCEPTED`                       | First-prototype outcomes, comparison and factual history; loader deferred; PR #13 merged. | Accepted foundation |
-| Tranche 007 — Governor Dogfooding                     | `OUTCOME_DEFINED`                | Govern development of the Governor and assess internal usefulness and calibration.          | Founder + Codex                  |
+| Tranche 007 — Governor Dogfooding                     | `OUTCOME_DEFINED`                | Original self-development dogfooding aim; draft initial protocol proposes three public challenge builds to test the local workflow, pending explicit T7-1 substitution approval. | Founder + Codex |
 | Tranche 008 — Hosted External Pilot                   | `OUTCOME_DEFINED`                | Collect exploratory evidence from approximately 3–5 developers for about one week.          | Shared                           |
 
 The ordering above expresses dependency and learning sequence, not a promise that every stage is one pull request or that work may begin automatically.
@@ -668,7 +668,7 @@ Governor Dogfooding.
 
 ### 2. Purpose
 
-Use Codex Capacity Governor to govern development of Codex Capacity Governor, testing whether the product supports real planning and whether its records are complete enough to learn from. This is a product-validation stage and may contain multiple separately approved governed runs rather than one engineering tranche.
+The original outcome was to use Codex Capacity Governor to govern development of Codex Capacity Governor, testing whether the product supports real planning and whether its records are complete enough to learn from. The [current T007 founder-review draft](TRANCHE_007_INTERNAL_TESTING_AND_LOCAL_RELEASE_DRAFT.md) instead proposes three pinned public coding challenges as its initial measurement/usability sample, following the founder's task-selection direction. This is a **proposed substitution**, not an assertion that public builds are Governor self-development. T7-1 must explicitly approve the substitution and frozen task baselines before execution. If self-development dogfooding remains necessary, it requires separately identified evidence; do not claim the three public builds satisfy it. T007 remains a product-validation stage that may contain multiple separately approved governed runs rather than one engineering tranche.
 
 ### 3. Readiness state
 

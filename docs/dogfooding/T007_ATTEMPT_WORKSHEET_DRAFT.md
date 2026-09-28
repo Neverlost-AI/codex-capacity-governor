@@ -34,10 +34,10 @@
 | Linked governed run ID; operator's confirmation that this evaluation guided planning |  |
 | Explicit outcome, validation result, adherence, unexpected failure and deferred work |  |
 | Original/amended outcome IDs, reason, actor/time, original and effective versions |  |
-| Reviewed actual entries by bucket and IMPLEMENTATION / CORRECTION / VALIDATION / OTHER, with source and reviewer |  |
+| Reviewed governed actual entries by bucket and `IMPLEMENTATION` / `CORRECTION` / `VALIDATION`, with source and reviewer |  |
 | App comparison state and saved historical reopen evidence |  |
 
-An application link proves what was saved, not that external usage readings are authenticated or the guidance was actually followed. A restrictive evaluation is never permission to execute. If no execution occurs, preserve the preflight as non-executed evidence; do not fabricate a run.
+An application link proves what was saved, not that external usage readings are authenticated or the guidance was actually followed. T006 governed actuals support only those three categories; any separately observed review/other whole-run usage stays factual worksheet evidence, not a fabricated governed actual category. A restrictive evaluation is never permission to execute. If no execution occurs, preserve the preflight as non-executed evidence; do not fabricate a run.
 
 ## 3. Raw capacity readings — manual observations
 
