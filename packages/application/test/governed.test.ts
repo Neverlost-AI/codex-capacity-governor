@@ -352,11 +352,23 @@ describe("T006 governed link, outcome and comparison", () => {
     ).rejects.toThrow("Future remaining observation");
     expect(observations.has(link.id)).toBe(false);
 
+    const earlierWithOffset = "2026-09-26T05:59:59.999999-06:00";
+    const sameInstant = "2026-09-26T12:00:00.000000+00:00";
     const saved = await service.record(
       link.id,
-      input([actual()]),
+      {
+        ...input([{ ...actual(), observedAt: earlierWithOffset }]),
+        remainingCapacity: {
+          amount: 10,
+          unit: "manual capacity units",
+          observedAt: sameInstant,
+          source: "manual",
+        },
+      },
       "local-session:test",
     );
+    expect(saved.usage[0].observedAt).toBe(earlierWithOffset);
+    expect(saved.remainingCapacity?.observedAt).toBe(sameInstant);
     observations.set(link.id, [
       {
         ...saved,

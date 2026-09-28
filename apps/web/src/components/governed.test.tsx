@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
@@ -61,6 +61,58 @@ const history = async (): Promise<GovernedHistory> => {
     observations: [],
   };
 };
+const mismatchedHistory = async (): Promise<GovernedHistory> => {
+  const data = await history();
+  if (data.attempt.forecast.kind !== "FORECAST_EVALUATION")
+    throw new Error("Expected eligible attempt");
+  const bucket = data.attempt.forecast.bucketResults[0].bucket;
+  const recordedAt = data.attempt.recordedAt;
+  data.observations = [
+    {
+      id: "00000000-0000-4000-8000-000000000056",
+      runId: data.link.id,
+      runOutcome: "COMPLETED",
+      validationResult: "PASSED",
+      adherence: "FOLLOWED",
+      unexpectedFailures: [],
+      deferredWork: [],
+      recordedAt,
+      reviewerActorReference: "local-session:test",
+      usage: [
+        {
+          bucketId: bucket.bucketId,
+          providerId: bucket.providerId,
+          capacityWindowId: bucket.capacityWindowId,
+          resetCycleId: "later-cycle",
+          bucketProfileVersion: "older-profile",
+          category: "IMPLEMENTATION",
+          rawValue: "1",
+          rawUnit: "PERCENT",
+          normalizedBasisPoints: "100",
+          sourceReference: "manual later-cycle reading",
+          observedAt: recordedAt,
+          exactCycleOnly: "YES",
+          reviewedBy: "local-session:test",
+          reviewedAt: recordedAt,
+          normalizationVersion: "manual-percent-bp-v1",
+        },
+      ],
+      comparisons: [
+        {
+          bucketId: bucket.bucketId,
+          unavailableDetail: "BUCKET_OR_PROFILE_MISMATCH",
+          comparison: {
+            kind: "UNAVAILABLE",
+            candidateId: "00000000-0000-4000-8000-000000000057",
+            bucketId: bucket.bucketId,
+            reasonId: "COMPARISON_ACTUAL_UNAVAILABLE_OR_INCOMPATIBLE",
+          },
+        },
+      ],
+    },
+  ];
+  return data;
+};
 describe("governed local operator UI", () => {
   it("shows exact saved link evidence and an explicit confirmation checkbox", async () => {
     const saved = await attempt();
@@ -120,55 +172,7 @@ describe("governed local operator UI", () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
   it("shows a changed-reset actual under its recorded identity, not the issued identity", async () => {
-    const data = await history();
-    if (data.attempt.forecast.kind !== "FORECAST_EVALUATION")
-      throw new Error("Expected eligible attempt");
-    const bucket = data.attempt.forecast.bucketResults[0].bucket;
-    const recordedAt = data.attempt.recordedAt;
-    data.observations = [
-      {
-        id: "00000000-0000-4000-8000-000000000056",
-        runId: data.link.id,
-        runOutcome: "COMPLETED",
-        validationResult: "PASSED",
-        adherence: "FOLLOWED",
-        unexpectedFailures: [],
-        deferredWork: [],
-        recordedAt,
-        reviewerActorReference: "local-session:test",
-        usage: [
-          {
-            bucketId: bucket.bucketId,
-            providerId: bucket.providerId,
-            capacityWindowId: bucket.capacityWindowId,
-            resetCycleId: "later-cycle",
-            bucketProfileVersion: bucket.bucketProfileVersion,
-            category: "IMPLEMENTATION",
-            rawValue: "1",
-            rawUnit: "PERCENT",
-            normalizedBasisPoints: "100",
-            sourceReference: "manual later-cycle reading",
-            observedAt: recordedAt,
-            exactCycleOnly: "YES",
-            reviewedBy: "local-session:test",
-            reviewedAt: recordedAt,
-            normalizationVersion: "manual-percent-bp-v1",
-          },
-        ],
-        comparisons: [
-          {
-            bucketId: bucket.bucketId,
-            unavailableDetail: "BUCKET_OR_PROFILE_MISMATCH",
-            comparison: {
-              kind: "UNAVAILABLE",
-              candidateId: "00000000-0000-4000-8000-000000000057",
-              bucketId: bucket.bucketId,
-              reasonId: "COMPARISON_ACTUAL_UNAVAILABLE_OR_INCOMPATIBLE",
-            },
-          },
-        ],
-      },
-    ];
+    const data = await mismatchedHistory();
     reopenMock.mockResolvedValue(data);
     render(
       await GovernedRunPage({
@@ -189,5 +193,73 @@ describe("governed local operator UI", () => {
         .getAllByText(/BUCKET_OR_PROFILE_MISMATCH/)
         .find((element) => element.tagName === "P"),
     ).toBeVisible();
+  });
+  it("requires re-review of copied identity and allows an explicit cycle/profile correction", async () => {
+    const user = userEvent.setup();
+    const data = await mismatchedHistory();
+    const original = JSON.stringify(data.observations[0]);
+    if (data.attempt.forecast.kind !== "FORECAST_EVALUATION")
+      throw new Error("Expected eligible attempt");
+    const issuedProfile =
+      data.attempt.forecast.bucketResults[0].bucket.bucketProfileVersion;
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: false,
+      json: async () => ({ error: "Injected save failure" }),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    render(<GovernedOutcomeForm history={data} csrf="csrf" />);
+    const row = screen.getByRole("group", {
+      name: "short IMPLEMENTATION usage",
+    });
+    const reset = within(row).getByLabelText("Recorded reset cycle ID");
+    const profile = within(row).getByLabelText(
+      "Recorded bucket profile version",
+    );
+    const reviewed = within(row).getByRole("checkbox", {
+      name: /I reviewed this exact manual value/,
+    });
+    expect(reset).toHaveValue("later-cycle");
+    expect(profile).toHaveValue("older-profile");
+    expect(reviewed).not.toBeChecked();
+    expect(
+      within(row).getByText(/Recorded identity differs from the issued/),
+    ).toBeVisible();
+    await user.type(
+      screen.getByLabelText("Amendment reason"),
+      "Reviewed cycle",
+    );
+    await user.selectOptions(
+      screen.getByLabelText("Operator-reported adherence"),
+      "UNKNOWN",
+    );
+    await user.click(screen.getByRole("button", { name: "Append amendment" }));
+    expect(fetchMock).not.toHaveBeenCalled();
+    await user.click(reviewed);
+    await user.click(screen.getByRole("button", { name: "Append amendment" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "Injected save failure",
+    );
+    const retained = JSON.parse(fetchMock.mock.calls[0][1].body as string);
+    expect(retained.input.usage[0]).toMatchObject({
+      resetCycleId: "later-cycle",
+      bucketProfileVersion: "older-profile",
+      reviewed: true,
+    });
+    expect(retained.predecessorId).toBe(data.observations[0].id);
+
+    await user.clear(reset);
+    await user.type(reset, "cycle-1");
+    await user.clear(profile);
+    await user.type(profile, issuedProfile);
+    expect(reviewed).not.toBeChecked();
+    await user.click(reviewed);
+    await user.click(screen.getByRole("button", { name: "Append amendment" }));
+    const corrected = JSON.parse(fetchMock.mock.calls[1][1].body as string);
+    expect(corrected.input.usage[0]).toMatchObject({
+      resetCycleId: "cycle-1",
+      bucketProfileVersion: issuedProfile,
+      reviewed: true,
+    });
+    expect(JSON.stringify(data.observations[0])).toBe(original);
   });
 });

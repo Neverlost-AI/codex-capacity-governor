@@ -132,9 +132,23 @@ test("paired saved attempt → one-use link → completed exact actual → amend
   await expect(
     page.getByText(/issued-expected calibration ratio/i),
   ).toBeVisible();
-  await page.getByLabel("Amendment reason").fill("Corrected manual reading");
+  const implementation = page.getByRole("group", {
+    name: "short IMPLEMENTATION usage",
+  });
+  await page
+    .getByLabel("Amendment reason")
+    .fill("Corrected manual reading and recorded later cycle");
   await page.getByLabel("Operator-reported adherence").selectOption("FOLLOWED");
   await page.getByLabel(/IMPLEMENTATION actual/).fill("13");
+  await implementation
+    .getByLabel("Recorded reset cycle ID")
+    .fill("later-cycle");
+  await implementation
+    .getByLabel("Recorded bucket profile version")
+    .fill("older-profile");
+  await expect(
+    implementation.getByText(/Recorded identity differs from the issued/),
+  ).toBeVisible();
   await page
     .getByLabel(/I reviewed this exact manual value/)
     .first()
@@ -142,8 +156,37 @@ test("paired saved attempt → one-use link → completed exact actual → amend
   await page.getByRole("button", { name: "Append amendment" }).click();
   await expect(page.getByText(/Superseded version 1/)).toBeVisible();
   await expect(
-    page.getByText(/^Amendment reason: Corrected manual reading$/),
+    page.getByText(
+      /^Amendment reason: Corrected manual reading and recorded later cycle$/,
+    ),
   ).toBeVisible();
+  await expect(
+    page.getByText(/UNAVAILABLE: BUCKET_OR_PROFILE_MISMATCH/).first(),
+  ).toBeVisible();
+  await expect(
+    implementation.getByLabel("Recorded reset cycle ID"),
+  ).toHaveValue("later-cycle");
+  await expect(
+    implementation.getByLabel("Recorded bucket profile version"),
+  ).toHaveValue("older-profile");
+  await page
+    .getByLabel("Amendment reason")
+    .fill("Corrected reviewed cycle and profile evidence");
+  await page.getByLabel("Operator-reported adherence").selectOption("FOLLOWED");
+  await implementation.getByLabel("Recorded reset cycle ID").fill("cycle-1");
+  await implementation
+    .getByLabel("Recorded bucket profile version")
+    .fill("gate-b-bucket-profile-v1");
+  await page
+    .getByLabel(/I reviewed this exact manual value/)
+    .first()
+    .check();
+  await page.getByRole("button", { name: "Append amendment" }).click();
+  await expect(page.getByText(/Current version 3/)).toBeVisible();
+  await expect(
+    page.getByText(/issued-expected calibration ratio/i).last(),
+  ).toBeVisible();
+  await expect(page.getByText(/Superseded version 2/)).toBeVisible();
   await page
     .getByLabel("Amendment reason")
     .fill("Incomplete after reassessment");
@@ -162,7 +205,7 @@ test("paired saved attempt → one-use link → completed exact actual → amend
     .last()
     .click();
   await expect(page).toHaveURL(runUrl);
-  await expect(page.getByText(/Current version 3/)).toBeVisible();
+  await expect(page.getByText(/Current version 4/)).toBeVisible();
 });
 
 test("restrictive saved result is factual, never permission", async ({

@@ -302,8 +302,9 @@ export function GovernedOutcomeForm({
       {bucketResults.map(({ bucket }) => (
         <fieldset key={bucket.bucketId}>
           <legend>
-            {bucket.bucketId} · {bucket.providerId} · {bucket.capacityWindowId}{" "}
-            · {bucket.resetCycleId}
+            Issued forecast identity: bucket {bucket.bucketId} · provider{" "}
+            {bucket.providerId} · window {bucket.capacityWindowId} · reset{" "}
+            {bucket.resetCycleId} · profile {bucket.bucketProfileVersion}
           </legend>
           {categories.map((category) => {
             const row = usage.find(
@@ -311,9 +312,82 @@ export function GovernedOutcomeForm({
                 entry.bucketId === bucket.bucketId &&
                 entry.category === category,
             );
+            const identityMismatch =
+              row &&
+              (row.providerId !== bucket.providerId ||
+                row.capacityWindowId !== bucket.capacityWindowId ||
+                row.resetCycleId !== bucket.resetCycleId ||
+                row.bucketProfileVersion !== bucket.bucketProfileVersion);
             return (
-              <div className="form-card" key={category}>
+              <div
+                className="form-card"
+                key={category}
+                role="group"
+                aria-label={`${bucket.bucketId} ${category} usage`}
+              >
                 <h3>{category}</h3>
+                <p>
+                  Recorded identity is copied from the prior observation on
+                  amendment. Review or correct it explicitly; changing this
+                  version does not rewrite earlier evidence.
+                </p>
+                <label>
+                  Recorded provider ID{" "}
+                  <input
+                    value={row?.providerId ?? bucket.providerId}
+                    onChange={(event) =>
+                      update(bucket.bucketId, category, {
+                        providerId: event.target.value,
+                        reviewed: false,
+                      })
+                    }
+                  />
+                </label>
+                <label>
+                  Recorded window ID{" "}
+                  <input
+                    value={row?.capacityWindowId ?? bucket.capacityWindowId}
+                    onChange={(event) =>
+                      update(bucket.bucketId, category, {
+                        capacityWindowId: event.target.value,
+                        reviewed: false,
+                      })
+                    }
+                  />
+                </label>
+                <label>
+                  Recorded reset cycle ID{" "}
+                  <input
+                    value={row?.resetCycleId ?? bucket.resetCycleId}
+                    onChange={(event) =>
+                      update(bucket.bucketId, category, {
+                        resetCycleId: event.target.value,
+                        reviewed: false,
+                      })
+                    }
+                  />
+                </label>
+                <label>
+                  Recorded bucket profile version{" "}
+                  <input
+                    value={
+                      row?.bucketProfileVersion ?? bucket.bucketProfileVersion
+                    }
+                    onChange={(event) =>
+                      update(bucket.bucketId, category, {
+                        bucketProfileVersion: event.target.value,
+                        reviewed: false,
+                      })
+                    }
+                  />
+                </label>
+                {identityMismatch ? (
+                  <p className="notice error">
+                    Recorded identity differs from the issued forecast identity,
+                    preventing comparison. Correct it only with reviewed
+                    evidence; otherwise preserve the recorded identity.
+                  </p>
+                ) : null}
                 <label>
                   {category} actual (blank means unknown; 0 is explicit){" "}
                   <input
@@ -394,8 +468,9 @@ export function GovernedOutcomeForm({
                       })
                     }
                   />{" "}
-                  I reviewed this exact manual value, source and cycle assertion
-                  for this outcome version.
+                  I reviewed this exact manual value, source, observation time,
+                  recorded provider/window/reset/profile identity and cycle
+                  assertion for this outcome version.
                 </label>
               </div>
             );
