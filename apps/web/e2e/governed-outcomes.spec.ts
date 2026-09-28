@@ -63,6 +63,10 @@ const createAttempt = async (page: Page, amount = "7800") => {
     .selectOption("NONE");
   await page.getByRole("radio", { name: "No", exact: true }).check();
   await page.getByRole("button", { name: "Review frozen inputs" }).click();
+  await expect(
+    page.getByRole("heading", { name: "Review exact frozen inputs" }),
+  ).toBeVisible();
+  await page.waitForLoadState("networkidle");
   await page
     .getByRole("checkbox", { name: /confirm all reviewed work/ })
     .check();

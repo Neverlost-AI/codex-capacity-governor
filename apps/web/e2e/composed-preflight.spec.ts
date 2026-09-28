@@ -135,6 +135,7 @@ const confirm = async (page: Page) => {
   await expect(
     page.getByRole("heading", { name: "Review exact frozen inputs" }),
   ).toBeVisible();
+  await page.waitForLoadState("networkidle");
   await expect(page.getByText(/uncalibrated planning estimates/)).toBeVisible();
   await expect(
     page.getByText(/not demonstrated prediction accuracy/),
