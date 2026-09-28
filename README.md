@@ -9,18 +9,18 @@ The Governor treats AI coding capacity as a finite development budget to plan be
 ## Repository status
 
 The application implements the accepted T001 manual draft, T002 factual
-`UNGUIDED` run/outcome history, and T005 manual, single-operator local,
-cold-start composed preflight. T003 remains the pure deterministic multi-bucket
-policy engine; T004 remains pure forecasting, policy-demand projection,
-comparison helpers and supplied-history adjustment. T005 composes the engines
-and saves immutable reviewed inputs and attempts, including negative results.
+`UNGUIDED` run/outcome history, T005 manual, single-operator local, cold-start
+composed preflight, and T006 governed outcomes, append-only amendments,
+comparison and viewable history. T003 remains the pure deterministic
+multi-bucket policy engine; T004 remains pure forecasting, policy-demand
+projection, comparison helpers and supplied-history adjustment. T005 saves
+immutable reviewed inputs and attempts, including negative results.
 
 [T005](docs/TRANCHE_005_COMPLETE_CAPACITY_PREFLIGHT.md) was founder-accepted and
-merged in PR #11. It supplies the preflight part of the loop, not governed
-outcomes or history-informed future forecasts. The founder-accepted
-[T006 assignment](docs/TRANCHE_006_GOVERNED_OUTCOMES.md) bounds outcome,
-comparison and viewable-history work; **implementation still needs a separate
-grant**. The automatic history loader is deferred, and the
+merged in PR #11. [T006](docs/TRANCHE_006_GOVERNED_OUTCOMES.md) was separately
+founder-accepted and merged in PR #13. The resulting local loop still needs a
+separately approved [T007 internal testing and local release protocol](docs/TRANCHE_007_INTERNAL_TESTING_AND_LOCAL_RELEASE_DRAFT.md).
+Future forecasts remain cold-start: the automatic history loader is deferred, and the
 [calibration method concern](docs/FORECAST_CALIBRATION_CONCERN_001.md) remains
 unresolved before that loader.
 AI analysis, automatic capacity retrieval and Governor-to-Codex runtime

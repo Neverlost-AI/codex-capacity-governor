@@ -4,7 +4,7 @@
 
 This is the founder-reviewable master roadmap for the Codex Capacity Governor MVP. It describes sequencing, dependencies, decision gates, evidence, and possible ownership lanes. It is a planning and governance document only.
 
-**Roadmap inclusion is not implementation authorization.** T001-T005 are accepted; Gate A and Gate B are closed. T005's manual, local, cold-start implementation was founder-accepted and merged through PR #11. See [project status](PROJECT_STATUS.md). T006 recording scope is founder-accepted in [Decision 0006](decisions/0006-t006-governed-outcome-recording-v1.md) and the [assignment](TRANCHE_006_GOVERNED_OUTCOMES.md), but **no implementation grant exists**. Only an explicit founder implementation grant and accepted `main` baseline authorize a new build.
+**Roadmap inclusion is not implementation authorization.** T001-T006 are accepted; Gate A and Gate B are closed. T005's manual, local, cold-start implementation was merged through PR #11 and T006's outcome/history implementation through PR #13. See [project status](PROJECT_STATUS.md). T007's [internal testing and local release assignment](TRANCHE_007_INTERNAL_TESTING_AND_LOCAL_RELEASE_DRAFT.md) is a founder-review draft, not an execution or release grant. Only an explicit founder grant and accepted baseline authorize a new tranche.
 
 The progress table below supersedes historical readiness and ownership statements
 in the original tranche descriptions. Accepted assignments and decision records
@@ -72,7 +72,7 @@ an active future assignment. Future ownership labels remain planning guidance.
 | Founder Decision Gate B — Forecasting Method          | `CLOSED`                         | Decision 0003 governs forecast method and composition mapping.                              | Founder                          |
 | Tranche 004 — Forecast Engine V1                      | `ACCEPTED`                       | Pure forecast/projection/comparison; PR #7 merged.                                          | Accepted foundation              |
 | Tranche 005 — Complete Capacity Preflight             | `ACCEPTED`                      | Manual local cold-start composition; F1-F9 accepted; PR #11 merged.                          | Accepted foundation              |
-| Tranche 006 — Governed Outcomes and Comparison        | `FULLY_SPECIFIED` — scope accepted, build not granted | First-prototype outcomes, comparison and factual history; loader deferred. | Founder/Codex pending grant |
+| Tranche 006 — Governed Outcomes and Comparison        | `ACCEPTED`                       | First-prototype outcomes, comparison and factual history; loader deferred; PR #13 merged. | Accepted foundation |
 | Tranche 007 — Governor Dogfooding                     | `OUTCOME_DEFINED`                | Govern development of the Governor and assess internal usefulness and calibration.          | Founder + Codex                  |
 | Tranche 008 — Hosted External Pilot                   | `OUTCOME_DEFINED`                | Collect exploratory evidence from approximately 3–5 developers for about one week.          | Shared                           |
 
@@ -574,12 +574,12 @@ founder-approved method decision.
 
 ### 3. Readiness state
 
-`FULLY_SPECIFIED` with founder-accepted scope, **not** implementation authority.
+`ACCEPTED` implementation, merged through PR #13. The original assignment's
+pre-implementation authority language is historical, not current status.
 [Decision 0006](decisions/0006-t006-governed-outcome-recording-v1.md) accepts
 T6-1–T6-7 and the bounded-run clarification. The [assignment](TRANCHE_006_GOVERNED_OUTCOMES.md)
 states the tests and stop conditions. Concern 001 now blocks the loader, not
-outcome-only T006. A separate grant must name the implementation branch and
-exact accepted `main` baseline.
+outcome-only T006. T007 testing and local release require separate founder approval.
 
 ### 4. Dependencies
 
@@ -845,7 +845,7 @@ Shared: founder owns pilot policy, participants, evidence boundary, and acceptan
 | Remaining work                      | Purpose and prerequisite                                                                                                                                                                                                                                                                    | Authority now                                               |
 | ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
 | T005 — Complete Capacity Preflight  | Manual local cold-start composition and immutable preflight evidence; PR #11 accepted and merged. | Accepted foundation, not the whole prototype. |
-| T006 — Governed Outcomes and Comparison | Accepted governed run linkage, factual outcomes/amendments, reviewed compatible actuals, comparison and queryable history. Preserve T002 UNGUIDED history; no loader. | Scope accepted in Decision 0006; implementation grant outstanding. |
+| T006 — Governed Outcomes and Comparison | Accepted governed run linkage, factual outcomes/amendments, reviewed compatible actuals, comparison and queryable history. Preserve T002 UNGUIDED history; no loader. | Founder-accepted implementation merged in PR #13. |
 | T007 — Governor Dogfooding          | Required internal use of the T005/T006 first-prototype path under an approved evidence and local release-readiness protocol. Existing proto-dogfooding is not formal T007. | Not started or authorized. |
 | T008 — Hosted External Pilot        | Separately approve hosted identity/tenancy, privacy, operations and participant protocol after dogfooding.                                                                                                                                                                                  | Not started or authorized; local F8 is not hosted approval. |
 
@@ -858,7 +858,7 @@ MVP. Their placement must be distinguished explicitly:
 | Placement                                                       | Work                                                                                                                                                                                                      | Current decision status                                                                                                           |
 | --------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
 | Deferred from T005; fuller-product assignment/membership unresolved | Paste/upload MVP/tranche specification intake; human-reviewed AI-assisted decomposition; model/context/parallelism guidance; whole-project sequencing; basic Governor-to-Codex runtime integration and simulated capacity feeds. | Founder must bound each chosen capability. Manual input remains supported; none was removed by T005 acceptance. |
-| First-prototype stages, not yet authorized | T006 governed outcomes, compatible actuals, comparison and factual history; required T007 local dogfooding/release-readiness. | T006 scope is accepted but build not granted. T007 needs a protocol/checklist and separate release decision. |
+| First-prototype stage still requiring approval | T005/T006 provide the local workflow; required T007 internal testing and local release-readiness remain. | T006 is accepted and merged. T007's draft protocol and a separate release decision still require founder approval. |
 | Fuller-product history-informed forecasting | Approved Gate B/T004 pure capability exists, but T005 supplies no candidates. A reviewed loader and versioned method must be separately assigned outside T006. | Concern 001 still blocks the loader. Decision 0005 is draft; no loader is authorized. |
 | Proposed exclusion from the first MVP, pending founder decision | Rich project/portfolio allocation and purchased-credit/model-price cost forecasting.                                                                                                                      | Recommendation only: defer beyond the first MVP. Separate ACCEPT/CHANGE/HOLD required for each; no accepted exclusion is implied. |
 
@@ -929,8 +929,7 @@ The roadmap intentionally leaves these questions open until their named decision
   expectations may drift. Decision 0006 settled its outcome-only T006 gate
   effect; resolve the method through a separate reviewed decision before a loader.
 - Tranche 006 recording semantics and loader placement are settled by Decision
-  0006; a separate implementation grant and exact accepted-main baseline remain
-  outstanding.
+  0006; its implementation was founder-accepted and merged through PR #13.
 - T007 local release-readiness checklist/protocol, sample sufficiency and
   separate founder release decision; fuller-product intake/AI/loader assignments.
 - T008 external-pilot entry criteria and hosted authority.

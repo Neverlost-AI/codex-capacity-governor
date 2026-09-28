@@ -18,6 +18,7 @@ the accepted records and merge evidence below.
 | T003 deterministic policy     | Decision 0002; accepted assignment; PR #3 merged in `d19c9f105dcc159ffbd917ae3f9416552151806c`                                                                   | Pure multi-bucket evaluation; no application/plan persistence.                                           |
 | T004 forecast                 | Decision 0003; accepted assignment; founder-approved head `8e9e491aedf93aa59375ed0195cc2f8994447479`; PR #7 merged in `0d7cc7c225b0e1ef3ecd3b3a08f57f33923e26d0` | Pure forecast, projection and comparison helpers; no composed preflight, history loading or persistence. |
 | T005 composed local preflight | Decision 0004/F1-F9; founder-accepted head `8681c05ea6eb7c48a71953e22c99c48e389e5206`; PR #11 normally merged in `82e2b96fbeeef69f7dae06fc416705392da54ccf` | Manual cold-start reviewed revisions, paired confirmation, immutable forecast/policy attempts and historical reopen. No governed outcomes or history loader. |
+| T006 governed outcomes | Decision 0006; founder-accepted head `1a056573b2c8e064f0eebfc26a4f70113d6ff44e`; PR #13 normally merged in `4cb4c7030ba2216cf890e4748b198d703c5d6f35` | One bounded run per saved eligible evaluation, explicit outcomes/adherence, reviewed per-window actuals, append-only amendments, comparison and viewable history. Future preflights stay cold-start. |
 | Builder/reviewer workflow     | Founder-approved head `a72721f74d01aeea23cb849ebb46c97a7eed5c15`; PR #9 merged in `1f0bdbf30cd4d37f1f3f17153308e28b7c298260`                                     | Repository instructions and agent/skill configuration only.                                              |
 
 T004's historical reset-cycle ambiguity and upstream evidence authentication
@@ -74,29 +75,53 @@ window. Separately, the builder noted low unit line coverage
 in the access wrapper/legacy actions despite real guarded E2E coverage. These
 limitations do not reopen T005 acceptance or authorize work.
 
-## Next accepted scope and milestone boundary
+## T006 acceptance and verification
 
-The founder accepted T6-1–T6-7 and clarified that a run covers one bounded
-development attempt, including normal coding, testing, fixes, prompts and agent
-handoffs. [Decision 0006](decisions/0006-t006-governed-outcome-recording-v1.md)
-records those choices; the [T006 assignment](TRANCHE_006_GOVERNED_OUTCOMES.md)
-sets the outcome-only scope, tests and stop conditions. **T006 implementation is
-not authorized** until a separate grant names the exact accepted `main` baseline
-and branch. The [calibration/milestone analysis](T006_CALIBRATION_AND_MILESTONES_DRAFT.md)
+The founder accepted the **exact** T006 head `1a056573b2c8e064f0eebfc26a4f70113d6ff44e`.
+[PR #13's acceptance comment](https://github.com/Neverlost-AI/codex-capacity-governor/pull/13#issuecomment-5868910499)
+records that ruling without changing the head. GitHub reported the accepted
+head, `MERGEABLE` and `CLEAN`, with no status checks listed. Its branch-rules and
+protection APIs returned a private-plan 403, so their settings were not
+independently inspectable; the normal merge command succeeded without any admin
+or bypass option. PR #13 merged at `2026-09-28T11:25:59Z` as
+`4cb4c7030ba2216cf890e4748b198d703c5d6f35`. Clean local `main` was
+fast-forwarded to that `origin/main` SHA.
+
+On the final SHA, the **builder** ran the full 22-file/400-test suite, coverage
+(86.18% statements, 80.75% branches, 87.24% functions, 86.88% lines), lint,
+typecheck, build, migration generation, and E2E (14 pass/1 existing skip), plus
+focused governed browser cases (2/2), changed-file Prettier and `git diff --check`.
+The **coordinator** independently reran standard E2E on that SHA (14 pass/1
+existing skip; terminal-hygiene check passed). The **independent reviewer**
+reviewed the exact commit and returned PASS with no P0–P2 findings; they
+personally ran changed-file ESLint, committed-blob Prettier and `git diff
+--check`. Their read-only sandbox prevented a personal browser/Vitest rerun, so
+the builder/coordinator results must not be called reviewer-run tests. The
+nonblocking P3 notes that `networkidle` does not prove hydration and the
+parallel-worker/early-click cause remains unproven. Repository-wide
+`pnpm format:check` failed on 137 CRLF-formatted checkout paths, including
+untouched files; changed committed blobs passed Prettier. This is not an
+all-green repository-wide format claim.
+
+## Next milestone boundary
+
+The [T006 assignment](TRANCHE_006_GOVERNED_OUTCOMES.md) and Decision 0006 are
+historical authority/scope records; their pre-implementation grant language
+does not override the merge above. The [calibration/milestone analysis](T006_CALIBRATION_AND_MILESTONES_DRAFT.md)
 and [draft method successor](decisions/0005-calibration-baseline-ratio-draft.md)
-remain method/T007 planning, not a loader grant. Concern 001 is narrowed to block
-automatic history loading, not outcome-only T006. Its method question, T004's
-historical reset-cycle comparability and upstream evidence authentication remain
-unresolved/deferred. Later preflights stay cold-start.
+remain planning, not a history-loader grant. Concern 001 blocks automatic
+history loading. Historical reset-cycle comparability and upstream evidence
+authentication remain deferred. Later preflights stay cold-start.
 
-The first local prototype is T005 plus governed outcomes/history, followed by
-required T007 internal dogfooding and local release-readiness checks under a
-future approved protocol and separate founder release decision. Existing
-proto-dogfooding records are not formal T007 evidence. The fuller product also
-seeks paste/upload specification intake, human-reviewed AI decomposition and
-history-informed forecasting; the first two lack bounded assignments. T008's
-hosted public demo/pilot is separately gated for identity, privacy and
-operations. None of these stages follows automatically from PR #11.
+T005 plus T006 supplies the first local prototype's technical loop, **not**
+formal internal evidence or local-release approval. The [draft T007 assignment](TRANCHE_007_INTERNAL_TESTING_AND_LOCAL_RELEASE_DRAFT.md)
+proposes internal attempts, controlled rehearsals and local release-readiness
+checks for founder review; existing proto-dogfooding is not T007 evidence.
+The fuller product also seeks paste/upload specification intake, human-reviewed
+AI decomposition and history-informed forecasting; the first two lack bounded
+assignments. T008's hosted public demo/pilot remains separately gated for
+identity, privacy and operations. None of those stages follows automatically
+from PR #13.
 
 ## Sources and limits
 
