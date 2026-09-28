@@ -85,6 +85,7 @@ test("paired saved attempt → one-use link → completed exact actual → amend
 }) => {
   test.setTimeout(180000);
   const projectUrl = await createAttempt(page);
+  await page.waitForLoadState("networkidle");
   await page
     .getByRole("button", { name: "Review exact saved attempt" })
     .click();
@@ -97,6 +98,7 @@ test("paired saved attempt → one-use link → completed exact actual → amend
   await expect(
     page.getByRole("heading", { name: "Governed bounded run" }),
   ).toBeVisible();
+  await page.waitForLoadState("networkidle");
   const runUrl = page.url();
   const replay = await page.evaluate(async (body) => {
     const response = await fetch("/governed/confirm", {
@@ -126,6 +128,8 @@ test("paired saved attempt → one-use link → completed exact actual → amend
     ),
   ).toBe(true);
   await validationResult.selectOption("PASSED");
+  await expect(runOutcome).toHaveValue("COMPLETED");
+  await expect(validationResult).toHaveValue("PASSED");
   await page.getByLabel(/IMPLEMENTATION actual/).fill("14");
   await page
     .getByLabel("Factual source reference")
@@ -262,6 +266,7 @@ test("restrictive saved result is factual, never permission", async ({
 }) => {
   test.setTimeout(180000);
   await createAttempt(page, "1300");
+  await page.waitForLoadState("networkidle");
   await expect(
     page.getByText(/Work recorded despite a non-authorizing decision/),
   ).toBeVisible();
@@ -273,11 +278,13 @@ test("restrictive saved result is factual, never permission", async ({
     .check();
   await page.getByRole("button", { name: "Create one governed run" }).click();
   await expect(page.getByText(/did not authorize work/)).toBeVisible();
+  await page.waitForLoadState("networkidle");
   await page.getByLabel("Run outcome").selectOption("COMPLETED");
   await page
     .getByLabel("Independent validation result")
     .selectOption("NOT_RUN");
   await page.getByLabel("Operator-reported adherence").selectOption("FOLLOWED");
+  await expect(page.getByLabel("Run outcome")).toHaveValue("COMPLETED");
   await page.getByRole("button", { name: "Save outcome" }).click();
   await expect(page.getByText(/Outcome could not be saved/)).toBeVisible();
 });
