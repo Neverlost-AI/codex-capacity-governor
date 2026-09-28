@@ -114,14 +114,23 @@ history loading. Historical reset-cycle comparability and upstream evidence
 authentication remain deferred. Later preflights stay cold-start.
 
 T005 plus T006 supplies the first local prototype's technical loop, **not**
-formal internal evidence or local-release approval. The [draft T007 assignment](TRANCHE_007_INTERNAL_TESTING_AND_LOCAL_RELEASE_DRAFT.md)
-proposes internal attempts, controlled rehearsals and local release-readiness
-checks for founder review; existing proto-dogfooding is not T007 evidence.
+formal internal evidence, hosted security or release approval. Founder direction
+selects TodoMVC, URL Shortener and Exercise Tracker as the initial T007 builds
+(medium/medium/large) with URL restart persistence. The [draft T007 protocol](TRANCHE_007_INTERNAL_TESTING_AND_LOCAL_RELEASE_DRAFT.md)
+now sequences a separately approved [private-hosted foundation](TRANCHE_007_PRIVATE_HOSTED_FOUNDATION_DRAFT.md),
+hosted authentication/storage/isolation verification, an exact
+[challenge/test freeze](T007_PUBLIC_CHALLENGE_FREEZE_DRAFT.md), three separately
+authorized attempts, and later reviewed sanitized public-demo copies. The
+180-minute/1,500-bp per-bucket ceiling and worksheet await founder review;
+no hosted code, service, measured run or publication is authorized. Existing
+proto-dogfooding is not T007 evidence. Three builds collect initial factual
+calibration observations but cannot establish forecast accuracy or enable a
+history loader.
 The fuller product also seeks paste/upload specification intake, human-reviewed
 AI decomposition and history-informed forecasting; the first two lack bounded
-assignments. T008's hosted public demo/pilot remains separately gated for
-identity, privacy and operations. None of those stages follows automatically
-from PR #13.
+assignments. A public interactive demo with isolated visitor simulations and
+T008's invited pilot are separate gates; a founder-only private host does not
+admit Neo or other participants. None follows automatically from PR #13.
 
 ## Sources and limits
 

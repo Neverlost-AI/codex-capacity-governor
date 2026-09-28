@@ -18,8 +18,12 @@ immutable reviewed inputs and attempts, including negative results.
 
 [T005](docs/TRANCHE_005_COMPLETE_CAPACITY_PREFLIGHT.md) was founder-accepted and
 merged in PR #11. [T006](docs/TRANCHE_006_GOVERNED_OUTCOMES.md) was separately
-founder-accepted and merged in PR #13. The resulting local loop still needs a
-separately approved [T007 internal testing and local release protocol](docs/TRANCHE_007_INTERNAL_TESTING_AND_LOCAL_RELEASE_DRAFT.md).
+founder-accepted and merged in PR #13. The resulting local loop is **not**
+host-ready: the founder-directed next sequence proposes a separately approved
+[private-hosted foundation](docs/TRANCHE_007_PRIVATE_HOSTED_FOUNDATION_DRAFT.md),
+hosted verification, then three measured public builds under the
+[T007 protocol](docs/TRANCHE_007_INTERNAL_TESTING_AND_LOCAL_RELEASE_DRAFT.md).
+Neither hosting/provisioning nor measured execution is authorized by these drafts.
 Future forecasts remain cold-start: the automatic history loader is deferred, and the
 [calibration method concern](docs/FORECAST_CALIBRATION_CONCERN_001.md) remains
 unresolved before that loader.
@@ -31,7 +35,9 @@ The accepted builder/reviewer workflow governs repository development only:
 a builder authors changes, a separate reviewer checks an exact commit, and the
 founder retains approval gates. It is not a runtime Codex integration and does
 not execute Governor plans. Supported local startup uses T005's loopback-only
-pairing, exact-origin and server-confirmation boundary; it is not hosted identity.
+pairing, exact-origin and server-confirmation boundary; it is not hosted identity
+and must not be exposed through a tunnel or proxy. The later public demo and
+invited T008 pilot require separate approval.
 
 ## Local development
 

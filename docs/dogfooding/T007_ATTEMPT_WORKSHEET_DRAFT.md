@@ -1,6 +1,6 @@
 # T007 attempt evidence worksheet — BLANK DRAFT
 
-**Status: proposed for T7-3 founder review; not an instruction to execute a run.** Copy once per bounded development attempt only after T7-1/T7-3 and the exact build, task starter and budget are approved. Keep the original completed copy and append corrections with author, time and reason. Link to application records; do not paste credentials, CSRF tokens, private prompts, customer code or entire transcripts. `Not observed` and `UNAVAILABLE` are not zero.
+**Status: proposed for T7-3 founder review; not an instruction to execute a run.** Copy once per bounded development attempt only after the private host, exact deployed build, task starter/test setup and ceiling are separately approved. Keep the original completed copy and append corrections with author, time and reason. Link to application records; do not paste credentials, CSRF tokens, private prompts, customer code or entire transcripts. `Not observed` and `UNAVAILABLE` are not zero. This worksheet collects initial factual calibration evidence, not a forecast-accuracy claim or automatic learning input.
 
 ## 1. Frozen task and environment — manual observations
 
@@ -14,12 +14,12 @@
 | Planned coherent work units and predeclared acceptance checks; exclusions |  |
 | Frozen acceptance-test/harness SHA; independent final assessor |  |
 | Runtime, package manager, dependency lockfile hash, storage/clock/timezone test setup |  |
-| Governor build SHA; decision/forecast/profile configuration versions |  |
+| Private-host deployment ID and Governor build SHA; decision/forecast/profile configuration versions; hosted security go/no-go reference |  |
 | Anonymized account reference; displayed usage plan/tier/add-ons |  |
 | Model/version; reasoning and other exposed settings; client/tool versions; permitted tools |  |
 | Agent workflow and role sequence; permitted review/fix cycles; human intervention rule |  |
 | Fresh conversation ID/reference; fresh checkout ID; prior solution/transcript exclusion proof |  |
-| Founder-approved active-time limit and per-required-bucket/reset-cycle usage ceiling |  |
+| Founder-approved active-time limit and per-required-bucket/reset-cycle usage ceiling; monitoring source/precision |  |
 
 ## 2. Preflight and run linkage — app-recorded facts
 
@@ -53,13 +53,13 @@ Before/after the **entire** attempt yields, at most, a compatible **whole-run** 
 
 | Field | Entry |
 | --- | --- |
-| Start/end times and active minutes; 30-minute/handoff usage checkpoints |  |
+| Start, pause/resume, stop and end times; active minutes excluding documented pauses; 30-minute/handoff usage checkpoints |  |
 | Phase segments with start/end, actor/role and source reading references |  |
-| Interruptions, reset, unrelated usage, model/settings/tool change, human help and effect |  |
+| Interruptions, reset, unrelated usage, model/settings/tool change, human help, stop trigger and effect on attribution/preflight |  |
 | Acceptance checks run, exact command/evidence and PASS/FAIL/NOT RUN per check |  |
 | Work units completed and independently verified; unfinished work |  |
 | Test/build failures, correction/review cycles and final verification |  |
-| Factual reason for PARTIAL/FAILED/intentional stop, including deferred versus unexpected failure |  |
+| Factual reason for `PARTIAL`/`FAILED`/intentional stop, including time/bucket ceiling or interruption, work left, deferred versus unexpected failure, and whether a new evaluation is required |  |
 | UI comprehension: decision, limiting window, protected reserves, next action and comparison limitations, using visible UI only |  |
 | Entry/review time, confusing fields, save/reopen issues, likelihood/reason for reuse |  |
 
@@ -85,8 +85,8 @@ Use the application's Decision 0003 comparison where available. A partial/failed
 | Final task acceptance/verification reference and independent assessor result |  |
 | Real attempt or labeled rehearsal; eligible for operational 3/3 count? why? |  |
 | Compatible completed comparison for every required bucket? eligible for 2/3 floor? why? |  |
-| Isolation, 180-minute and per-bucket ceiling observed? evidence or breach/uncertainty |  |
+| Isolation and approved active-minute/per-bucket ceiling observed? Each bucket's compatible start/checkpoint/stop deltas, headroom and breach/uncertainty |  |
 | Privacy-safe issue log and proposed follow-up |  |
 | Operator and independent worksheet review names/times; corrections appended |  |
 
-This worksheet does not itself authorize a local release. The separate founder local-release decision evaluates all three attempts, rehearsals, negative evidence and required technical checks. The later agent-workflow benchmark, other usage plans and invited pilot require separate assignments and budgets.
+This worksheet does not itself authorize a release or publication. A separate founder decision evaluates all three attempts, rehearsals, negative evidence and required technical checks. Retain the private original; any later public-demo copy needs reviewed sanitization and cannot expose or mutate the source. The later agent-workflow benchmark, other usage plans and invited pilot require separate assignments and budgets.

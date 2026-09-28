@@ -4,7 +4,7 @@
 
 This is the founder-reviewable master roadmap for the Codex Capacity Governor MVP. It describes sequencing, dependencies, decision gates, evidence, and possible ownership lanes. It is a planning and governance document only.
 
-**Roadmap inclusion is not implementation authorization.** T001-T006 are accepted; Gate A and Gate B are closed. T005's manual, local, cold-start implementation was merged through PR #11 and T006's outcome/history implementation through PR #13. See [project status](PROJECT_STATUS.md). T007's [internal testing and local release assignment](TRANCHE_007_INTERNAL_TESTING_AND_LOCAL_RELEASE_DRAFT.md) is a founder-review draft, not an execution or release grant. Only an explicit founder grant and accepted baseline authorize a new tranche.
+**Roadmap inclusion is not implementation authorization.** T001-T006 are accepted; Gate A and Gate B are closed. T005's manual, local, cold-start implementation was merged through PR #11 and T006's outcome/history implementation through PR #13. See [project status](PROJECT_STATUS.md). The founder selected three public builds for T007's initial sample and directed a private-hosted prerequisite. The [T007 protocol](TRANCHE_007_INTERNAL_TESTING_AND_LOCAL_RELEASE_DRAFT.md), [hosted foundation](TRANCHE_007_PRIVATE_HOSTED_FOUNDATION_DRAFT.md) and [starter freeze](T007_PUBLIC_CHALLENGE_FREEZE_DRAFT.md) remain founder-review drafts, not implementation, provisioning, measured-run, demo-publication or release grants. Only explicit founder grants and accepted baselines authorize those distinct stages.
 
 The progress table below supersedes historical readiness and ownership statements
 in the original tranche descriptions. Accepted assignments and decision records
@@ -73,7 +73,7 @@ an active future assignment. Future ownership labels remain planning guidance.
 | Tranche 004 — Forecast Engine V1                      | `ACCEPTED`                       | Pure forecast/projection/comparison; PR #7 merged.                                          | Accepted foundation              |
 | Tranche 005 — Complete Capacity Preflight             | `ACCEPTED`                      | Manual local cold-start composition; F1-F9 accepted; PR #11 merged.                          | Accepted foundation              |
 | Tranche 006 — Governed Outcomes and Comparison        | `ACCEPTED`                       | First-prototype outcomes, comparison and factual history; loader deferred; PR #13 merged. | Accepted foundation |
-| Tranche 007 — Governor Dogfooding                     | `OUTCOME_DEFINED`                | Original self-development dogfooding aim; draft initial protocol proposes three public challenge builds to test the local workflow, pending explicit T7-1 substitution approval. | Founder + Codex |
+| Tranche 007 — Internal measurement and release evidence | `OUTCOME_DEFINED` | Founder-selected TodoMVC, URL Shortener and Exercise Tracker builds after a separately approved private-hosted foundation; exact run setup and budget still pending. | Founder + Codex |
 | Tranche 008 — Hosted External Pilot                   | `OUTCOME_DEFINED`                | Collect exploratory evidence from approximately 3–5 developers for about one week.          | Shared                           |
 
 The ordering above expresses dependency and learning sequence, not a promise that every stage is one pull request or that work may begin automatically.
@@ -579,7 +579,8 @@ pre-implementation authority language is historical, not current status.
 [Decision 0006](decisions/0006-t006-governed-outcome-recording-v1.md) accepts
 T6-1–T6-7 and the bounded-run clarification. The [assignment](TRANCHE_006_GOVERNED_OUTCOMES.md)
 states the tests and stop conditions. Concern 001 now blocks the loader, not
-outcome-only T006. T007 testing and local release require separate founder approval.
+outcome-only T006. T007's private-hosted foundation, measured attempts and any
+release or public demo require separate founder approvals.
 
 ### 4. Dependencies
 
@@ -660,15 +661,15 @@ Shared. Founder/Codex own evidence semantics and calibration acceptance; later i
 
 ---
 
-## Tranche 007 — Governor Dogfooding
+## Tranche 007 — Internal Measurement and Release Evidence
 
 ### 1. Tranche name
 
-Governor Dogfooding.
+Internal Measurement and Release Evidence (original roadmap name: Governor Dogfooding).
 
 ### 2. Purpose
 
-The original outcome was to use Codex Capacity Governor to govern development of Codex Capacity Governor, testing whether the product supports real planning and whether its records are complete enough to learn from. The [current T007 founder-review draft](TRANCHE_007_INTERNAL_TESTING_AND_LOCAL_RELEASE_DRAFT.md) instead proposes three pinned public coding challenges as its initial measurement/usability sample, following the founder's task-selection direction. This is a **proposed substitution**, not an assertion that public builds are Governor self-development. T7-1 must explicitly approve the substitution and frozen task baselines before execution. If self-development dogfooding remains necessary, it requires separately identified evidence; do not claim the three public builds satisfy it. T007 remains a product-validation stage that may contain multiple separately approved governed runs rather than one engineering tranche.
+The original outcome was to use Codex Capacity Governor to govern development of Codex Capacity Governor, testing whether the product supports real planning and whether its records are complete enough to learn from. The founder has now **selected TodoMVC, URL Shortener and Exercise Tracker as the three initial T007 builds**, classified medium/medium/large, with URL restart persistence included. This supersedes the original *initial sample*, not the fact that public builds are different from Governor self-development. Do not claim these three supply self-development evidence; any later such use is separately identified. The [current T007 protocol](TRANCHE_007_INTERNAL_TESTING_AND_LOCAL_RELEASE_DRAFT.md) places a separately approved [private hosted foundation](TRANCHE_007_PRIVATE_HOSTED_FOUNDATION_DRAFT.md) and security verification before any measured attempt. Exact starter/test/profile/budget freeze and execution grants remain pending. T007 remains a product-validation stage with separately approved governed runs rather than one engineering tranche.
 
 ### 3. Readiness state
 
@@ -678,6 +679,7 @@ The original outcome was to use Codex Capacity Governor to govern development of
 
 - Stable accepted Tranches 005 and 006.
 - Closed Gates A and B with versioned policy/forecast methods.
+- A separately approved founder-only hosted access/storage/record-isolation foundation, verified before measurement; existing local pairing must not be network-exposed.
 - A defined dogfooding protocol and a bounded development tranche suitable for each run.
 - Reliable manual budget and actual-outcome entry.
 
@@ -846,8 +848,8 @@ Shared: founder owns pilot policy, participants, evidence boundary, and acceptan
 | ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
 | T005 — Complete Capacity Preflight  | Manual local cold-start composition and immutable preflight evidence; PR #11 accepted and merged. | Accepted foundation, not the whole prototype. |
 | T006 — Governed Outcomes and Comparison | Accepted governed run linkage, factual outcomes/amendments, reviewed compatible actuals, comparison and queryable history. Preserve T002 UNGUIDED history; no loader. | Founder-accepted implementation merged in PR #13. |
-| T007 — Governor Dogfooding          | Required internal use of the T005/T006 first-prototype path under an approved evidence and local release-readiness protocol. Existing proto-dogfooding is not formal T007. | Not started or authorized. |
-| T008 — Hosted External Pilot        | Separately approve hosted identity/tenancy, privacy, operations and participant protocol after dogfooding.                                                                                                                                                                                  | Not started or authorized; local F8 is not hosted approval. |
+| T007 — private-hosted initial measurement | A founder-only hosted foundation and security gate precede three approved public builds, with the T005/T006 manual loop and accepted evidence protocol. Existing proto-dogfooding is not formal T007. | Tasks/sizes selected; hosting, exact run setup, provisioning and measured attempts not authorized. |
+| T008 — Invited External Pilot        | Separately approve participant identity/tenancy, privacy, operations and Neo/other invitations after T007 evidence review. | Not started or authorized; a founder-only private host is not T008 approval. |
 
 The briefs also describe broader whole-project decomposition/sequencing,
 model/context/parallelism optimization, richer project/portfolio allocations,
@@ -858,7 +860,7 @@ MVP. Their placement must be distinguished explicitly:
 | Placement                                                       | Work                                                                                                                                                                                                      | Current decision status                                                                                                           |
 | --------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
 | Deferred from T005; fuller-product assignment/membership unresolved | Paste/upload MVP/tranche specification intake; human-reviewed AI-assisted decomposition; model/context/parallelism guidance; whole-project sequencing; basic Governor-to-Codex runtime integration and simulated capacity feeds. | Founder must bound each chosen capability. Manual input remains supported; none was removed by T005 acceptance. |
-| First-prototype stage still requiring approval | T005/T006 provide the local workflow; required T007 internal testing and local release-readiness remain. | T006 is accepted and merged. T007's draft protocol and a separate release decision still require founder approval. |
+| First-prototype stage still requiring approval | T005/T006 provide the local workflow; founder-directed private-hosted preparation, security verification, three T007 attempts and separate release decisions remain. | T006 is merged. Hosted implementation/provisioning, measured attempts, public demo and release require distinct approvals. |
 | Fuller-product history-informed forecasting | Approved Gate B/T004 pure capability exists, but T005 supplies no candidates. A reviewed loader and versioned method must be separately assigned outside T006. | Concern 001 still blocks the loader. Decision 0005 is draft; no loader is authorized. |
 | Proposed exclusion from the first MVP, pending founder decision | Rich project/portfolio allocation and purchased-credit/model-price cost forecasting.                                                                                                                      | Recommendation only: defer beyond the first MVP. Separate ACCEPT/CHANGE/HOLD required for each; no accepted exclusion is implied. |
 
@@ -884,12 +886,17 @@ concern 001 to block **automatic history loading**, not outcome-only T006.
 Resolve its method, compatibility and repeatability questions before a loader.
 Do not change Decision 0003 or silently enable a loader.
 
-The first local prototype requires T005 plus T006 outcomes/history, then formal
-T007 internal dogfooding and local release checks. The fuller product still
-requires history-informed forecasts and separately scoped paste/upload and
-human-reviewed AI decomposition. T008 is a separately approved hosted public
-demo/pilot, not a local-prototype release or automatic next step. The manual
-T005 slice alone does not complete the loop or demonstrate savings.
+The first prototype's local technical loop is T005 plus T006 outcomes/history.
+The founder-directed next sequence is a separately approved founder-only private
+host, hosted security/workflow verification, three frozen T007 public builds,
+reviewed sanitized copies of actual results for a **separately approved public
+interactive demo**, and continued private measurement. Neo and others enter
+only through separately authorized T008. Visitor changes in a future demo
+must be isolated simulations, never writes to original records. These three
+builds collect initial factual calibration data but cannot establish forecast
+accuracy or activate history loading. The fuller product still requires
+history-informed forecasts and separately scoped paste/upload and human-reviewed
+AI decomposition. The manual T005 slice alone does not demonstrate savings.
 
 ## Post-MVP and stretch boundary
 
@@ -930,9 +937,12 @@ The roadmap intentionally leaves these questions open until their named decision
   effect; resolve the method through a separate reviewed decision before a loader.
 - Tranche 006 recording semantics and loader placement are settled by Decision
   0006; its implementation was founder-accepted and merged through PR #13.
-- T007 local release-readiness checklist/protocol, sample sufficiency and
-  separate founder release decision; fuller-product intake/AI/loader assignments.
-- T008 external-pilot entry criteria and hosted authority.
-- External-pilot hosting, identity/tenancy, privacy, retention/deletion, support, and incident policy.
+- T007 founder-only hosted foundation, security verification, exact starter/test/profile
+  freeze, per-attempt ceiling, worksheet and separate execution/release grants;
+  fuller-product intake/AI/loader assignments.
+- Public-demo sanitization, visitor-simulation isolation and publication decision
+  after actual results exist; no source DB access for visitors.
+- T008 invited-pilot entry criteria and distinct participant identity/tenancy,
+  privacy, retention/deletion, support and incident policy.
 
 These are explicit governance boundaries, not missing implementation details for a collaborator to fill in.
