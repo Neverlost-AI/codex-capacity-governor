@@ -1,10 +1,13 @@
 import { getLocalBoundary } from "../../server/local-boundary";
+import { accessMode } from "../../server/hosted-config";
+import { redirect } from "next/navigation";
 export const dynamic = "force-dynamic";
 export default async function PairPage({
   searchParams,
 }: {
   searchParams: Promise<{ error?: string }>;
 }) {
+  if (accessMode() === "hosted") redirect("/signin");
   const { error } = await searchParams;
   return (
     <div className="narrow-shell form-card">

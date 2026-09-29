@@ -11,7 +11,7 @@ export async function POST(request: Request) {
     const attempt = await (
       await getGovernedService()
     ).review(body.projectId, body.attemptId);
-    return Response.json(boundary.reviewGoverned(cookie, attempt), {
+    return Response.json(await boundary.reviewGoverned(cookie, attempt), {
       headers: { "Cache-Control": "no-store" },
     });
   } catch {

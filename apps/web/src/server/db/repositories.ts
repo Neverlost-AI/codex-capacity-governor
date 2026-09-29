@@ -18,8 +18,13 @@ import type {
   ProjectRepository,
   RunOutcomeRepository,
 } from "@capacity-governor/application";
-import { asc, desc, eq, inArray } from "drizzle-orm";
+import { and, asc, desc, eq, inArray } from "drizzle-orm";
 import type { AppDatabase } from "./database";
+import {
+  hasDevelopmentRunAccess,
+  hasProjectAccess,
+  localOwnerKey,
+} from "./ownership";
 import {
   actualCapacityConsumptions,
   developmentRuns,
@@ -256,6 +261,7 @@ const isUniqueViolation = (error: unknown): boolean => {
 
 export const createRepositories = (
   db: AppDatabase,
+  ownerKey = localOwnerKey,
 ): {
   projects: ProjectRepository;
   preflightDrafts: PreflightDraftRepository;
@@ -266,6 +272,7 @@ export const createRepositories = (
     async create(project) {
       await db.insert(projects).values({
         ...project,
+        ownerKey,
         description: project.description ?? null,
         createdAt: new Date(project.createdAt),
         updatedAt: new Date(project.updatedAt),
@@ -275,7 +282,7 @@ export const createRepositories = (
       const rows = await db
         .select()
         .from(projects)
-        .where(eq(projects.id, id))
+        .where(and(eq(projects.id, id), eq(projects.ownerKey, ownerKey)))
         .limit(1);
       return rows[0] ? mapProject(rows[0]) : null;
     },
@@ -283,12 +290,19 @@ export const createRepositories = (
       const rows = await db
         .select()
         .from(projects)
+        .where(eq(projects.ownerKey, ownerKey))
         .orderBy(desc(projects.updatedAt));
       return rows.map(mapProject);
     },
   },
   preflightDrafts: {
     async findById(id) {
+      const [draft] = await db
+        .select({ projectId: preflightDrafts.projectId })
+        .from(preflightDrafts)
+        .where(eq(preflightDrafts.id, id));
+      if (!draft || !(await hasProjectAccess(db, ownerKey, draft.projectId)))
+        return null;
       const rows = await db
         .select()
         .from(preflightDrafts)
@@ -297,6 +311,7 @@ export const createRepositories = (
       return rows[0] ? mapPreflight(rows[0]) : null;
     },
     async findByProjectId(projectId) {
+      if (!(await hasProjectAccess(db, ownerKey, projectId))) return null;
       const rows = await db
         .select()
         .from(preflightDrafts)
@@ -305,6 +320,8 @@ export const createRepositories = (
       return rows[0] ? mapPreflight(rows[0]) : null;
     },
     async save(draft) {
+      if (!(await hasProjectAccess(db, ownerKey, draft.projectId)))
+        throw new Error("Project unavailable for owner");
       const now = new Date();
       const values: typeof preflightDrafts.$inferInsert = {
         id: draft.id,
@@ -365,17 +382,31 @@ export const createRepositories = (
       await db
         .update(projects)
         .set({ updatedAt: now })
-        .where(eq(projects.id, draft.projectId));
+        .where(
+          and(
+            eq(projects.id, draft.projectId),
+            eq(projects.ownerKey, ownerKey),
+          ),
+        );
     },
   },
   developmentRuns: {
     async create(run) {
+      if (!(await hasProjectAccess(db, ownerKey, run.projectId)))
+        throw new Error("Project unavailable for owner");
+      const [draft] = await db
+        .select({ projectId: preflightDrafts.projectId })
+        .from(preflightDrafts)
+        .where(eq(preflightDrafts.id, run.preflightDraftId));
+      if (draft?.projectId !== run.projectId)
+        throw new Error("Preflight draft unavailable for owner");
       await db.insert(developmentRuns).values({
         ...run,
         createdAt: new Date(run.createdAt),
       });
     },
     async findById(id) {
+      if (!(await hasDevelopmentRunAccess(db, ownerKey, id))) return null;
       const rows = await db
         .select()
         .from(developmentRuns)
@@ -384,6 +415,7 @@ export const createRepositories = (
       return rows[0] ? mapDevelopmentRun(rows[0]) : null;
     },
     async listByProjectId(projectId) {
+      if (!(await hasProjectAccess(db, ownerKey, projectId))) return [];
       const rows = await db
         .select()
         .from(developmentRuns)
@@ -394,6 +426,8 @@ export const createRepositories = (
   },
   runOutcomes: {
     async createInitial(observation, actualConsumption) {
+      if (!(await hasDevelopmentRunAccess(db, ownerKey, observation.runId)))
+        throw new Error("Run unavailable for owner");
       try {
         return await db.transaction(async (transaction) => {
           const existing = await transaction
@@ -422,6 +456,8 @@ export const createRepositories = (
       observation,
       actualConsumption,
     ) {
+      if (!(await hasDevelopmentRunAccess(db, ownerKey, observation.runId)))
+        throw new Error("Run unavailable for owner");
       try {
         return await db.transaction(async (transaction) => {
           const rows = await transaction
@@ -457,10 +493,12 @@ export const createRepositories = (
       }
     },
     async findLatestByRunId(runId) {
+      if (!(await hasDevelopmentRunAccess(db, ownerKey, runId))) return null;
       const history = await loadOutcomeHistory(db, runId);
       return history.at(-1) ?? null;
     },
     async listHistoryByRunId(runId) {
+      if (!(await hasDevelopmentRunAccess(db, ownerKey, runId))) return [];
       return loadOutcomeHistory(db, runId);
     },
   },

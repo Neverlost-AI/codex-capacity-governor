@@ -54,7 +54,11 @@ export const verifyLocalHeaders = (
   // Forwarding absence was established before Next; the signed per-request
   // startup-bound admission proof is not actor or bucket authority.
 };
-export type LocalSession = { actorReference: string; csrf: string };
+export type LocalSession = {
+  actorReference: string;
+  ownerKey: "local:legacy";
+  csrf: string;
+};
 type Review = {
   sessionToken: string;
   revision: ComposedRevision;
@@ -101,6 +105,7 @@ export class LocalBoundary {
     const cookie = token();
     this.sessions.set(cookie, {
       actorReference: `local-session:${randomUUID()}`,
+      ownerKey: "local:legacy",
       csrf: token(),
     });
     return cookie;

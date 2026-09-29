@@ -5,7 +5,9 @@ import {
   verifyLocalHeaders,
   configuredOrigin,
 } from "../../../server/local-boundary";
+import { accessMode } from "../../../server/hosted-config";
 export async function POST(request: Request) {
+  if (accessMode() !== "local") return new Response(null, { status: 404 });
   try {
     verifyLocalHeaders(request.headers, true);
     const fields = z

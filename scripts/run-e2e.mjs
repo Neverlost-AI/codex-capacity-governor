@@ -60,7 +60,7 @@ server.stderr.on("data", (chunk) => stderrSink.push(chunk));
 server.stderr.on("end", () => stderrSink.end());
 server.unref();
 
-const stopServer = () => {
+const stopServer = async () => {
   if (!server.pid) return;
   if (process.platform === "win32") {
     const stopped = spawnSync(
@@ -70,11 +70,35 @@ const stopServer = () => {
         stdio: "ignore",
       },
     );
-    if (stopped.status !== 0)
-      throw new Error(
-        `Owned E2E server tree ${server.pid} cleanup failed (${stopped.error?.code ?? stopped.status}); stop this exact tree before another launch.`,
-      );
-    return;
+    if (stopped.status !== 0) server.kill("SIGTERM");
+    // The launcher may already have exited before taskkill runs. A nonzero
+    // taskkill result is safe only when the exact test port has no listener.
+    const deadline = Date.now() + 15_000;
+    while (Date.now() < deadline) {
+      const listeners = spawnSync("netstat", ["-ano", "-p", "TCP"], {
+        encoding: "utf8",
+      });
+      if (
+        listeners.status === 0 &&
+        !listeners.stdout
+          .split(/\r?\n/)
+          .some((line) =>
+            /^\s*TCP\s+127\.0\.0\.1:3100\s+\S+\s+LISTENING\s+\d+\s*$/.test(
+              line,
+            ),
+          )
+      ) {
+        if (stopped.status !== 0)
+          console.warn(
+            `Owned E2E launcher ${server.pid} taskkill returned ${stopped.error?.code ?? stopped.status}; port 3100 has no listener.`,
+          );
+        return;
+      }
+      await new Promise((resolve) => setTimeout(resolve, 250));
+    }
+    throw new Error(
+      `Owned E2E server tree ${server.pid} cleanup failed (${stopped.error?.code ?? stopped.status}); port 3100 still has a listener.`,
+    );
   }
   try {
     process.kill(-server.pid, "SIGTERM");
@@ -128,7 +152,7 @@ try {
   process.exitCode = 1;
 } finally {
   try {
-    stopServer();
+    await stopServer();
   } catch (error) {
     console.error(error);
     process.exitCode = 1;

@@ -5,10 +5,10 @@ import { createRepositories } from "./db/repositories";
 import { requireLocalAccess } from "./access";
 
 export const getApplicationService = async () => {
-  await requireLocalAccess();
+  const { session } = await requireLocalAccess();
   const { db } = await getDatabaseConnection();
   return createApplicationService({
-    ...createRepositories(db),
+    ...createRepositories(db, session.ownerKey),
     createId: randomUUID,
     now: () => new Date(),
   });

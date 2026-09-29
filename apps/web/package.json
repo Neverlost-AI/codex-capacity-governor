@@ -18,6 +18,7 @@
     "@capacity-governor/policy-engine": "workspace:*",
     "@electric-sql/pglite": "0.5.4",
     "drizzle-orm": "0.45.2",
+    "jose": "6.2.12",
     "luxon": "3.7.2",
     "next": "16.3.0",
     "pg": "8.23.0",

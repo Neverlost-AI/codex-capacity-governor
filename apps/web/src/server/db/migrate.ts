@@ -7,11 +7,21 @@ try {
   // Environment variables may already be supplied by the caller.
 }
 
-const databaseUrl = process.env.DATABASE_URL;
+const hosted = process.env.CAPACITY_GOVERNOR_MODE === "hosted";
+const databaseUrl = hosted
+  ? process.env.MIGRATION_DATABASE_URL
+  : process.env.DATABASE_URL;
 if (!databaseUrl) {
-  throw new Error("DATABASE_URL is required");
+  throw new Error(
+    hosted
+      ? "MIGRATION_DATABASE_URL is required for hosted migrations"
+      : "DATABASE_URL is required",
+  );
 }
 
-const connection = await createDatabaseConnection(databaseUrl);
+const connection = await createDatabaseConnection(databaseUrl, {
+  migrate: true,
+  hostedPool: false,
+});
 await connection.close();
 console.log("Database migrations applied.");

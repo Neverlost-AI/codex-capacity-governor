@@ -13,7 +13,7 @@ export default async function ReviewPage({
   const { cookie, boundary } = await requireLocalAccess();
   let review;
   try {
-    review = boundary.pending(cookie, revisionId);
+    review = await boundary.pending(cookie, revisionId);
     if (review.revision.input.projectId !== projectId)
       throw new Error("Wrong project");
   } catch {

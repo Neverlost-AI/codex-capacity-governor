@@ -20,11 +20,75 @@ import {
 
 export const projects = pgTable("projects", {
   id: uuid("id").primaryKey(),
+  // Existing local records migrate to this fixed local owner; hosted owners are
+  // derived only from a verified issuer/subject, never from request payloads.
+  ownerKey: text("owner_key").notNull().default("local:legacy"),
   name: text("name").notNull(),
   description: text("description"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull(),
 });
+
+export const hostedSessions = pgTable(
+  "hosted_sessions",
+  {
+    tokenHash: text("token_hash").primaryKey(),
+    ownerKey: text("owner_key").notNull(),
+    actorReference: text("actor_reference").notNull(),
+    issuedAt: timestamp("issued_at", { withTimezone: true }).notNull(),
+    lastSeenAt: timestamp("last_seen_at", { withTimezone: true }).notNull(),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    revokedAt: timestamp("revoked_at", { withTimezone: true }),
+  },
+  (table) => [index("hosted_sessions_owner_idx").on(table.ownerKey)],
+);
+
+export const hostedLoginStates = pgTable("hosted_login_states", {
+  stateHash: text("state_hash").primaryKey(),
+  nonce: text("nonce").notNull(),
+  codeVerifier: text("code_verifier").notNull(),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  consumedAt: timestamp("consumed_at", { withTimezone: true }),
+});
+
+export const hostedPreflightReviews = pgTable(
+  "hosted_preflight_reviews",
+  {
+    revisionId: uuid("revision_id").primaryKey(),
+    ownerKey: text("owner_key").notNull(),
+    sessionHash: text("session_hash").notNull(),
+    projectId: uuid("project_id").notNull(),
+    draftId: uuid("draft_id").notNull(),
+    snapshot: jsonb("snapshot").$type<ComposedRevision>().notNull(),
+    digest: text("digest").notNull(),
+    challengeHash: text("challenge_hash").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull(),
+    result: jsonb("result").$type<ComposedAttempt>(),
+  },
+  (table) => [
+    index("hosted_preflight_reviews_pending_idx").on(
+      table.sessionHash,
+      table.draftId,
+    ),
+  ],
+);
+
+export const hostedGovernedReviews = pgTable(
+  "hosted_governed_reviews",
+  {
+    challengeHash: text("challenge_hash").primaryKey(),
+    ownerKey: text("owner_key").notNull(),
+    sessionHash: text("session_hash").notNull(),
+    projectId: uuid("project_id").notNull(),
+    attemptId: uuid("attempt_id").notNull(),
+    binding: text("binding").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull(),
+    consumedAt: timestamp("consumed_at", { withTimezone: true }),
+  },
+  (table) => [
+    index("hosted_governed_reviews_session_idx").on(table.sessionHash),
+  ],
+);
 
 export const preflightDrafts = pgTable(
   "preflight_drafts",
