@@ -10,6 +10,10 @@ const provisioningSql = readFileSync(
   path.resolve(process.cwd(), "scripts/provision-hosted-app-role.sql"),
   "utf8",
 );
+const prepareRestoreRoleSql = readFileSync(
+  path.resolve(process.cwd(), "scripts/prepare-hosted-restore-role.sql"),
+  "utf8",
+);
 const appTables = [
   "actual_capacity_consumptions",
   "composed_preflight_revisions",
@@ -57,19 +61,32 @@ describe("hosted application PostgreSQL role provisioning", () => {
       await client.exec(
         "GRANT ALL ON ALL TABLES IN SCHEMA public TO PUBLIC, anon, authenticated, service_role;",
       );
+      await client.exec("REVOKE CONNECT ON DATABASE postgres FROM PUBLIC");
       await client.exec(provisioningSql);
 
+      const { rows: connectionRows } = await client.query<{
+        app_connect: boolean;
+        anon_connect: boolean;
+      }>(
+        "SELECT has_database_privilege('capacity_governor_app', current_database(), 'CONNECT') AS app_connect, has_database_privilege('anon', current_database(), 'CONNECT') AS anon_connect",
+      );
+      expect(connectionRows).toEqual([
+        { app_connect: true, anon_connect: false },
+      ]);
+
       const { rows: roleRows } = await client.query<{
+        rolsuper: boolean;
         rolcanlogin: boolean;
         rolinherit: boolean;
         rolcreatedb: boolean;
         rolcreaterole: boolean;
         rolbypassrls: boolean;
       }>(
-        "SELECT rolcanlogin, rolinherit, rolcreatedb, rolcreaterole, rolbypassrls FROM pg_roles WHERE rolname = 'capacity_governor_app'",
+        "SELECT rolsuper, rolcanlogin, rolinherit, rolcreatedb, rolcreaterole, rolbypassrls FROM pg_roles WHERE rolname = 'capacity_governor_app'",
       );
       expect(roleRows).toEqual([
         {
+          rolsuper: false,
           rolcanlogin: false,
           rolinherit: false,
           rolcreatedb: false,
@@ -222,6 +239,88 @@ describe("hosted application PostgreSQL role provisioning", () => {
         "SELECT count(*)::int AS count FROM pg_roles WHERE rolname = 'capacity_governor_app'",
       );
       expect(rows[0].count).toBe(0);
+    } finally {
+      await client.close();
+    }
+  });
+
+  it("reapplies only reviewed grants after a no-privileges restore", async () => {
+    const client = await migratedDatabase();
+    try {
+      // A separate disposable cluster needs the policy-referenced role before
+      // pg_restore. No credentials or production login are copied to it.
+      await client.exec(prepareRestoreRoleSql);
+      await client.exec(provisioningSql);
+      await client.exec(`
+        REVOKE ALL ON ALL TABLES IN SCHEMA public FROM capacity_governor_app;
+        REVOKE USAGE ON SCHEMA public FROM capacity_governor_app;
+        REVOKE CONNECT ON DATABASE postgres FROM capacity_governor_app;
+        REVOKE CONNECT ON DATABASE postgres FROM PUBLIC;
+      `);
+      const { rows: before } = await client.query<{ usable: boolean }>(
+        "SELECT has_table_privilege('capacity_governor_app', 'public.projects', 'SELECT') AS usable",
+      );
+      expect(before[0].usable).toBe(false);
+
+      // Mirrors restoring policies with pg_restore --no-privileges and then
+      // running the same reviewed provisioning SQL against that exact state.
+      await client.exec(provisioningSql);
+      const { rows: after } = await client.query<{
+        connect: boolean;
+        schema_usage: boolean;
+        read_project: boolean;
+        update_draft: boolean;
+        delete_review: boolean;
+        update_outcome: boolean;
+      }>(
+        `SELECT
+          has_database_privilege('capacity_governor_app', current_database(), 'CONNECT') AS connect,
+          has_schema_privilege('capacity_governor_app', 'public', 'USAGE') AS schema_usage,
+          has_table_privilege('capacity_governor_app', 'public.projects', 'SELECT') AS read_project,
+          has_table_privilege('capacity_governor_app', 'public.preflight_drafts', 'UPDATE') AS update_draft,
+          has_table_privilege('capacity_governor_app', 'public.hosted_preflight_reviews', 'DELETE') AS delete_review,
+          has_table_privilege('capacity_governor_app', 'public.governed_outcome_versions', 'UPDATE') AS update_outcome`,
+      );
+      expect(after).toEqual([
+        {
+          connect: true,
+          schema_usage: true,
+          read_project: true,
+          update_draft: true,
+          delete_review: true,
+          update_outcome: false,
+        },
+      ]);
+      await expect(client.exec(prepareRestoreRoleSql)).rejects.toThrow(
+        /already exists/,
+      );
+      await client.exec("ROLLBACK");
+      await client.exec("ALTER ROLE capacity_governor_app LOGIN");
+      await expect(client.exec(provisioningSql)).rejects.toThrow(
+        /unexpected attributes or memberships/,
+      );
+      await client.exec("ROLLBACK");
+    } finally {
+      await client.close();
+    }
+  });
+
+  it("refuses a restored policy whose meaning changed", async () => {
+    const client = await migratedDatabase();
+    try {
+      await client.exec(provisioningSql);
+      await client.exec(`
+        REVOKE ALL ON ALL TABLES IN SCHEMA public FROM capacity_governor_app;
+        ALTER POLICY governor_app_select ON public.projects USING (false);
+      `);
+      await expect(client.exec(provisioningSql)).rejects.toThrow(
+        /Unexpected Governor policies for table projects/,
+      );
+      await client.exec("ROLLBACK");
+      const { rows } = await client.query<{ usable: boolean }>(
+        "SELECT has_table_privilege('capacity_governor_app', 'public.projects', 'SELECT') AS usable",
+      );
+      expect(rows[0].usable).toBe(false);
     } finally {
       await client.close();
     }
