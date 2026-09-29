@@ -6,6 +6,7 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { requireLocalAccess } from "../server/access";
 import { LocalSessionProvider } from "../components/local-session";
+import { accessMode } from "../server/hosted-config";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -17,12 +18,13 @@ export default async function RootLayout({
   children,
 }: Readonly<{ children: ReactNode }>) {
   const path = (await headers()).get("x-cg-path");
+  const local = accessMode() === "local";
   let csrf = "";
-  if (path !== "/pair") {
+  if (path !== (local ? "/pair" : "/signin")) {
     try {
       csrf = (await requireLocalAccess()).session.csrf;
     } catch {
-      redirect("/pair");
+      redirect(local ? "/pair" : "/signin");
     }
   }
   return (
@@ -43,7 +45,9 @@ export default async function RootLayout({
               <small>by Neverlost Systems</small>
             </span>
           </Link>
-          <span className="status-chip">Local manual preflight</span>
+          <span className="status-chip">
+            {local ? "Local manual preflight" : "Private manual preflight"}
+          </span>
         </header>
         <main>
           <LocalSessionProvider csrf={csrf}>{children}</LocalSessionProvider>
@@ -51,7 +55,9 @@ export default async function RootLayout({
         {csrf ? (
           <form className="session-controls" action="/access/end" method="post">
             <input type="hidden" name="csrf" value={csrf} />
-            <button type="submit">End local session</button>
+            <button type="submit">
+              {local ? "End local session" : "Sign out"}
+            </button>
           </form>
         ) : null}
         <footer className="site-footer">

@@ -7,16 +7,22 @@ import { createRepositories } from "./db/repositories";
 import { createComposedRepository } from "./db/composed-repository";
 import { requireLocalAccess } from "./access";
 import { localDigest } from "./local-boundary";
-export const getComposedService = async () => {
-  await requireLocalAccess();
-  const { db } = await getDatabaseConnection();
-  return createComposedService({
-    ...createRepositories(db),
-    composed: createComposedRepository(db),
+import type { AppDatabase } from "./db/database";
+export const createComposedServiceForDatabase = (
+  db: AppDatabase,
+  ownerKey: string,
+) =>
+  createComposedService({
+    ...createRepositories(db, ownerKey),
+    composed: createComposedRepository(db, ownerKey),
     createId: randomUUID,
     now: () => new Date(),
     digest: localDigest,
     forecastConfiguration: GATE_B_V1_CONFIGURATION,
     policyConfiguration: GATE_A_V1_CONFIGURATION,
   });
+export const getComposedService = async () => {
+  const { session } = await requireLocalAccess();
+  const { db } = await getDatabaseConnection();
+  return createComposedServiceForDatabase(db, session.ownerKey);
 };

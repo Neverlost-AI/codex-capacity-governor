@@ -20,6 +20,9 @@ http.Server.prototype.emit = function (event, ...args) {
   if (event === "request" || event === "upgrade") {
     const [request, response] = args;
     const headers = request.headers;
+    const loopbackPeer = ["127.0.0.1", "::ffff:127.0.0.1", "::1"].includes(
+      request.socket.remoteAddress,
+    );
     const forbidden = Object.keys(headers).some(
       (name) =>
         name === "forwarded" ||
@@ -32,6 +35,7 @@ http.Server.prototype.emit = function (event, ...args) {
       (value, index) => index % 2 === 0 && value.toLowerCase() === "host",
     ).length;
     if (
+      !loopbackPeer ||
       forbidden ||
       hostCount !== 1 ||
       headers.host !== host ||

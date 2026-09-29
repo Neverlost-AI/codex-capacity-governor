@@ -77,6 +77,9 @@ describe("T005 additive PostgreSQL snapshot repository", () => {
     for (const filename of [
       "0000_sudden_doctor_octopus.sql",
       "0001_sparkling_tyger_tiger.sql",
+      // The current repository adapter is owner-scoped; T007's additive owner
+      // column is applied before exercising it against old T001/T002 evidence.
+      "0004_mute_black_bolt.sql",
     ])
       await client.exec(readFileSync(`apps/web/drizzle/${filename}`, "utf8"));
     const db = drizzle(client, { schema }) as unknown as AppDatabase;

@@ -17,7 +17,8 @@
     "lint": "eslint .",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
-    "test:e2e": "node scripts/run-e2e.mjs",
+    "test:e2e": "node scripts/run-e2e.mjs && node scripts/run-hosted-e2e.mjs",
+    "test:e2e:hosted": "node scripts/run-hosted-e2e.mjs",
     "typecheck": "pnpm --recursive --if-present typecheck"
   },
   "devDependencies": {

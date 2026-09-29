@@ -8,13 +8,21 @@ import type { GovernedRepository } from "@capacity-governor/application";
 import { asc, eq } from "drizzle-orm";
 import type { AppDatabase } from "./database";
 import {
+  hasGovernedRunAccess,
+  hasProjectAccess,
+  localOwnerKey,
+} from "./ownership";
+import {
   governedBucketUsage,
   governedOutcomeVersions,
   governedRuns,
+  composedPreflightRevisions,
+  preflightEvaluationAttempts,
 } from "./schema";
 
 export const createGovernedRepository = (
   db: AppDatabase,
+  ownerKey = localOwnerKey,
 ): GovernedRepository => {
   const readLink = (row: typeof governedRuns.$inferSelect) => {
     const link = governedLinkSchema.parse(row.snapshot);
@@ -77,6 +85,21 @@ export const createGovernedRepository = (
   return {
     async create(value) {
       const link = governedLinkSchema.parse(value);
+      if (!(await hasProjectAccess(db, ownerKey, link.projectId)))
+        throw new Error("Project unavailable for owner");
+      const [parent] = await db
+        .select({ projectId: composedPreflightRevisions.projectId })
+        .from(preflightEvaluationAttempts)
+        .innerJoin(
+          composedPreflightRevisions,
+          eq(
+            preflightEvaluationAttempts.revisionId,
+            composedPreflightRevisions.id,
+          ),
+        )
+        .where(eq(preflightEvaluationAttempts.id, link.attemptId));
+      if (parent?.projectId !== link.projectId)
+        throw new Error("Attempt unavailable for owner/project");
       await db.insert(governedRuns).values({
         id: link.id,
         projectId: link.projectId,
@@ -90,16 +113,21 @@ export const createGovernedRepository = (
         .select()
         .from(governedRuns)
         .where(eq(governedRuns.attemptId, attemptId));
-      return row ? readLink(row) : null;
+      return row && (await hasProjectAccess(db, ownerKey, row.projectId))
+        ? readLink(row)
+        : null;
     },
     async find(runId) {
       const [row] = await db
         .select()
         .from(governedRuns)
         .where(eq(governedRuns.id, runId));
-      return row ? readLink(row) : null;
+      return row && (await hasProjectAccess(db, ownerKey, row.projectId))
+        ? readLink(row)
+        : null;
     },
     async list(projectId) {
+      if (!(await hasProjectAccess(db, ownerKey, projectId))) return [];
       const rows = await db
         .select()
         .from(governedRuns)
@@ -109,6 +137,8 @@ export const createGovernedRepository = (
     },
     async append(value, expectedPredecessorId) {
       const item = governedObservationSchema.parse(value);
+      if (!(await hasGovernedRunAccess(db, ownerKey, item.runId)))
+        throw new Error("Governed run unavailable for owner");
       return db.transaction(async (tx) => {
         // Serialize concurrent amendments to this run. Unique indexes also guard
         // the one-initial/one-successor invariants at the database boundary.
@@ -162,6 +192,7 @@ export const createGovernedRepository = (
       });
     },
     async observations(runId) {
+      if (!(await hasGovernedRunAccess(db, ownerKey, runId))) return [];
       const rows = await db
         .select()
         .from(governedOutcomeVersions)

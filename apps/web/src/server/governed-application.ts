@@ -6,16 +6,23 @@ import { createRepositories } from "./db/repositories";
 import { createComposedRepository } from "./db/composed-repository";
 import { createGovernedRepository } from "./db/governed-repository";
 import { localDigest } from "./local-boundary";
+import type { AppDatabase } from "./db/database";
 
-export const getGovernedService = async () => {
-  await requireLocalAccess();
-  const { db } = await getDatabaseConnection();
-  return createGovernedService({
-    ...createRepositories(db),
-    composed: createComposedRepository(db),
-    governed: createGovernedRepository(db),
+export const createGovernedServiceForDatabase = (
+  db: AppDatabase,
+  ownerKey: string,
+) =>
+  createGovernedService({
+    ...createRepositories(db, ownerKey),
+    composed: createComposedRepository(db, ownerKey),
+    governed: createGovernedRepository(db, ownerKey),
     createId: randomUUID,
     now: () => new Date(),
     digest: localDigest,
   });
+
+export const getGovernedService = async () => {
+  const { session } = await requireLocalAccess();
+  const { db } = await getDatabaseConnection();
+  return createGovernedServiceForDatabase(db, session.ownerKey);
 };

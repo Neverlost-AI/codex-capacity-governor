@@ -9,18 +9,24 @@ The Governor treats AI coding capacity as a finite development budget to plan be
 ## Repository status
 
 The application implements the accepted T001 manual draft, T002 factual
-`UNGUIDED` run/outcome history, and T005 manual, single-operator local,
-cold-start composed preflight. T003 remains the pure deterministic multi-bucket
-policy engine; T004 remains pure forecasting, policy-demand projection,
-comparison helpers and supplied-history adjustment. T005 composes the engines
-and saves immutable reviewed inputs and attempts, including negative results.
+`UNGUIDED` run/outcome history, T005 manual, single-operator local, cold-start
+composed preflight, and T006 governed outcomes, append-only amendments,
+comparison and viewable history. T003 remains the pure deterministic
+multi-bucket policy engine; T004 remains pure forecasting, policy-demand
+projection, comparison helpers and supplied-history adjustment. T005 saves
+immutable reviewed inputs and attempts, including negative results.
 
 [T005](docs/TRANCHE_005_COMPLETE_CAPACITY_PREFLIGHT.md) was founder-accepted and
-merged in PR #11. It supplies the preflight part of the loop, not governed
-outcomes or history-informed future forecasts. The founder-accepted
-[T006 assignment](docs/TRANCHE_006_GOVERNED_OUTCOMES.md) bounds outcome,
-comparison and viewable-history work; **implementation still needs a separate
-grant**. The automatic history loader is deferred, and the
+merged in PR #11. [T006](docs/TRANCHE_006_GOVERNED_OUTCOMES.md) was separately
+founder-accepted and merged in PR #13. The private-hosted foundation was
+independently reviewed and founder-accepted as **local implementation** at
+`30c8f21f944099dd563c927faf928166b78731cc`. [Decision 0007](docs/decisions/0007-private-hosted-foundation-target-and-zero-spend.md)
+selects Vercel and Supabase Free with a $0 incremental ceiling. Its live
+Google/Vercel/Supabase behavior and backup/restore remain unverified; no push,
+merge, provisioning or deployment follows from that acceptance. Hosted
+verification and then three separately authorized measured builds remain in
+the [T007 protocol](docs/TRANCHE_007_INTERNAL_TESTING_AND_LOCAL_RELEASE_DRAFT.md).
+Future forecasts remain cold-start: the automatic history loader is deferred, and the
 [calibration method concern](docs/FORECAST_CALIBRATION_CONCERN_001.md) remains
 unresolved before that loader.
 AI analysis, automatic capacity retrieval and Governor-to-Codex runtime
@@ -31,7 +37,9 @@ The accepted builder/reviewer workflow governs repository development only:
 a builder authors changes, a separate reviewer checks an exact commit, and the
 founder retains approval gates. It is not a runtime Codex integration and does
 not execute Governor plans. Supported local startup uses T005's loopback-only
-pairing, exact-origin and server-confirmation boundary; it is not hosted identity.
+pairing, exact-origin and server-confirmation boundary; it is not hosted identity
+and must not be exposed through a tunnel or proxy. The later public demo and
+invited T008 pilot require separate approval.
 
 ## Local development
 

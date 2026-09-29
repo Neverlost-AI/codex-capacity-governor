@@ -1,6 +1,11 @@
+import type { ComposedRevision } from "@capacity-governor/contracts";
 import { z } from "zod";
 import { requireLocalAccess } from "../../../server/access";
-import { getComposedService } from "../../../server/composed-application";
+import type { AppDatabase } from "../../../server/db/database";
+import {
+  createComposedServiceForDatabase,
+  getComposedService,
+} from "../../../server/composed-application";
 const confirmation = z
   .object({
     csrf: z.string(),
@@ -13,7 +18,10 @@ const confirmation = z
 export async function POST(request: Request) {
   try {
     const body = confirmation.parse(await request.json());
-    const { cookie, boundary } = await requireLocalAccess(body.csrf, true);
+    const { cookie, boundary, session } = await requireLocalAccess(
+      body.csrf,
+      true,
+    );
     const service = await getComposedService();
     const operation = {
       revisionId: body.revisionId,
@@ -24,7 +32,18 @@ export async function POST(request: Request) {
     const saved = await boundary.confirm(
       cookie,
       operation,
-      (revision, actor, digest) => service.confirm(revision, actor, digest),
+      (
+        revision: ComposedRevision,
+        actor: string,
+        digest: string,
+        transaction?: AppDatabase,
+      ) =>
+        transaction
+          ? createComposedServiceForDatabase(
+              transaction,
+              session.ownerKey,
+            ).confirm(revision, actor, digest)
+          : service.confirm(revision, actor, digest),
     );
     return Response.json(
       {

@@ -8,6 +8,7 @@ import {
 } from "@capacity-governor/application";
 import { eq, asc } from "drizzle-orm";
 import type { AppDatabase } from "./database";
+import { hasProjectAccess, localOwnerKey } from "./ownership";
 import {
   composedPreflightRevisions as revisions,
   preflightEvaluationAttempts as attempts,
@@ -16,6 +17,7 @@ import {
 
 export const createComposedRepository = (
   db: AppDatabase,
+  ownerKey = localOwnerKey,
 ): ComposedRepository => {
   const map = (row: {
     attempt: typeof attempts.$inferSelect;
@@ -40,6 +42,14 @@ export const createComposedRepository = (
   return {
     async save(value) {
       const attempt = composedAttemptSchema.parse(value);
+      if (
+        !(await hasProjectAccess(
+          db,
+          ownerKey,
+          attempt.revision.input.projectId,
+        ))
+      )
+        throw new Error("Project unavailable for owner");
       return db.transaction(async (tx) => {
         const [draft] = await tx
           .select()
@@ -96,9 +106,13 @@ export const createComposedRepository = (
         .from(attempts)
         .innerJoin(revisions, eq(attempts.revisionId, revisions.id))
         .where(eq(attempts.id, id));
-      return row ? map(row) : null;
+      return row &&
+        (await hasProjectAccess(db, ownerKey, row.revision.projectId))
+        ? map(row)
+        : null;
     },
     async list(projectId) {
+      if (!(await hasProjectAccess(db, ownerKey, projectId))) return [];
       return (
         await db
           .select({ attempt: attempts, revision: revisions })

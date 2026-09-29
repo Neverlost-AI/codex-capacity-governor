@@ -10,7 +10,7 @@ export async function POST(request: Request) {
       .parse(await request.json());
     const { cookie, boundary } = await requireLocalAccess(body.csrf, true);
     const revision = await (await getComposedService()).prepare(body.input);
-    boundary.review(cookie, revision);
+    await boundary.review(cookie, revision);
     return Response.json(
       {
         reviewUrl: `/projects/${revision.input.projectId}/preflight/review/${revision.id}`,

@@ -7,6 +7,16 @@ if (process.env.CAPACITY_GOVERNOR_E2E_EXTERNAL_SERVER !== "1")
 
 export default defineConfig({
   testDir: "./apps/web/e2e",
+  testIgnore:
+    process.env.CAPACITY_GOVERNOR_E2E_HOSTED === "1"
+      ? [
+          "**/unsupported-launch.spec.ts",
+          "**/run-history.spec.ts",
+          "**/manual-preflight.spec.ts",
+          "**/governed-outcomes.spec.ts",
+          "**/composed-preflight.spec.ts",
+        ]
+      : "**/hosted-foundation.spec.ts",
   fullyParallel: false,
   workers: 1,
   expect: {
@@ -16,7 +26,10 @@ export default defineConfig({
   reporter: "list",
   timeout: 60_000,
   use: {
-    baseURL: "http://127.0.0.1:3100",
+    baseURL:
+      process.env.CAPACITY_GOVERNOR_E2E_HOSTED === "1"
+        ? "http://127.0.0.1:3101"
+        : "http://127.0.0.1:3100",
     screenshot: "only-on-failure",
     trace: "off", // Pairing/cookie/CSRF/challenge secrets must not enter trace artifacts.
   },

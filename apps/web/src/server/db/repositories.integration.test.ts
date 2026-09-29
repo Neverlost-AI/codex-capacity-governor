@@ -57,7 +57,7 @@ describe("PostgreSQL persistence adapter", () => {
     connection = undefined;
   });
 
-  it("applies the additive Tranche 001, 002, 005 and 006 schema", async () => {
+  it("applies the additive Tranche 001, 002, 005, 006 and hosted foundation schema", async () => {
     connection = await createDatabaseConnection("pglite://memory");
     const result = await connection.db.execute(sql`
       select tablename
@@ -72,6 +72,10 @@ describe("PostgreSQL persistence adapter", () => {
       "governed_bucket_usage",
       "governed_outcome_versions",
       "governed_runs",
+      "hosted_governed_reviews",
+      "hosted_login_states",
+      "hosted_preflight_reviews",
+      "hosted_sessions",
       "preflight_drafts",
       "preflight_evaluation_attempts",
       "projects",
@@ -121,6 +125,61 @@ describe("PostgreSQL persistence adapter", () => {
           )
         ).rows[0],
       ).toEqual({ count: 3 });
+    } finally {
+      await client.close();
+    }
+  });
+
+  it("adds hosted ownership to populated T006 evidence without rewriting historical rows", async () => {
+    const client = new PGlite();
+    try {
+      const migration = (name: string) =>
+        readFileSync(path.resolve("apps/web/drizzle", name), "utf8");
+      for (const name of [
+        "0000_sudden_doctor_octopus.sql",
+        "0001_sparkling_tyger_tiger.sql",
+        "0002_dark_ken_ellis.sql",
+        "0003_useful_professor_monster.sql",
+      ])
+        await client.exec(migration(name));
+      await client.exec(`
+        insert into projects (id, name, created_at, updated_at)
+        values ('${projectId}', 'Pre-hosted original', '2026-09-27T12:00:00Z', '2026-09-27T12:00:00Z');
+        insert into preflight_drafts (
+          id, project_id, tranche_id, tranche_title, tranche_brief,
+          explicit_exclusions, acceptance_criteria, available_budget_amount,
+          available_budget_unit, available_budget_source, reset_timezone,
+          assumptions, open_questions, created_at, updated_at
+        ) values (
+          '${preflightId}', '${projectId}', '${trancheId}', 'Original draft',
+          'Retained factual evidence', '[]', '[]', 58, 'manual units', 'manual',
+          'UTC', '[]', '[]', '2026-09-27T12:00:00Z', '2026-09-27T12:00:00Z'
+        );
+        insert into development_runs (id, project_id, preflight_draft_id, guidance_kind, created_at)
+        values ('${runId}', '${projectId}', '${preflightId}', 'UNGUIDED', '2026-09-27T12:00:00Z');
+        insert into run_outcome_observations (
+          id, run_id, run_outcome, validation_result, unexpected_failures,
+          deferred_work, recorded_at
+        ) values (
+          '${initialObservationId}', '${runId}', 'PARTIAL', 'INCONCLUSIVE',
+          '["Observed interruption"]', '["Finish later"]', '2026-09-27T13:00:00Z'
+        );
+      `);
+      const before = await client.query(
+        `select p.name, d.tranche_title, r.guidance_kind, o.run_outcome, o.validation_result, o.unexpected_failures, o.deferred_work from projects p join preflight_drafts d on d.project_id=p.id join development_runs r on r.project_id=p.id join run_outcome_observations o on o.run_id=r.id`,
+      );
+      await client.exec(migration("0004_mute_black_bolt.sql"));
+      const after = await client.query(
+        `select p.name, d.tranche_title, r.guidance_kind, o.run_outcome, o.validation_result, o.unexpected_failures, o.deferred_work from projects p join preflight_drafts d on d.project_id=p.id join development_runs r on r.project_id=p.id join run_outcome_observations o on o.run_id=r.id`,
+      );
+      expect(after.rows).toEqual(before.rows);
+      expect(
+        (
+          await client.query(
+            `select owner_key from projects where id='${projectId}'`,
+          )
+        ).rows[0],
+      ).toEqual({ owner_key: "local:legacy" });
     } finally {
       await client.close();
     }

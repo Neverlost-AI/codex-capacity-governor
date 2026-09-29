@@ -115,6 +115,7 @@ describe("T006 additive governed repository", () => {
       "0000_sudden_doctor_octopus.sql",
       "0001_sparkling_tyger_tiger.sql",
       "0002_dark_ken_ellis.sql",
+      "0004_mute_black_bolt.sql",
     ])
       await client.exec(readFileSync(`apps/web/drizzle/${filename}`, "utf8"));
     const db = drizzle(client, { schema }) as unknown as AppDatabase;
