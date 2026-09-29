@@ -4,14 +4,7 @@ import path from "node:path";
 
 const repositoryRoot = process.cwd();
 const webRoot = path.join(repositoryRoot, "apps", "web");
-const nextCli = path.join(
-  webRoot,
-  "node_modules",
-  "next",
-  "dist",
-  "bin",
-  "next",
-);
+const localLauncher = path.join(webRoot, "scripts", "local-launch.mjs");
 const playwrightCli = path.join(
   repositoryRoot,
   "node_modules",
@@ -28,6 +21,7 @@ const environment = {
   CAPACITY_GOVERNOR_FOUNDER_ISSUER: "https://accounts.google.com",
   CAPACITY_GOVERNOR_FOUNDER_SUBJECT: "local-founder-test",
   CAPACITY_GOVERNOR_SESSION_KEY: randomBytes(32).toString("hex"),
+  CAPACITY_GOVERNOR_HOSTED_TEST_SECRET: randomBytes(32).toString("hex"),
   CAPACITY_GOVERNOR_E2E_EXTERNAL_SERVER: "1",
   CAPACITY_GOVERNOR_E2E_HOSTED: "1",
   CAPACITY_GOVERNOR_HOSTED_E2E_STATE: path.join(
@@ -96,7 +90,7 @@ const runPhase = async (phase) => {
   const instance = `${runId}-${phase}`;
   const server = spawn(
     process.execPath,
-    [nextCli, "dev", "--hostname", "127.0.0.1", "--port", "3101"],
+    [localLauncher, "dev", "--port", "3101"],
     {
       cwd: webRoot,
       detached: process.platform !== "win32",

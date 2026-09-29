@@ -1,3 +1,6 @@
+import { timingSafeEqual } from "node:crypto";
+import { verifyLocalHeaders } from "./local-boundary";
+
 export const accessMode = (): "local" | "hosted" => {
   const value = process.env.CAPACITY_GOVERNOR_MODE ?? "local";
   if (value !== "local" && value !== "hosted")
@@ -8,11 +11,17 @@ export const accessMode = (): "local" | "hosted" => {
 export const hostedTestMode = () => {
   if (process.env.CAPACITY_GOVERNOR_HOSTED_TEST_AUTH !== "1") return false;
   const origin = process.env.CAPACITY_GOVERNOR_ORIGIN;
+  const ingressKey = process.env.CAPACITY_GOVERNOR_INGRESS_KEY;
+  const testSecret = process.env.CAPACITY_GOVERNOR_HOSTED_TEST_SECRET;
   if (
     process.env.NODE_ENV === "production" ||
     process.env.VERCEL ||
     !origin ||
-    !/^http:\/\/127\.0\.0\.1:[1-9]\d{0,4}$/.test(origin)
+    !/^http:\/\/127\.0\.0\.1:[1-9]\d{0,4}$/.test(origin) ||
+    !ingressKey ||
+    !/^[a-f0-9]{64}$/.test(ingressKey) ||
+    !testSecret ||
+    !/^[a-f0-9]{64}$/.test(testSecret)
   )
     throw new Error(
       "Hosted test identity is forbidden outside local development",
@@ -66,14 +75,24 @@ export const hostedSessionCookieName = () =>
 export const hostedStateCookieName = () =>
   hostedTestMode() ? "cg_hosted_test_oidc_state" : "__Host-cg_oidc_state";
 
+export const verifyHostedTestSecret = (value: unknown) => {
+  if (!hostedTestMode() || typeof value !== "string") return false;
+  const expected = process.env.CAPACITY_GOVERNOR_HOSTED_TEST_SECRET!;
+  return (
+    value.length === expected.length &&
+    timingSafeEqual(Buffer.from(value), Buffer.from(expected))
+  );
+};
+
 export const verifyHostedHeaders = (
   requestHeaders: Headers,
   mutation: boolean,
 ) => {
-  const { origin } = hostedConfiguration();
+  const { origin, testMode } = hostedConfiguration();
   if (
     requestHeaders.get("host") !== new URL(origin).host ||
     (mutation && requestHeaders.get("origin") !== origin)
   )
     throw new Error("Hosted Host/Origin boundary denied");
+  if (testMode) verifyLocalHeaders(requestHeaders, mutation, origin);
 };

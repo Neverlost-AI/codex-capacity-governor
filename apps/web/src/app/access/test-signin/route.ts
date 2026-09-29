@@ -5,16 +5,24 @@ import {
   hostedConfiguration,
   hostedSessionCookieName,
   verifyHostedHeaders,
+  verifyHostedTestSecret,
 } from "../../../server/hosted-config";
 
-// This route is unavailable in production, Vercel, and non-loopback origins.
-// It lets browser tests use isolated principals without Google credentials.
+// This route requires the signed loopback ingress and a separate, unrendered
+// test credential. It is disabled in production and on Vercel.
 export async function POST(request: Request) {
   if (accessMode() !== "hosted") return new Response(null, { status: 404 });
   const config = hostedConfiguration();
   if (!config.testMode) return new Response(null, { status: 404 });
-  verifyHostedHeaders(request.headers, true);
-  const form = await request.formData();
+  let form: FormData;
+  try {
+    verifyHostedHeaders(request.headers, true);
+    form = await request.formData();
+    if (!verifyHostedTestSecret(form.get("testSecret")))
+      throw new Error("Test access denied");
+  } catch {
+    return new Response("Test access denied", { status: 403 });
+  }
   const choice = form.get("identity");
   if (choice !== "founder" && choice !== "secondary")
     return new Response("Unknown local test identity", { status: 400 });

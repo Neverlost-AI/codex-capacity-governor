@@ -1,5 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { createHmac } from "node:crypto";
 import { createLocalJWKSet, exportJWK, generateKeyPair, SignJWT } from "jose";
+import { POST as testSignIn } from "../app/access/test-signin/route";
 import { googleAuthorizationUrl, verifyGoogleIdToken } from "./google-oidc";
 import {
   accessMode,
@@ -7,6 +9,7 @@ import {
   hostedTestMode,
   ownerKeyFor,
   verifyHostedHeaders,
+  verifyHostedTestSecret,
 } from "./hosted-config";
 
 const config = {
@@ -64,6 +67,55 @@ describe("hosted configuration and Google OIDC proof", () => {
       ),
     ).toThrow("Host/Origin");
     expect(ownerKeyFor("issuer:a", "b")).not.toBe(ownerKeyFor("issuer", "a:b"));
+  });
+
+  it("denies externally reachable forged Host/Origin test sign-in without signed ingress and secret", async () => {
+    const origin = "http://127.0.0.1:3101";
+    const host = "127.0.0.1:3101";
+    const ingressKey = "a".repeat(64);
+    const testSecret = "b".repeat(64);
+    for (const [key, value] of Object.entries({
+      CAPACITY_GOVERNOR_MODE: "hosted",
+      CAPACITY_GOVERNOR_ORIGIN: origin,
+      CAPACITY_GOVERNOR_HOSTED_TEST_AUTH: "1",
+      CAPACITY_GOVERNOR_INGRESS_KEY: ingressKey,
+      CAPACITY_GOVERNOR_HOSTED_TEST_SECRET: testSecret,
+      CAPACITY_GOVERNOR_FOUNDER_ISSUER: config.issuer,
+      CAPACITY_GOVERNOR_FOUNDER_SUBJECT: config.subject,
+      CAPACITY_GOVERNOR_SESSION_KEY: config.sessionKey,
+    }))
+      vi.stubEnv(key, value);
+    const request = (headers: HeadersInit, secret: string) =>
+      new Request(`${origin}/access/test-signin`, {
+        method: "POST",
+        headers,
+        body: new URLSearchParams({
+          identity: "founder",
+          testSecret: secret,
+        }),
+      });
+    const headers = new Headers({ host, origin });
+    expect((await testSignIn(request(headers, testSecret))).status).toBe(403);
+    const context = JSON.stringify([
+      "POST",
+      "/access/test-signin",
+      host,
+      origin,
+      "test-request",
+    ]);
+    headers.set(
+      "x-cg-ingress-context",
+      Buffer.from(context).toString("base64url"),
+    );
+    headers.set(
+      "x-cg-ingress-proof",
+      createHmac("sha256", ingressKey).update(context).digest("hex"),
+    );
+    expect((await testSignIn(request(headers, "wrong-secret"))).status).toBe(
+      403,
+    );
+    expect(verifyHostedTestSecret(testSecret)).toBe(true);
+    expect(verifyHostedTestSecret("wrong-secret")).toBe(false);
   });
 
   it("uses authorization code, state, nonce and S256 PKCE without email-based authority", () => {

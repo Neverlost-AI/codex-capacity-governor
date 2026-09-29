@@ -4,6 +4,8 @@ import path from "node:path";
 
 const statePath = process.env.CAPACITY_GOVERNOR_HOSTED_E2E_STATE;
 if (!statePath) throw new Error("Hosted E2E state path is required");
+const testSecret = process.env.CAPACITY_GOVERNOR_HOSTED_TEST_SECRET;
+if (!testSecret) throw new Error("Hosted E2E access secret is required");
 
 const signIn = async (
   page: Page,
@@ -14,6 +16,7 @@ const signIn = async (
     page.getByRole("heading", { name: "Private Capacity Governor" }),
   ).toBeVisible();
   await page.getByLabel("Local test identity").selectOption(identity);
+  await page.getByLabel("Local test access secret").fill(testSecret);
   await page.getByRole("button", { name: "Enter local test session" }).click();
   await expect(
     page.getByRole("heading", { name: "Projects", exact: true }),
@@ -125,9 +128,12 @@ test("hosted phase one: sign-in to immutable outcome amendment with isolation an
     page.getByRole("heading", { name: "Saved capacity preflight" }),
   ).toBeVisible();
   const resultUrl = page.url();
+  await page.waitForLoadState("networkidle");
+  const governedReviewResponse = page.waitForResponse("**/governed/review");
   await page
     .getByRole("button", { name: "Review exact saved attempt" })
     .click();
+  expect((await governedReviewResponse).status()).toBe(200);
   await page
     .getByRole("checkbox", { name: /confirm this exact saved evaluation/ })
     .check();
@@ -178,7 +184,14 @@ test("hosted phase one: sign-in to immutable outcome amendment with isolation an
     .getByLabel(/I reviewed this exact manual value/)
     .first()
     .check();
+  const firstOutcomeRequest = page.waitForRequest("**/governed/outcome");
+  const firstOutcomeReload = page.waitForEvent("load");
   await page.getByRole("button", { name: "Save outcome" }).click();
+  const firstOutcomeBody = (await firstOutcomeRequest).postDataJSON();
+  await firstOutcomeReload;
+  await expect(
+    page.getByRole("form", { name: "Append governed outcome amendment" }),
+  ).toBeVisible();
   await expect(
     page.getByText(/issued-expected calibration ratio/i),
   ).toBeVisible();
@@ -201,9 +214,58 @@ test("hosted phase one: sign-in to immutable outcome amendment with isolation an
     .getByLabel(/I reviewed this exact manual value/)
     .first()
     .check();
+  await expect(page.getByLabel("Amendment reason")).toHaveValue(
+    "Corrected reviewed manual usage",
+  );
+  const amendmentRequest = page.waitForRequest("**/governed/outcome");
+  const amendmentReload = page.waitForEvent("load");
   await page.getByRole("button", { name: "Append amendment" }).click();
+  const amendmentBody = (await amendmentRequest).postDataJSON();
+  await amendmentReload;
   await expect(page.getByText(/Superseded version 1/)).toBeVisible();
   await expect(page.getByText(/Current version 2/)).toBeVisible();
+
+  // A valid session for another owner cannot mutate the founder's evaluation
+  // or run, even when it reuses otherwise valid recorded request evidence.
+  const foreignMutationContext = await browser.newContext({
+    baseURL: "http://127.0.0.1:3101",
+  });
+  const foreignMutator = await foreignMutationContext.newPage();
+  await signIn(foreignMutator, "secondary");
+  await foreignMutator.goto("/projects/new");
+  const foreignCsrf = await foreignMutator
+    .locator('input[name="csrf"]')
+    .first()
+    .inputValue();
+  const projectId = new URL(projectUrl).pathname.split("/")[2];
+  const attemptId = new URL(resultUrl).pathname.split("/").at(-1);
+  const runId = new URL(runUrl).pathname.split("/").at(-1);
+  expect(projectId).toBeTruthy();
+  expect(attemptId).toBeTruthy();
+  expect(runId).toBeTruthy();
+  for (const [route, body] of [
+    ["/governed/review", { csrf: foreignCsrf, projectId, attemptId }],
+    ["/governed/outcome", { ...firstOutcomeBody, csrf: foreignCsrf, runId }],
+    ["/governed/outcome", { ...amendmentBody, csrf: foreignCsrf, runId }],
+  ] as const) {
+    const status = await foreignMutator.evaluate(
+      async ({ route, body }) =>
+        (
+          await fetch(route, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(body),
+          })
+        ).status,
+      { route, body },
+    );
+    expect(status).toBe(400);
+  }
+  await foreignMutationContext.close();
+  await page.reload();
+  await expect(page.getByText(/Superseded version 1/)).toBeVisible();
+  await expect(page.getByText(/Current version 2/)).toBeVisible();
+  await expect(page.getByText(/Current version 3/)).toHaveCount(0);
   mkdirSync(path.dirname(statePath), { recursive: true });
   writeFileSync(
     statePath,

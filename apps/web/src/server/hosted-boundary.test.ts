@@ -11,6 +11,7 @@ import {
 } from "@capacity-governor/application";
 import {
   canonicalizeComposed,
+  governedOutcomeInputSchema,
   projectSchema,
 } from "@capacity-governor/contracts";
 import { GATE_A_V1_CONFIGURATION } from "@capacity-governor/policy-engine";
@@ -299,6 +300,9 @@ describe("hosted identity, sessions and one-use evidence", () => {
     expect(await createComposedRepository(h.db, foreign).list(PROJECT)).toEqual(
       [],
     );
+    await expect(
+      createComposedRepository(h.db, foreign).save(attempt),
+    ).rejects.toThrow("owner");
     expect(
       await createGovernedRepository(h.db, foreign).findByAttempt(attempt.id),
     ).toBeNull();
@@ -314,13 +318,17 @@ describe("hosted identity, sessions and one-use evidence", () => {
       projectId: PROJECT,
       preflightDraftId: DRAFT,
     });
-    await app.recordRunOutcome({
+    const initial = await app.recordRunOutcome({
       runId: legacyRun.id,
       runOutcome: "PARTIAL",
       validationResult: "INCONCLUSIVE",
       actualConsumption: [],
       unexpectedFailures: ["interrupted"],
       deferredWork: ["finish later"],
+    });
+    const unrecordedRun = await app.createDevelopmentRun({
+      projectId: PROJECT,
+      preflightDraftId: DRAFT,
     });
     expect(
       await foreignRepos.developmentRuns.findById(legacyRun.id),
@@ -335,8 +343,72 @@ describe("hosted identity, sessions and one-use evidence", () => {
       await foreignRepos.runOutcomes.listHistoryByRunId(legacyRun.id),
     ).toEqual([]);
     await expect(
+      foreignRepos.runOutcomes.createInitial(
+        {
+          ...initial.observation,
+          id: randomUUID(),
+          runId: unrecordedRun.id,
+        },
+        [],
+      ),
+    ).rejects.toThrow("owner");
+    await expect(
+      foreignRepos.runOutcomes.appendAmendment(
+        initial.observation.id,
+        {
+          ...initial.observation,
+          id: randomUUID(),
+          supersedesObservationId: initial.observation.id,
+          amendmentReason: "Foreign mutation must be denied",
+        },
+        [],
+      ),
+    ).rejects.toThrow("owner");
+    expect(
+      await createRepositories(h.db, founder).runOutcomes.listHistoryByRunId(
+        legacyRun.id,
+      ),
+    ).toHaveLength(1);
+    await expect(
       foreignRepos.developmentRuns.create({ ...legacyRun, id: randomUUID() }),
     ).rejects.toThrow("owner");
+    const foreignProject = randomUUID();
+    const foreignDraft = randomUUID();
+    const foreignTranche = randomUUID();
+    await foreignRepos.projects.create(
+      projectSchema.parse({
+        id: foreignProject,
+        name: "Other test principal project",
+        createdAt: TIME,
+        updatedAt: TIME,
+      }),
+    );
+    const originalDraft = draftFixture();
+    await foreignRepos.preflightDrafts.save({
+      ...originalDraft,
+      id: foreignDraft,
+      projectId: foreignProject,
+      tranche: {
+        ...originalDraft.tranche,
+        id: foreignTranche,
+        projectId: foreignProject,
+      },
+    });
+    await expect(
+      foreignRepos.developmentRuns.create({
+        ...legacyRun,
+        id: randomUUID(),
+        projectId: foreignProject,
+        preflightDraftId: DRAFT,
+      }),
+    ).rejects.toThrow("Preflight draft");
+    await expect(
+      createRepositories(h.db, founder).developmentRuns.create({
+        ...legacyRun,
+        id: randomUUID(),
+        preflightDraftId: foreignDraft,
+      }),
+    ).rejects.toThrow("Preflight draft");
     const governedApp = createGovernedService({
       ...createRepositories(h.db, founder),
       composed: createComposedRepository(h.db, founder),
@@ -359,6 +431,46 @@ describe("hosted identity, sessions and one-use evidence", () => {
     await expect(
       foreignGoverned.create({ ...link, id: randomUUID() }),
     ).rejects.toThrow("owner");
+    await expect(
+      foreignGoverned.create({
+        ...link,
+        id: randomUUID(),
+        projectId: foreignProject,
+      }),
+    ).rejects.toThrow("Attempt unavailable");
+    const firstGovernedOutcome = await governedApp.record(
+      link.id,
+      governedOutcomeInputSchema.parse({
+        runOutcome: "COMPLETED",
+        validationResult: "PASSED",
+        adherence: "FOLLOWED",
+        unexpectedFailures: [],
+        deferredWork: [],
+        usage: [
+          {
+            bucketId: "short",
+            providerId: "manual-codex",
+            capacityWindowId: "5-hour",
+            resetCycleId: "cycle-1",
+            bucketProfileVersion: "gate-b-bucket-profile-v1",
+            category: "IMPLEMENTATION",
+            rawValue: "14",
+            rawUnit: "PERCENT",
+            sourceReference: "manually reviewed evidence",
+            observedAt: TIME,
+            reviewed: true,
+            exactCycleOnly: "YES",
+          },
+        ],
+      }),
+      founder,
+    );
+    await expect(
+      foreignGoverned.append(firstGovernedOutcome, undefined),
+    ).rejects.toThrow("owner");
+    expect(
+      await createGovernedRepository(h.db, founder).observations(link.id),
+    ).toHaveLength(1);
   });
 
   it("restores a disposable data-directory snapshot with unchanged owner and evidence", async () => {

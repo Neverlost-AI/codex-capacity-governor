@@ -77,4 +77,16 @@ describe("supported loopback launch and raw Node ingress", () => {
       ),
     ).toEqual([200, 200, 403, 403, 403, 403, 403, 403, 403]);
   });
+  it("raw ingress rejects an external socket peer even with forged loopback Host and Origin", () => {
+    const hook = pathToFileURL(
+      path.resolve("apps/web/scripts/local-ingress.mjs"),
+    ).href;
+    const code = `const http=require('node:http');const server=http.createServer(()=>{});server.listen(0,'127.0.0.1',async()=>{const port=server.address().port;process.env.CAPACITY_GOVERNOR_ORIGIN='http://127.0.0.1:'+port;process.env.CAPACITY_GOVERNOR_INGRESS_KEY='a'.repeat(64);await import(${JSON.stringify(hook)});let status=0;const host='127.0.0.1:'+port;server.emit('request',{headers:{host,origin:'http://'+host},rawHeaders:['Host',host,'Origin','http://'+host],method:'POST',url:'/access/test-signin',socket:{remoteAddress:'203.0.113.9'}},{writeHead:code=>status=code,end:()=>{}});process.stdout.write(String(status));server.close()});`;
+    expect(
+      execFileSync(process.execPath, ["-e", code], {
+        encoding: "utf8",
+        timeout: 20000,
+      }),
+    ).toBe("403");
+  });
 });

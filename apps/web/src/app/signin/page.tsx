@@ -29,6 +29,14 @@ export default async function SignInPage({
             <option value="founder">Founder test identity</option>
             <option value="secondary">Second test identity</option>
           </select>
+          <label htmlFor="test-secret">Local test access secret</label>
+          <input
+            id="test-secret"
+            name="testSecret"
+            type="password"
+            required
+            autoComplete="off"
+          />
           <button type="submit">Enter local test session</button>
         </form>
       ) : (
