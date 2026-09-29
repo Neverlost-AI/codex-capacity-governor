@@ -245,11 +245,13 @@ describe("hosted application PostgreSQL role provisioning", () => {
   });
 
   it("reapplies only reviewed grants after a no-privileges restore", async () => {
-    const client = await migratedDatabase();
+    const client = new PGlite();
     try {
       // A separate disposable cluster needs the policy-referenced role before
       // pg_restore. No credentials or production login are copied to it.
       await client.exec(prepareRestoreRoleSql);
+      await client.exec("CREATE SCHEMA public");
+      await migrate(drizzle(client), { migrationsFolder });
       await client.exec(provisioningSql);
       await client.exec(`
         REVOKE ALL ON ALL TABLES IN SCHEMA public FROM capacity_governor_app;
@@ -292,7 +294,7 @@ describe("hosted application PostgreSQL role provisioning", () => {
         },
       ]);
       await expect(client.exec(prepareRestoreRoleSql)).rejects.toThrow(
-        /already exists/,
+        /cannot drop schema public|already exists/,
       );
       await client.exec("ROLLBACK");
       await client.exec("ALTER ROLE capacity_governor_app LOGIN");
@@ -321,6 +323,81 @@ describe("hosted application PostgreSQL role provisioning", () => {
         "SELECT has_table_privilege('capacity_governor_app', 'public.projects', 'SELECT') AS usable",
       );
       expect(rows[0].usable).toBe(false);
+    } finally {
+      await client.close();
+    }
+  });
+
+  it("rejects an existing app role granted to an API role before changing grants", async () => {
+    const client = new PGlite();
+    try {
+      await client.exec(prepareRestoreRoleSql);
+      await client.exec("CREATE SCHEMA public");
+      await migrate(drizzle(client), { migrationsFolder });
+      await client.exec("CREATE ROLE authenticated");
+      await client.exec("GRANT capacity_governor_app TO authenticated");
+      await expect(client.exec(provisioningSql)).rejects.toThrow(
+        /unexpected attributes or memberships/,
+      );
+      await client.exec("ROLLBACK");
+      const { rows } = await client.query<{ count: number }>(
+        "SELECT count(*)::int AS count FROM pg_policies WHERE schemaname = 'public'",
+      );
+      expect(rows[0].count).toBe(0);
+    } finally {
+      await client.close();
+    }
+  });
+
+  it("removes excess app grants when reapplying the exact reviewed policy", async () => {
+    const client = await migratedDatabase();
+    try {
+      await client.exec(provisioningSql);
+      await client.exec(
+        "GRANT UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER ON public.governed_outcome_versions TO capacity_governor_app",
+      );
+      await client.exec(
+        "GRANT DELETE ON public.projects TO capacity_governor_app",
+      );
+      await client.exec(provisioningSql);
+      const { rows } = await client.query<{
+        update_outcome: boolean;
+        delete_outcome: boolean;
+        truncate_outcome: boolean;
+        references_outcome: boolean;
+        trigger_outcome: boolean;
+        delete_project: boolean;
+      }>(`SELECT
+        has_table_privilege('capacity_governor_app','public.governed_outcome_versions','UPDATE') AS update_outcome,
+        has_table_privilege('capacity_governor_app','public.governed_outcome_versions','DELETE') AS delete_outcome,
+        has_table_privilege('capacity_governor_app','public.governed_outcome_versions','TRUNCATE') AS truncate_outcome,
+        has_table_privilege('capacity_governor_app','public.governed_outcome_versions','REFERENCES') AS references_outcome,
+        has_table_privilege('capacity_governor_app','public.governed_outcome_versions','TRIGGER') AS trigger_outcome,
+        has_table_privilege('capacity_governor_app','public.projects','DELETE') AS delete_project`);
+      expect(rows[0]).toEqual({
+        update_outcome: false,
+        delete_outcome: false,
+        truncate_outcome: false,
+        references_outcome: false,
+        trigger_outcome: false,
+        delete_project: false,
+      });
+    } finally {
+      await client.close();
+    }
+  });
+
+  it("provisions a restore cluster with no Supabase API roles", async () => {
+    const client = new PGlite();
+    try {
+      await client.exec(prepareRestoreRoleSql);
+      await client.exec("CREATE SCHEMA public");
+      await migrate(drizzle(client), { migrationsFolder });
+      await client.exec(provisioningSql);
+      const { rows } = await client.query<{ count: number }>(
+        "SELECT count(*)::int AS count FROM pg_policies WHERE schemaname = 'public'",
+      );
+      expect(rows[0].count).toBe(36);
     } finally {
       await client.close();
     }

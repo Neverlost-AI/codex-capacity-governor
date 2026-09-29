@@ -12,6 +12,7 @@ BEGIN;
 DO $governor$
 DECLARE
   table_name text;
+  api_role text;
   policy_count integer;
   matching_policy_count integer;
   expected_policy_count integer;
@@ -106,23 +107,30 @@ BEGIN
   ) OR EXISTS (
     SELECT 1 FROM pg_auth_members
     WHERE member = (SELECT oid FROM pg_roles WHERE rolname = 'capacity_governor_app')
+       OR roleid = (SELECT oid FROM pg_roles WHERE rolname = 'capacity_governor_app')
   ) THEN
     RAISE EXCEPTION 'Existing Governor app role has unexpected attributes or memberships';
   END IF;
 
   -- Do not rely on PUBLIC defaults for the database connection, or let a
   -- PUBLIC schema grant give the app role DDL authority.
+  EXECUTE format('REVOKE ALL PRIVILEGES ON DATABASE %I FROM capacity_governor_app', current_database());
   EXECUTE format('GRANT CONNECT ON DATABASE %I TO capacity_governor_app', current_database());
   REVOKE CREATE ON SCHEMA public FROM PUBLIC;
+  REVOKE ALL PRIVILEGES ON SCHEMA public FROM capacity_governor_app;
   GRANT USAGE ON SCHEMA public TO capacity_governor_app;
 
   FOREACH table_name IN ARRAY app_tables LOOP
     -- Supabase can grant these roles DML by default. RLS alone is not a
     -- substitute for removing unused API and service-role grants.
-    EXECUTE format(
-      'REVOKE ALL PRIVILEGES ON TABLE public.%I FROM PUBLIC, anon, authenticated, service_role',
-      table_name
-    );
+    EXECUTE format('REVOKE ALL PRIVILEGES ON TABLE public.%I FROM PUBLIC, capacity_governor_app', table_name);
+    -- A disposable restore cluster has no Supabase API roles. Never create
+    -- placeholders for them; revoke their direct grants only when present.
+    FOREACH api_role IN ARRAY ARRAY['anon', 'authenticated', 'service_role'] LOOP
+      IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = api_role) THEN
+        EXECUTE format('REVOKE ALL PRIVILEGES ON TABLE public.%I FROM %I', table_name, api_role);
+      END IF;
+    END LOOP;
     EXECUTE format('ALTER TABLE public.%I ENABLE ROW LEVEL SECURITY', table_name);
     EXECUTE format('GRANT SELECT, INSERT ON TABLE public.%I TO capacity_governor_app', table_name);
     IF policy_count = 0 THEN
