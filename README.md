@@ -18,12 +18,14 @@ immutable reviewed inputs and attempts, including negative results.
 
 [T005](docs/TRANCHE_005_COMPLETE_CAPACITY_PREFLIGHT.md) was founder-accepted and
 merged in PR #11. [T006](docs/TRANCHE_006_GOVERNED_OUTCOMES.md) was separately
-founder-accepted and merged in PR #13. The resulting local loop is **not**
-host-ready: the founder-directed next sequence proposes a separately approved
-[private-hosted foundation](docs/TRANCHE_007_PRIVATE_HOSTED_FOUNDATION_DRAFT.md),
-hosted verification, then three measured public builds under the
-[T007 protocol](docs/TRANCHE_007_INTERNAL_TESTING_AND_LOCAL_RELEASE_DRAFT.md).
-Neither hosting/provisioning nor measured execution is authorized by these drafts.
+founder-accepted and merged in PR #13. The private-hosted foundation was
+independently reviewed and founder-accepted as **local implementation** at
+`30c8f21f944099dd563c927faf928166b78731cc`. [Decision 0007](docs/decisions/0007-private-hosted-foundation-target-and-zero-spend.md)
+selects Vercel and Supabase Free with a $0 incremental ceiling. Its live
+Google/Vercel/Supabase behavior and backup/restore remain unverified; no push,
+merge, provisioning or deployment follows from that acceptance. Hosted
+verification and then three separately authorized measured builds remain in
+the [T007 protocol](docs/TRANCHE_007_INTERNAL_TESTING_AND_LOCAL_RELEASE_DRAFT.md).
 Future forecasts remain cold-start: the automatic history loader is deferred, and the
 [calibration method concern](docs/FORECAST_CALIBRATION_CONCERN_001.md) remains
 unresolved before that loader.

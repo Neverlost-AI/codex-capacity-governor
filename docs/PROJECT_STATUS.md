@@ -19,6 +19,7 @@ the accepted records and merge evidence below.
 | T004 forecast                 | Decision 0003; accepted assignment; founder-approved head `8e9e491aedf93aa59375ed0195cc2f8994447479`; PR #7 merged in `0d7cc7c225b0e1ef3ecd3b3a08f57f33923e26d0` | Pure forecast, projection and comparison helpers; no composed preflight, history loading or persistence. |
 | T005 composed local preflight | Decision 0004/F1-F9; founder-accepted head `8681c05ea6eb7c48a71953e22c99c48e389e5206`; PR #11 normally merged in `82e2b96fbeeef69f7dae06fc416705392da54ccf` | Manual cold-start reviewed revisions, paired confirmation, immutable forecast/policy attempts and historical reopen. No governed outcomes or history loader. |
 | T006 governed outcomes | Decision 0006; founder-accepted head `1a056573b2c8e064f0eebfc26a4f70113d6ff44e`; PR #13 normally merged in `4cb4c7030ba2216cf890e4748b198d703c5d6f35` | One bounded run per saved eligible evaluation, explicit outcomes/adherence, reviewed per-window actuals, append-only amendments, comparison and viewable history. Future preflights stay cold-start. |
+| Private hosted foundation | Founder-accepted, independently reviewed local implementation at `30c8f21f944099dd563c927faf928166b78731cc`; Decision 0007 | Vercel/Supabase Free target with $0 incremental ceiling. Local code accepted; not pushed, merged, provisioned, deployed, or live-integrated by this acceptance. |
 | Builder/reviewer workflow     | Founder-approved head `a72721f74d01aeea23cb849ebb46c97a7eed5c15`; PR #9 merged in `1f0bdbf30cd4d37f1f3f17153308e28b7c298260`                                     | Repository instructions and agent/skill configuration only.                                              |
 
 T004's historical reset-cycle ambiguity and upstream evidence authentication
@@ -105,6 +106,15 @@ all-green repository-wide format claim.
 
 ## Next milestone boundary
 
+The private hosted foundation is founder-accepted at the exact local commit
+`30c8f21f944099dd563c927faf928166b78731cc` after separate exact-commit
+review. This acceptance is not a merge or deployed verification. Decision 0007
+selects Vercel and Supabase Free with a $0 incremental ceiling while preserving
+all existing Supabase projects. Actual account eligibility, a separate Free
+project slot, live Google/Vercel/Supabase integration and a no-cost recoverable
+backup/restore path remain unverified. No push, merge, provisioning, deployment,
+measured attempt or publication follows from this acceptance.
+
 The [T006 assignment](TRANCHE_006_GOVERNED_OUTCOMES.md) and Decision 0006 are
 historical authority/scope records; their pre-implementation grant language
 does not override the merge above. The [calibration/milestone analysis](T006_CALIBRATION_AND_MILESTONES_DRAFT.md)
@@ -122,7 +132,7 @@ hosted authentication/storage/isolation verification, an exact
 [challenge/test freeze](T007_PUBLIC_CHALLENGE_FREEZE_DRAFT.md), three separately
 authorized attempts, and later reviewed sanitized public-demo copies. The
 180-minute/1,500-bp per-bucket ceiling and worksheet await founder review;
-no hosted code, service, measured run or publication is authorized. Existing
+no hosted service, measured run or publication is authorized. Existing
 proto-dogfooding is not T007 evidence. Three builds collect initial factual
 calibration observations but cannot establish forecast accuracy or enable a
 history loader.
