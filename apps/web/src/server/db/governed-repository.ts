@@ -5,7 +5,7 @@ import {
   governedObservationSchema,
 } from "@capacity-governor/contracts";
 import type { GovernedRepository } from "@capacity-governor/application";
-import { asc, eq } from "drizzle-orm";
+import { asc, eq, sql } from "drizzle-orm";
 import type { AppDatabase } from "./database";
 import {
   hasGovernedRunAccess,
@@ -140,13 +140,17 @@ export const createGovernedRepository = (
       if (!(await hasGovernedRunAccess(db, ownerKey, item.runId)))
         throw new Error("Governed run unavailable for owner");
       return db.transaction(async (tx) => {
-        // Serialize concurrent amendments to this run. Unique indexes also guard
-        // the one-initial/one-successor invariants at the database boundary.
+        // Serialize concurrent outcomes for this run without locking an immutable
+        // evidence row: SELECT FOR UPDATE would require UPDATE on governed_runs.
+        // The transaction-scoped advisory lock is keyed by the stable run UUID;
+        // unique indexes remain the final one-initial/one-successor guard.
+        await tx.execute(
+          sql`SELECT pg_advisory_xact_lock(hashtext('capacity-governor-outcome'), hashtext(${item.runId}))`,
+        );
         const [run] = await tx
           .select({ id: governedRuns.id })
           .from(governedRuns)
-          .where(eq(governedRuns.id, item.runId))
-          .for("update");
+          .where(eq(governedRuns.id, item.runId));
         if (!run) throw new Error("Governed run missing");
         const versions = await tx
           .select({

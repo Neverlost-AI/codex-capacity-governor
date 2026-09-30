@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import { randomUUID } from "node:crypto";
 import { PGlite } from "@electric-sql/pglite";
 import { drizzle } from "drizzle-orm/pglite";
+import { migrate } from "drizzle-orm/pglite/migrator";
 import { eq, sql } from "drizzle-orm";
 import {
   createApplicationService,
@@ -109,6 +110,53 @@ const observation = () =>
   });
 
 describe("T006 additive governed repository", () => {
+  it("saves, amends, and reopens with the limited hosted app role", async () => {
+    client = new PGlite();
+    await migrate(drizzle(client), { migrationsFolder: "apps/web/drizzle" });
+    await client.exec(
+      "CREATE ROLE anon; CREATE ROLE authenticated; CREATE ROLE service_role;",
+    );
+    await client.exec(
+      readFileSync("scripts/provision-hosted-app-role.sql", "utf8"),
+    );
+    const db = drizzle(client, { schema }) as unknown as AppDatabase;
+    await seed(db);
+    const prior = await attempt(db);
+    const service = governed(db);
+    const link = await service.create(
+      PROJECT,
+      prior.id,
+      "local-session:test",
+      "confirmation",
+    );
+    await client.exec("SET ROLE capacity_governor_app");
+    try {
+      const first = await service.record(
+        link.id,
+        observation(),
+        "local-session:test",
+      );
+      const amended = await service.amend(
+        link.id,
+        first.id,
+        "Corrected value",
+        {
+          ...observation(),
+          usage: [{ ...observation().usage[0], rawValue: "13" }],
+        },
+        "local-session:test",
+      );
+      expect((await service.reopen(link.id)).observations).toEqual([
+        first,
+        amended,
+      ]);
+      await expect(
+        client.exec("UPDATE public.governed_outcome_versions SET id = id"),
+      ).rejects.toThrow(/permission denied/);
+    } finally {
+      await client.exec("RESET ROLE");
+    }
+  });
   it("migrates populated legacy rows without changing UNGUIDED history or T005 attempts", async () => {
     client = new PGlite();
     for (const filename of [

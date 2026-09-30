@@ -1,4 +1,5 @@
 import { existsSync, mkdirSync } from "node:fs";
+import { X509Certificate } from "node:crypto";
 import path from "node:path";
 import { PGlite } from "@electric-sql/pglite";
 import { drizzle as drizzlePglite } from "drizzle-orm/pglite";
@@ -60,6 +61,37 @@ export const hostedPostgresConnectionString = (databaseUrl: string) => {
   return url.toString();
 };
 
+export const hostedPostgresTlsOptions = (encodedCa: string | undefined) => {
+  // An explicit CA is required because Supabase's pooler chain is not
+  // necessarily present in the host runtime's default trust store.
+  if (
+    !encodedCa ||
+    encodedCa.length % 4 !== 0 ||
+    !/^[A-Za-z0-9+/]+={0,2}$/.test(encodedCa)
+  )
+    throw new Error("Hosted PostgreSQL CA certificate is missing or invalid");
+
+  const pem = Buffer.from(encodedCa, "base64").toString("utf8");
+  if (
+    !/^-----BEGIN CERTIFICATE-----\r?\n[A-Za-z0-9+/=\r\n]+-----END CERTIFICATE-----\r?\n?$/.test(
+      pem,
+    )
+  )
+    throw new Error("Hosted PostgreSQL CA certificate is invalid");
+
+  try {
+    if (!new X509Certificate(pem).ca)
+      throw new Error("Hosted PostgreSQL certificate is not a CA");
+  } catch {
+    throw new Error("Hosted PostgreSQL CA certificate is invalid");
+  }
+
+  // node-postgres supplies the URL hostname as TLS servername, retaining
+  // Node's default hostname check. Never set checkServerIdentity or disable
+  // certificate verification here.
+  return { rejectUnauthorized: true as const, ca: pem };
+};
+
 export const createDatabaseConnection = async (
   databaseUrl: string,
   options: { migrate?: boolean; hostedPool?: boolean } = {},
@@ -87,7 +119,9 @@ export const createDatabaseConnection = async (
           max: 1,
           idleTimeoutMillis: 30_000,
           connectionTimeoutMillis: 10_000,
-          ssl: { rejectUnauthorized: true },
+          ssl: hostedPostgresTlsOptions(
+            process.env.CAPACITY_GOVERNOR_POSTGRES_CA_BASE64,
+          ),
         }
       : {}),
   });
