@@ -19,7 +19,7 @@ the accepted records and merge evidence below.
 | T004 forecast                 | Decision 0003; accepted assignment; founder-approved head `8e9e491aedf93aa59375ed0195cc2f8994447479`; PR #7 merged in `0d7cc7c225b0e1ef3ecd3b3a08f57f33923e26d0` | Pure forecast, projection and comparison helpers; no composed preflight, history loading or persistence. |
 | T005 composed local preflight | Decision 0004/F1-F9; founder-accepted head `8681c05ea6eb7c48a71953e22c99c48e389e5206`; PR #11 normally merged in `82e2b96fbeeef69f7dae06fc416705392da54ccf` | Manual cold-start reviewed revisions, paired confirmation, immutable forecast/policy attempts and historical reopen. No governed outcomes or history loader. |
 | T006 governed outcomes | Decision 0006; founder-accepted head `1a056573b2c8e064f0eebfc26a4f70113d6ff44e`; PR #13 normally merged in `4cb4c7030ba2216cf890e4748b198d703c5d6f35` | One bounded run per saved eligible evaluation, explicit outcomes/adherence, reviewed per-window actuals, append-only amendments, comparison and viewable history. Future preflights stay cold-start. |
-| Private hosted foundation | Founder-accepted, independently reviewed local implementation at `30c8f21f944099dd563c927faf928166b78731cc`; Decision 0007 | Vercel/Supabase Free target with $0 incremental ceiling. Local code accepted; not pushed, merged, provisioned, deployed, or live-integrated by this acceptance. |
+| Private hosted foundation | Founder-accepted local implementation at `30c8f21f944099dd563c927faf928166b78731cc`; Decision 0007; subsequent private deployment fix PR #15 normally merged as `9786b47798d93bcf5c6adda3e38fb53521ae8afd` | Founder-only Vercel/Supabase Free deployment under $0 incremental ceiling. Synthetic live save/reopen/outcome/amendment and nonfounder denial were observed; the encrypted offsite backup copy and final pre-measurement freeze remain pending. Deployment is not measured T007 readiness. |
 | Builder/reviewer workflow     | Founder-approved head `a72721f74d01aeea23cb849ebb46c97a7eed5c15`; PR #9 merged in `1f0bdbf30cd4d37f1f3f17153308e28b7c298260`                                     | Repository instructions and agent/skill configuration only.                                              |
 
 T004's historical reset-cycle ambiguity and upstream evidence authentication
@@ -106,14 +106,17 @@ all-green repository-wide format claim.
 
 ## Next milestone boundary
 
-The private hosted foundation is founder-accepted at the exact local commit
+The private hosted foundation was founder-accepted at local commit
 `30c8f21f944099dd563c927faf928166b78731cc` after separate exact-commit
-review. This acceptance is not a merge or deployed verification. Decision 0007
-selects Vercel and Supabase Free with a $0 incremental ceiling while preserving
-all existing Supabase projects. Actual account eligibility, a separate Free
-project slot, live Google/Vercel/Supabase integration and a no-cost recoverable
-backup/restore path remain unverified. No push, merge, provisioning, deployment,
-measured attempt or publication follows from this acceptance.
+review. Under later separate authorization, Decision 0007's Vercel/Supabase
+Free target was deployed founder-only with no purchase. PR #15's verified TLS
+fix merged normally as `9786b47798d93bcf5c6adda3e38fb53521ae8afd`,
+the current Production code candidate. The live synthetic project/preflight/
+evaluation/run/outcome/amendment/reopen path worked; a second Google account
+was denied. A populated dump was restored to a disposable isolated PostgreSQL
+cluster. Its encrypted offsite copy is still pending, as are the exact
+pre-attempt environment and measurement freeze. These deployment checks do
+not authorize measured T007 attempts or publication.
 
 The [T006 assignment](TRANCHE_006_GOVERNED_OUTCOMES.md) and Decision 0006 are
 historical authority/scope records; their pre-implementation grant language
@@ -127,12 +130,13 @@ T005 plus T006 supplies the first local prototype's technical loop, **not**
 formal internal evidence, hosted security or release approval. Founder direction
 selects TodoMVC, URL Shortener and Exercise Tracker as the initial T007 builds
 (medium/medium/large) with URL restart persistence. The [draft T007 protocol](TRANCHE_007_INTERNAL_TESTING_AND_LOCAL_RELEASE_DRAFT.md)
-now sequences a separately approved [private-hosted foundation](TRANCHE_007_PRIVATE_HOSTED_FOUNDATION_DRAFT.md),
-hosted authentication/storage/isolation verification, an exact
+now sequences the separately approved and deployed [private-hosted foundation](TRANCHE_007_PRIVATE_HOSTED_FOUNDATION_DRAFT.md),
+remaining pre-measurement recovery checks, exact
 [challenge/test freeze](T007_PUBLIC_CHALLENGE_FREEZE_DRAFT.md), three separately
-authorized attempts, and later reviewed sanitized public-demo copies. The
-180-minute/1,500-bp per-bucket ceiling and worksheet await founder review;
-no hosted service, measured run or publication is authorized. Existing
+authorized attempts, and later reviewed sanitized public-demo copies. Local
+starter/assessor candidates and a [three-attempt packet](T007_THREE_ATTEMPT_PREPARATION_PACKET.md)
+are prepared. The 180-minute/1,500-bp per-bucket ceiling and worksheet await
+founder review; no measured run or publication is authorized. Existing
 proto-dogfooding is not T007 evidence. Three builds collect initial factual
 calibration observations but cannot establish forecast accuracy or enable a
 history loader.
