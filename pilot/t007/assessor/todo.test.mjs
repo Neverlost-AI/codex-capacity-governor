@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { after, before, test } from "node:test";
-import { chromium } from "@playwright/test";
+import { chromium, expect } from "@playwright/test";
 import { startStaticApp, targetDirectory } from "./common.mjs";
 
 let app;
@@ -118,6 +118,10 @@ test("TD-05: route filters, selected link and live filter update", async () => {
     await add(page, "Completed item");
     await page.locator(".todo-list li").nth(1).locator(".toggle").check();
     await page.locator('.filters a[href="#/active"]').click();
+    await expect(page.locator('.filters a[href="#/active"]')).toHaveClass(
+      /selected/,
+      { timeout: 3_000 },
+    );
     assert.deepEqual(
       await page.locator(".todo-list li label").allTextContents(),
       ["Active item"],
@@ -128,11 +132,19 @@ test("TD-05: route filters, selected link and live filter update", async () => {
         .evaluate((node) => node.classList.contains("selected")),
       true,
     );
-    await page.locator(".todo-list li .toggle").check();
+    await page.locator(".todo-list li .toggle").click();
     assert.equal(await page.locator(".todo-list li").count(), 0);
     await page.locator('.filters a[href="#/completed"]').click();
+    await expect(page.locator('.filters a[href="#/completed"]')).toHaveClass(
+      /selected/,
+      { timeout: 3_000 },
+    );
     assert.equal(await page.locator(".todo-list li").count(), 2);
     await page.locator('.filters a[href="#/"]').click();
+    await expect(page.locator('.filters a[href="#/"]')).toHaveClass(
+      /selected/,
+      { timeout: 3_000 },
+    );
     assert.equal(await page.locator(".todo-list li").count(), 2);
   });
 });
@@ -143,6 +155,10 @@ test("TD-06: content, completion and active filter survive reload; edit mode doe
     await add(page, "Completed");
     await page.locator(".todo-list li").nth(1).locator(".toggle").check();
     await page.locator('.filters a[href="#/active"]').click();
+    await expect(page.locator('.filters a[href="#/active"]')).toHaveClass(
+      /selected/,
+      { timeout: 3_000 },
+    );
     await page.locator(".todo-list li label").first().dblclick();
     assert.equal(await page.locator(".todo-list li.editing").count(), 1);
     await page.reload();
@@ -158,6 +174,10 @@ test("TD-06: content, completion and active filter survive reload; edit mode doe
     );
     assert.equal(await page.locator(".todo-list li.editing").count(), 0);
     await page.locator('.filters a[href="#/completed"]').click();
+    await expect(page.locator('.filters a[href="#/completed"]')).toHaveClass(
+      /selected/,
+      { timeout: 3_000 },
+    );
     assert.deepEqual(
       await page.locator(".todo-list li label").allTextContents(),
       ["Completed"],
