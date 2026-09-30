@@ -105,9 +105,21 @@ BEGIN
       AND NOT rolsuper AND NOT rolcanlogin AND NOT rolinherit AND NOT rolcreatedb
       AND NOT rolcreaterole AND NOT rolreplication AND NOT rolbypassrls
   ) OR EXISTS (
-    SELECT 1 FROM pg_auth_members
-    WHERE member = (SELECT oid FROM pg_roles WHERE rolname = 'capacity_governor_app')
-       OR roleid = (SELECT oid FROM pg_roles WHERE rolname = 'capacity_governor_app')
+    SELECT 1 FROM pg_auth_members membership
+    WHERE membership.member = (SELECT oid FROM pg_roles WHERE rolname = 'capacity_governor_app')
+       OR (
+         membership.roleid = (SELECT oid FROM pg_roles WHERE rolname = 'capacity_governor_app')
+         AND NOT (
+           -- PostgreSQL 17 automatically grants a role created by a
+           -- non-superuser CREATEROLE operator back to that operator with
+           -- ADMIN but without INHERIT or SET. This membership itself
+           -- conveys no app-role DML; all other memberships fail closed.
+           membership.member = (SELECT oid FROM pg_roles WHERE rolname = current_user)
+           AND membership.admin_option
+           AND NOT membership.inherit_option
+           AND NOT membership.set_option
+         )
+       )
   ) THEN
     RAISE EXCEPTION 'Existing Governor app role has unexpected attributes or memberships';
   END IF;

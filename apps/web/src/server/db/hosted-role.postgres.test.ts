@@ -118,6 +118,138 @@ const cleanupClusters = async (
 describe.skipIf(!havePostgres)(
   "isolated PostgreSQL 17 Governor role and recovery",
   () => {
+    it("provisions as a non-superuser CREATEROLE operator with only the PostgreSQL creator membership", async () => {
+      const root = await mkdtemp(path.join(tmpdir(), "cg-hosted-pg17-"));
+      const port = await freePort();
+      const cluster = { data: path.join(root, "operator"), started: false };
+      try {
+        await run("initdb", [
+          "-D",
+          cluster.data,
+          "-U",
+          admin,
+          "-A",
+          "trust",
+          "--no-instructions",
+        ]);
+        await runPgCtl([
+          "-D",
+          cluster.data,
+          "-l",
+          path.join(root, `${port}.log`),
+          "-o",
+          `-h 127.0.0.1 -p ${port}`,
+          "-w",
+          "start",
+        ]);
+        cluster.started = true;
+        const privileged = new Pool({ connectionString: url(port), max: 1 });
+        try {
+          await privileged.query(
+            "CREATE ROLE governor_operator LOGIN CREATEROLE NOINHERIT",
+          );
+          await privileged.query(
+            "ALTER DATABASE postgres OWNER TO governor_operator",
+          );
+          await privileged.query(
+            "ALTER SCHEMA public OWNER TO governor_operator",
+          );
+        } finally {
+          await privileged.end();
+        }
+        const migrated = await createDatabaseConnection(
+          url(port, "governor_operator"),
+        );
+        await migrated.close();
+        const operator = new Pool({
+          connectionString: url(port, "governor_operator"),
+          max: 1,
+        });
+        const provision = () =>
+          run("psql", [
+            "-X",
+            "-v",
+            "ON_ERROR_STOP=1",
+            "-h",
+            "127.0.0.1",
+            "-p",
+            String(port),
+            "-U",
+            "governor_operator",
+            "-d",
+            "postgres",
+            "-f",
+            path.resolve("scripts/provision-hosted-app-role.sql"),
+          ]);
+        try {
+          await provision();
+          const membership = await operator.query(`SELECT
+            member.rolname AS member_role,
+            parent.rolname AS granted_role,
+            m.admin_option,
+            m.inherit_option,
+            m.set_option
+          FROM pg_auth_members m
+          JOIN pg_roles member ON member.oid = m.member
+          JOIN pg_roles parent ON parent.oid = m.roleid
+          WHERE member.rolname = 'capacity_governor_app'
+             OR parent.rolname = 'capacity_governor_app'`);
+          expect(membership.rows).toEqual([
+            {
+              member_role: "governor_operator",
+              granted_role: "capacity_governor_app",
+              admin_option: true,
+              inherit_option: false,
+              set_option: false,
+            },
+          ]);
+          expect(
+            (
+              await operator.query(
+                "SELECT count(*)::int AS count FROM pg_policies WHERE schemaname = 'public'",
+              )
+            ).rows[0].count,
+          ).toBe(36);
+          await provision();
+          await operator.query("CREATE ROLE authenticated");
+          await operator.query(
+            "GRANT capacity_governor_app TO authenticated WITH INHERIT TRUE, SET TRUE",
+          );
+          expect(
+            (
+              await operator.query(
+                "SELECT has_table_privilege('authenticated', 'public.projects', 'SELECT') AS can_read",
+              )
+            ).rows[0].can_read,
+          ).toBe(true);
+          await expect(provision()).rejects.toThrow(
+            /unexpected attributes or memberships/,
+          );
+          expect(
+            (
+              await operator.query(
+                "SELECT count(*)::int AS count FROM pg_policies WHERE schemaname = 'public'",
+              )
+            ).rows[0].count,
+          ).toBe(36);
+          await operator.query(
+            "REVOKE capacity_governor_app FROM authenticated",
+          );
+          await provision();
+          await operator.query(
+            "GRANT capacity_governor_app TO governor_operator WITH INHERIT TRUE, SET FALSE",
+          );
+          await expect(provision()).rejects.toThrow(
+            /unexpected attributes or memberships/,
+          );
+        } finally {
+          await operator.end();
+        }
+      } finally {
+        await cleanupClusters(root, [cluster]);
+      }
+    }, 180_000);
+
     it("keeps outcome evidence immutable under the actual role and restores without Supabase roles", async () => {
       const root = await mkdtemp(path.join(tmpdir(), "cg-hosted-pg17-"));
       const sourcePort = await freePort();
