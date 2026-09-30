@@ -1,6 +1,6 @@
 # T007 attempt evidence worksheet — BLANK DRAFT
 
-**Status: complete blank worksheet for founder review, not an instruction to execute a run.** Copy once per bounded development attempt only after the private host, exact deployed build, task starter/test setup and ceiling are separately approved. The proposed common profile is founder-supplied **GPT-6 Sol / High / Pro / single agent**; verify the displayed labels, client version and tools in each copy before execution rather than assuming they remain unchanged. Keep the original completed copy and append corrections with author, time and reason. Link to application records; do not paste credentials, CSRF tokens, private prompts, customer code or entire transcripts. `Not observed` and `UNAVAILABLE` are not zero. This worksheet collects initial factual comparison evidence, not a forecast-accuracy claim or automatic learning input.
+**Status: complete blank worksheet for founder review, not an instruction to execute a run.** Copy once per bounded development attempt only after the private host, exact deployed build and task starter/test setup are separately approved. The founder accepted a **180 active-minute limit per attempt** and removed the proposed fixed per-bucket consumption cap. The proposed common profile is founder-supplied **GPT-6 Sol / High / Pro / single agent**; verify the displayed labels, client version and tools in each copy before execution rather than assuming they remain unchanged. Keep the original completed copy and append corrections with author, time and reason. Link to application records; do not paste credentials, CSRF tokens, private prompts, customer code or entire transcripts. `Not observed` and `UNAVAILABLE` are not zero. This worksheet collects initial factual comparison evidence, not a forecast-accuracy claim or automatic learning input.
 
 ## 1. Frozen task and environment — manual observations
 
@@ -19,7 +19,7 @@
 | Model/version; reasoning and other exposed settings; client/tool versions; permitted tools |  |
 | Agent workflow and role sequence; permitted review/fix cycles; human intervention rule |  |
 | Fresh conversation ID/reference; fresh checkout ID; prior solution/transcript exclusion proof |  |
-| Founder-approved active-time limit and per-required-bucket/reset-cycle usage ceiling; monitoring source/precision |  |
+| Founder-approved 180 active-minute limit; required-bucket monitoring source/precision; no fixed T007 consumption cap |  |
 
 ## 2. Preflight and run linkage — app-recorded facts
 
@@ -59,19 +59,19 @@ Before/after the **entire** attempt yields, at most, a compatible **whole-run** 
 | Acceptance checks run, exact command/evidence and PASS/FAIL/NOT RUN per check |  |
 | Work units completed and independently verified; unfinished work |  |
 | Test/build failures, correction/review cycles and final verification |  |
-| Factual reason for `PARTIAL`/`FAILED`/intentional stop, including time/bucket ceiling or interruption, work left, deferred versus unexpected failure, and whether a new evaluation is required |  |
+| Factual reason for `PARTIAL`/`FAILED`/intentional stop, including 180-minute limit, restrictive policy/provider limit or interruption, work left, deferred versus unexpected failure, and whether a new evaluation is required |  |
 | UI comprehension: decision, limiting window, protected reserves, next action and comparison limitations, using visible UI only |  |
 | Entry/review time, confusing fields, save/reopen issues, likelihood/reason for reuse |  |
 
 ### Stop and checkpoint ledger — manual observations plus cited calculations
 
-Add one row at start, each phase boundary/handoff, no later than every 30 active minutes, whenever headroom is narrowing, and at stop. Keep one line per required bucket at each checkpoint; never collapse windows.
+Add one row at start, each phase boundary/handoff, no later than every 30 active minutes, when a provider's own displayed headroom is narrowing, and at stop. Keep one line per required bucket at each checkpoint; never collapse windows.
 
-| Checkpoint/source time; operator time | Active minutes so far | Bucket/window/reset; displayed reading, basis, unit, precision | Compatible same-cycle consumed delta and remaining headroom to proposed 1,500 bp ceiling, with calculation | Continue/stop/pause; reason, uncertainty, re-preflight reference |
+| Checkpoint/source time; operator time | Active minutes so far and minutes remaining to 180 | Bucket/window/reset; displayed reading, basis, unit, precision | Compatible same-cycle consumed delta, with calculation; provider limit if displayed | Continue/stop/pause; reason, uncertainty, re-preflight reference |
 | --- | --- | --- | --- | --- |
 |  |  |  |  |  |
 
-The proposed ceiling also stops at 180 active minutes, whichever comes first. An unreadable, stale or incompatible bucket does not grant unused headroom. If a reading's precision/delay cannot establish safe room for the next segment, stop early; a later measured overrun is recorded factually, not erased. The 1,500 bp figure is **not** a forecast accuracy buffer or a provider-enforced spending cap. It remains pending founder approval in the [three-attempt packet](../T007_THREE_ATTEMPT_PREPARATION_PACKET.md).
+Stop active work no later than 180 active minutes. There is no fixed T007 per-bucket consumption cap. Unreadable, stale or incompatible readings cannot be used to invent a consumed delta or safe policy evidence; pause, stop or re-preflight as the accepted rules require. Record an observed provider-limit crossing or other overrun factually rather than erasing it. See the [three-attempt packet](../T007_THREE_ATTEMPT_PREPARATION_PACKET.md).
 
 ## 5. Derived comparisons — cite inputs, never invent them
 
@@ -95,7 +95,7 @@ Use the application's Decision 0003 comparison where available. A partial/failed
 | Final task acceptance/verification reference and independent assessor result |  |
 | Real attempt or labeled rehearsal; eligible for operational 3/3 count? why? |  |
 | Compatible completed comparison for every required bucket? eligible for 2/3 floor? why? |  |
-| Isolation and approved active-minute/per-bucket ceiling observed? Each bucket's compatible start/checkpoint/stop deltas, headroom and breach/uncertainty |  |
+| Isolation and approved 180 active-minute limit observed? Each bucket's compatible start/checkpoint/stop deltas, provider-limit evidence and attribution uncertainty |  |
 | Privacy-safe issue log and proposed follow-up |  |
 | Operator and independent worksheet review names/times; corrections appended |  |
 

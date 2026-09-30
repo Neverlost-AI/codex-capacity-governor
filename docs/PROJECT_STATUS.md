@@ -135,8 +135,10 @@ remaining pre-measurement recovery checks, exact
 [challenge/test freeze](T007_PUBLIC_CHALLENGE_FREEZE_DRAFT.md), three separately
 authorized attempts, and later reviewed sanitized public-demo copies. Local
 starter/assessor candidates and a [three-attempt packet](T007_THREE_ATTEMPT_PREPARATION_PACKET.md)
-are prepared. The 180-minute/1,500-bp per-bucket ceiling and worksheet await
-founder review; no measured run or publication is authorized. Existing
+are prepared. The founder retained a 180 active-minute limit per attempt and
+removed the proposed fixed 1,500-bp per-bucket consumption cap. Starter and
+assessor identities and the worksheet await founder review; no measured run or
+publication is authorized. Existing
 proto-dogfooding is not T007 evidence. Three builds collect initial factual
 calibration observations but cannot establish forecast accuracy or enable a
 history loader.
