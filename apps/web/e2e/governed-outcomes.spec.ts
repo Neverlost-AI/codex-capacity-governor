@@ -32,7 +32,7 @@ const createAttempt = async (page: Page, amount = "7800") => {
   await page
     .getByLabel("Work item 1 description", { exact: true })
     .fill("Application item");
-  await page.getByLabel("Work title").fill("Reviewed capacity scope");
+  await page.getByLabel("Work title").fill("Bounded development attempt");
   await page.getByLabel("What work will be done?").fill("Bounded application change");
   await page.getByLabel("What must be true when the work is done? (one per line)").fill("Retain reviewed evidence");
   await page.getByText("Planning details for work item 1").click();

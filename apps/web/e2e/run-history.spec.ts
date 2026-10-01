@@ -77,6 +77,7 @@ test("create an unguided run, record its outcome, reopen it, and append an amend
   await expect(auditHistory.getByText("Nonessential polish")).toBeVisible();
 
   await page.getByRole("link", { name: "← Project" }).click();
+  await page.getByText("Earlier manual drafts and unguided runs").click();
   await expect(
     page.getByRole("link", { name: /PARTIAL · INCONCLUSIVE/ }),
   ).toBeVisible();
