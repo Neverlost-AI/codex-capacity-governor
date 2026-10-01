@@ -11,8 +11,8 @@ export default function NewProjectPage() {
         <p className="eyebrow">New workspace</p>
         <h1>Create a project</h1>
         <p>
-          A project groups the bounded manual preflight draft you will create
-          next.
+          After creating the project, describe the work, enter each required
+          capacity window, and review your answers.
         </p>
       </div>
       <ProjectForm />

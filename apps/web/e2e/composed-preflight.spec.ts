@@ -434,7 +434,7 @@ test("legacy action rejects session-CSRF tamper without saving browser-authorize
     .getByRole("button", { name: "Create project", exact: true })
     .click();
   await expect(
-    page.getByRole("heading", { name: "Something interrupted this draft." }),
+    page.getByRole("heading", { name: "Something went wrong while loading this page." }),
   ).toBeVisible();
   await page.goto("/");
   await expect(page.getByRole("link", { name: new RegExp(name) })).toHaveCount(

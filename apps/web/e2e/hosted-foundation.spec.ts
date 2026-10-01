@@ -30,7 +30,10 @@ test("hosted phase one: sign-in to immutable outcome amendment with isolation an
   test.skip(process.env.CAPACITY_GOVERNOR_HOSTED_E2E_PHASE === "two");
   test.setTimeout(180_000);
   await signIn(page);
+  await expect(page.getByText("Private capacity preflight")).toBeVisible();
+  await expect(page.getByText(/three steps: Work, Capacity, and Review/)).toBeVisible();
   await page.getByRole("link", { name: "Create project" }).click();
+  await expect(page.getByText(/describe the work, enter each required/)).toBeVisible();
   const name = `Hosted founder project ${Date.now()}`;
   await page.getByLabel("Project name").fill(name);
   await page
@@ -38,23 +41,6 @@ test("hosted phase one: sign-in to immutable outcome amendment with isolation an
     .click();
   await expect(page).toHaveURL(/\/projects\/[0-9a-f-]{36}$/);
   const projectUrl = page.url();
-  await page.getByText("Earlier manual drafts and unguided runs").click();
-  await page
-    .getByLabel("Tranche title")
-    .fill("Hosted bounded development attempt");
-  await page
-    .getByLabel("Tranche brief")
-    .fill("Private hosted evidence workflow");
-  await page
-    .getByLabel(/Acceptance criteria/)
-    .fill("Reopen original and amended evidence");
-  await page.getByLabel("Available amount").fill("58");
-  await page.getByLabel("Capacity unit").fill("legacy raw units");
-  await page.getByLabel("IANA timezone").fill("America/Denver");
-  await page.getByRole("button", { name: "Save preflight draft" }).click();
-  await expect(page.getByRole("status")).toHaveText(
-    "Manual preflight draft saved.",
-  );
 
   // A second authenticated test principal cannot enumerate, read or edit this
   // project by guessing its URL. It is not part of the deployed allowlist.
