@@ -51,45 +51,34 @@ const createDraft = async (page: Page) => {
   await page.goto("/");
   await page.getByRole("link", { name: "Create project" }).click();
   await page.getByLabel("Project name").fill(name);
-  await page
-    .getByRole("button", { name: "Create project", exact: true })
-    .click();
-  await page.getByLabel("Tranche title").fill("Reviewed capacity scope");
-  await page
-    .getByLabel("Tranche brief")
-    .fill("A bounded application logic change");
-  await page
-    .getByLabel(/Acceptance criteria/)
-    .fill("Retain independently reviewed evidence");
-  await page.getByLabel("Available amount").fill("58");
-  await page.getByLabel("Capacity unit").fill("legacy manual units");
-  await page.getByLabel("IANA timezone").fill("America/Denver");
-  await page.getByRole("button", { name: "Save preflight draft" }).click();
-  await expect(page.getByRole("status")).toHaveText(
-    "Manual preflight draft saved.",
-  );
+  await page.getByRole("button", { name: "Create project", exact: true }).click();
   const projectUrl = page.url();
-  await page
-    .getByRole("link", { name: "Create reviewed capacity preflight" })
-    .click();
+  await page.getByRole("link", { name: "Start capacity preflight" }).click();
+  await expect(page.getByText("1. Work")).toBeVisible();
+  await expect(page.getByText("2. Capacity")).toBeVisible();
+  await expect(page.getByText("3. Review")).toBeVisible();
+  await page.getByLabel("Work title").fill("Reviewed capacity scope");
+  await page.getByLabel("What work will be done?").fill("A bounded application logic change");
+  await page.getByLabel("What must be true when the work is done? (one per line)").fill("Retain independently reviewed evidence");
   return { projectUrl, name };
 };
 const fillItem = async (page: Page, index: number) => {
   await page
-    .getByLabel(`Work item ${index} ID`, { exact: true })
+    .getByLabel(`Work item ${index} reference`, { exact: true })
     .fill(`work-${index}`);
   await page
-    .getByLabel(`Work item ${index} label`, { exact: true })
+    .getByLabel(`Work item ${index} description`, { exact: true })
     .fill(`Application item ${index}`);
+  await page.getByText(`Planning details for work item ${index}`).click();
   for (const [label, value] of [
-    ["Work category", "APPLICATION_LOGIC"],
-    ["Complexity", "MEDIUM"],
-    ["Context load", "MEDIUM"],
-    ["Repository condition", "STABLE"],
-    ["Dependency change", "EXISTING_ONLY"],
-    ["Validation burden", "STANDARD"],
-    ["Novelty", "SOME_NEW_PATTERN"],
-    ["Correction exposure", "MEDIUM"],
+    ["Type of work", "APPLICATION_LOGIC"],
+    ["How difficult is it?", "MEDIUM"],
+    ["How much existing context is needed?", "MEDIUM"],
+    ["State of the codebase", "STABLE"],
+    ["Package changes", "EXISTING_ONLY"],
+    ["How much checking is needed?", "STANDARD"],
+    ["How unfamiliar is the approach?", "SOME_NEW_PATTERN"],
+    ["How likely are later fixes?", "MEDIUM"],
   ])
     await page
       .getByLabel(`${label} ${index}`, { exact: true })
@@ -102,38 +91,40 @@ const fillBucket = async (
   observedAt = new Date().toISOString(),
 ) => {
   for (const [label, value] of [
-    ["Window evidence ID", index === 1 ? "short" : "weekly"],
-    ["Provider ID", "manual-codex"],
-    ["Capacity window ID", index === 1 ? "5-hour" : "weekly"],
-    ["Reset cycle ID", `cycle-${index}`],
-    ["Observation time (explicit offset)", observedAt],
-    ["Available exact decimal amount", amount],
+    ["Reading reference", index === 1 ? "short" : "weekly"],
+    ["Provider", "manual-codex"],
+    ["Window", index === 1 ? "5-hour" : "weekly"],
+    ["Reset cycle reference", `cycle-${index}`],
+    ["When you saw this reading (with time offset)", observedAt],
+    ["Available amount as shown", amount],
     [
-      "Forecast profile evidence reference",
+      "Planning profile source",
       "accepted gate-b-v1 profile manually reviewed",
     ],
   ])
     await page.getByLabel(`${label} ${index}`, { exact: true }).fill(value);
   await page
-    .getByLabel(`Available unit ${index}`, { exact: true })
+    .getByLabel(`Unit shown ${index}`, { exact: true })
     .selectOption("BASIS_POINTS");
   await page
-    .getByLabel(`Forecast profile evidence status ${index}`, { exact: true })
+    .getByLabel(`Planning profile evidence ${index}`, { exact: true })
     .selectOption("COMPLETE");
+  await page.getByText(`Reset and other evidence for window ${index}`).click();
   await page
-    .getByLabel(`Reset evidence kind ${index}`, { exact: true })
+    .getByLabel(`Reset information shown ${index}`, { exact: true })
     .selectOption("NONE");
 };
 const fill = async (page: Page, amount = "7800", observedAt?: string) => {
-  await page.getByLabel("Repository / scope reference").fill("repo/manual");
+  await page.getByLabel("Repository or scope reference").fill("repo/manual");
   await fillItem(page, 1);
-  await fillBucket(page, 1, amount, observedAt);
   await page.getByRole("radio", { name: "No", exact: true }).check();
+  await page.getByRole("button", { name: "Continue to Capacity" }).click();
+  await fillBucket(page, 1, amount, observedAt);
 };
 const confirm = async (page: Page) => {
-  await page.getByRole("button", { name: "Review frozen inputs" }).click();
+  await page.getByRole("button", { name: "Continue to Review" }).click();
   await expect(
-    page.getByRole("heading", { name: "Review exact frozen inputs" }),
+    page.getByRole("heading", { name: "Review your preflight" }),
   ).toBeVisible();
   await page.waitForLoadState("networkidle");
   await expect(page.getByText(/uncalibrated planning estimates/)).toBeVisible();
@@ -144,11 +135,11 @@ const confirm = async (page: Page) => {
     page.getByText(/not purchased-credit cost estimates/),
   ).toBeVisible();
   await page
-    .getByRole("checkbox", { name: /confirm all reviewed work/ })
+    .getByRole("checkbox", { name: /confirm the work description/ })
     .check();
   await page
     .getByRole("checkbox", {
-      name: /confirm this exact required capacity window set/,
+      name: /confirm these are all required capacity windows/,
     })
     .check();
   await page
@@ -214,12 +205,15 @@ for (const viewport of [
     await page.setViewportSize(viewport);
     const { projectUrl, name } = await createDraft(page);
     await fill(page);
+    await page.getByRole("button", { name: "Back to Work" }).click();
     await page.getByRole("button", { name: "Add work item" }).click();
     await fillItem(page, 2);
+    await page.getByRole("button", { name: "Continue to Capacity" }).click();
     await page.getByRole("button", { name: "Add capacity window" }).click();
     await fillBucket(page, 2, "7800");
     await page.evaluate(() => window.scrollTo(0, 0));
     await screenshot(page, "form-top");
+    await page.getByText("Known capacity activity (advanced)").click();
     await page.getByRole("button", { name: "Add capacity activity" }).click();
     await page
       .getByLabel("Activity identity 1", { exact: true })
@@ -235,7 +229,7 @@ for (const viewport of [
         exact: true,
       })
       .fill("unknown-window");
-    await page.getByRole("button", { name: "Review frozen inputs" }).click();
+    await page.getByRole("button", { name: "Continue to Review" }).click();
     await expect(
       page.getByRole("alert").filter({
         has: page.getByRole("heading", {
@@ -252,9 +246,9 @@ for (const viewport of [
       })
       .fill("short");
     await screenshot(page, "form");
-    await page.getByRole("button", { name: "Review frozen inputs" }).click();
+    await page.getByRole("button", { name: "Continue to Review" }).click();
     await expect(
-      page.getByRole("heading", { name: "Review exact frozen inputs" }),
+      page.getByRole("heading", { name: "Review your preflight" }),
     ).toBeVisible();
     await expect(
       page.getByRole("heading", { name: "weekly · weekly", exact: true }),
@@ -263,22 +257,22 @@ for (const viewport of [
       page.getByText("Manual factual activity record", { exact: true }),
     ).toBeVisible();
     await expect(
-      page.getByRole("checkbox", { name: /confirm all reviewed work/ }),
+      page.getByRole("checkbox", { name: /confirm the work description/ }),
     ).not.toBeChecked();
     await expect(
       page.getByRole("checkbox", {
-        name: /confirm this exact required capacity window set/,
+        name: /confirm these are all required capacity windows/,
       }),
     ).not.toBeChecked();
     await screenshot(page, "review");
     await page.locator(".confirmation-form").scrollIntoViewIfNeeded();
     await screenshot(page, "review-confirmations");
     await page
-      .getByRole("checkbox", { name: /confirm all reviewed work/ })
+      .getByRole("checkbox", { name: /confirm the work description/ })
       .check();
     await page
       .getByRole("checkbox", {
-        name: /confirm this exact required capacity window set/,
+        name: /confirm these are all required capacity windows/,
       })
       .check();
     await page
@@ -305,9 +299,6 @@ for (const viewport of [
     const resultUrl = page.url();
     await page.getByRole("link", { name: "Back to project" }).click();
     await expect(page.getByRole("heading", { name })).toBeVisible();
-    await expect(page.getByLabel("Capacity unit", { exact: true })).toHaveValue(
-      "legacy manual units",
-    );
     await page
       .getByRole("link", { name: /Reviewed capacity scope ·.*PROCEED/ })
       .click();
@@ -359,7 +350,7 @@ for (const family of [
     if (family === "DEFER") {
       const reset = new Date(Date.now() + 3600000).toISOString();
       await page
-        .getByLabel("Reset evidence kind 1", { exact: true })
+        .getByLabel("Reset information shown 1", { exact: true })
         .selectOption("CONFIRMED");
       await page
         .getByLabel("Reset time (explicit offset) 1", { exact: true })
@@ -377,11 +368,14 @@ for (const family of [
         .getByLabel("Post-reset unit 1", { exact: true })
         .selectOption("BASIS_POINTS");
     }
-    if (family === "NOT_COMPOSABLE")
+    if (family === "NOT_COMPOSABLE") {
+      await page.getByRole("button", { name: "Back to Work" }).click();
       for (let index = 2; index <= 9; index++) {
         await page.getByRole("button", { name: "Add work item" }).click();
         await fillItem(page, index);
       }
+      await page.getByRole("button", { name: "Continue to Capacity" }).click();
+    }
     await confirm(page);
     await screenshot(page, `conservative-${family.replaceAll(" / ", "-")}`);
     await page.setViewportSize({ width: 390, height: 844 });
@@ -454,9 +448,9 @@ test("confirmation endpoint rejects missing CSRF/browser authority and other-ses
   test.setTimeout(180000);
   await createDraft(page);
   await fill(page);
-  await page.getByRole("button", { name: "Review frozen inputs" }).click();
+  await page.getByRole("button", { name: "Continue to Review" }).click();
   await expect(
-    page.getByRole("heading", { name: "Review exact frozen inputs" }),
+    page.getByRole("heading", { name: "Review your preflight" }),
   ).toBeVisible();
   const reviewUrl = page.url();
   const revisionId = reviewUrl.split("/").at(-1)!;

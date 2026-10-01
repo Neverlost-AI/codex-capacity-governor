@@ -86,7 +86,7 @@ export type GovernedOutcomeInput = z.infer<typeof governedOutcomeInputSchema>;
 export const governedLinkSchema = z.object({
   id: identifierSchema,
   projectId: identifierSchema,
-  preflightDraftId: identifierSchema,
+  preflightDraftId: identifierSchema.optional(),
   attemptId: identifierSchema,
   revisionId: identifierSchema,
   receiptId: identifierSchema,

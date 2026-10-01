@@ -29,6 +29,15 @@ const policy = (attempt: Awaited<ReturnType<typeof evaluate>>["attempt"]) => {
   return attempt.policy;
 };
 describe("complete manual preflight composition with real engines", () => {
+  it("prepares and confirms direct reviewed work without a legacy draft", async () => {
+    const input = inputFixture();
+    delete input.preflightDraftId;
+    const { revision, attempt, service } = await evaluate(input);
+    expect(revision.input.preflightDraftId).toBeUndefined();
+    expect(revision.parentTrancheId).toBeDefined();
+    expect(policy(attempt).aggregateDecision).toBe("PROCEED");
+    expect(await service.reopen(PROJECT, attempt.id)).toEqual(attempt);
+  });
   it("inconsistent forecast is typed NOT_COMPOSABLE, never trusted browser output", async () => {
     const { attempt } = await evaluate(inputFixture());
     const corrupted = JSON.parse(JSON.stringify(attempt.forecast));

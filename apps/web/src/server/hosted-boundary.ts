@@ -176,7 +176,7 @@ export class HostedBoundary {
         .where(
           and(
             eq(hostedPreflightReviews.sessionHash, sessionHash),
-            eq(hostedPreflightReviews.draftId, revision.input.preflightDraftId),
+            eq(hostedPreflightReviews.projectId, revision.input.projectId),
             isNull(hostedPreflightReviews.result),
           ),
         );
@@ -185,7 +185,7 @@ export class HostedBoundary {
         ownerKey: session.ownerKey,
         sessionHash,
         projectId: revision.input.projectId,
-        draftId: revision.input.preflightDraftId,
+        draftId: revision.input.preflightDraftId ?? null,
         snapshot: frozen,
         digest,
         challengeHash: this.hash(challenge),

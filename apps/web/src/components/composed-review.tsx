@@ -26,22 +26,22 @@ export function ComposedReview({
   return (
     <div className="review-summary">
       <section className="form-section">
-        <h2>Work description</h2>
+        <h2>Work</h2>
         <dl>
-          <dt>Repository / scope reference</dt>
+          <dt>Repository or scope reference</dt>
           <dd>{input.repositoryReference}</dd>
-          <dt>Title</dt>
+          <dt>Work title</dt>
           <dd>{input.title}</dd>
-          <dt>Brief</dt>
+          <dt>What will be done</dt>
           <dd className="preserve-lines">{input.brief}</dd>
         </dl>
-        <h3>Explicit exclusions</h3>
+        <h3>Out of scope</h3>
         <Entries values={input.explicitExclusions} />
-        <h3>Acceptance criteria</h3>
+        <h3>What must be true when the work is done</h3>
         <Entries values={input.acceptanceCriteria} />
       </section>
       <section>
-        <h2>Reviewed work items</h2>
+        <h2>Work to estimate</h2>
         {input.workItems.map((item) => (
           <div className="form-card" key={item.workItemId}>
             <h3>{item.label}</h3>
@@ -63,10 +63,10 @@ export function ComposedReview({
         ))}
       </section>
       <section>
-        <h2>Exact required window membership</h2>
+        <h2>Required capacity windows</h2>
         <p>
-          Every window below constrains this scope independently. No capacity is
-          added or exchanged across windows.
+          Please check that every required window is listed. Each window is
+          assessed on its own; the amounts are not combined.
         </p>
         {input.buckets.map((bucket) => (
           <div className="form-card" key={bucket.bucketId}>
@@ -75,33 +75,33 @@ export function ComposedReview({
             </h3>
             <dl className="summary-grid">
               <div>
-                <dt>Source / provider</dt>
+                <dt>Provider</dt>
                 <dd>{bucket.providerId}</dd>
               </div>
               <div>
-                <dt>Reset cycle</dt>
+                <dt>Reset cycle reference</dt>
                 <dd>{bucket.resetCycleId}</dd>
               </div>
               <div>
-                <dt>Available capacity (as entered)</dt>
+                <dt>Available amount as entered</dt>
                 <dd>
                   {bucket.availableCapacity.amount} ·{" "}
                   {readableValue(bucket.availableCapacity.unit)}
                 </dd>
               </div>
               <div>
-                <dt>Observed at</dt>
+                <dt>Reading time</dt>
                 <dd>{bucket.observedAt}</dd>
               </div>
               <div>
-                <dt>Forecast profile evidence</dt>
+                <dt>Planning profile evidence</dt>
                 <dd>
                   {readableValue(bucket.profile.status)} ·{" "}
                   {bucket.profile.evidenceReference}
                 </dd>
               </div>
               <div>
-                <dt>Reset evidence</dt>
+                <dt>Reset information</dt>
                 <dd>{readableValue(bucket.reset.kind)}</dd>
               </div>
               {bucket.reset.kind === "CONFIRMED" ? (
@@ -164,7 +164,7 @@ export function ComposedReview({
         ))}
       </section>
       <section className="form-section">
-        <h2>Activity, stops and scope attestation</h2>
+        <h2>Other activity and scope checks</h2>
         {input.knownCapacityActivities.length ? (
           input.knownCapacityActivities.map((activity) => (
             <dl key={activity.eventId}>
@@ -184,11 +184,11 @@ export function ComposedReview({
             external activity.
           </p>
         )}
-        <h3>Active mandatory stops</h3>
+        <h3>Active required stops</h3>
         <Entries values={input.activeMandatoryStopIds} />
         <p>
-          Minimum coherent scope: {input.minimumCoherentScope ? "Yes" : "No"}.
-          This answer is separate from required-window membership.
+          Smallest complete scope: {input.minimumCoherentScope ? "Yes" : "No"}.
+          This answer is separate from the required window list.
         </p>
       </section>
       <details>

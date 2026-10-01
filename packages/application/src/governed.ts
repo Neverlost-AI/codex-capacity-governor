@@ -207,14 +207,17 @@ export const createGovernedService = (dependencies: GovernedDependencies) => {
     )
       throw new Error("Attempt ownership or digest mismatch");
     const project = await dependencies.projects.findById(projectId);
-    const draft = await dependencies.preflightDrafts.findById(
-      attempt.revision.input.preflightDraftId,
-    );
+    const draft = attempt.revision.input.preflightDraftId
+      ? await dependencies.preflightDrafts.findById(
+          attempt.revision.input.preflightDraftId,
+        )
+      : undefined;
     if (
       !project ||
-      !draft ||
-      draft.projectId !== projectId ||
-      draft.tranche.id !== attempt.revision.parentTrancheId
+      (attempt.revision.input.preflightDraftId &&
+        (!draft ||
+          draft.projectId !== projectId ||
+          draft.tranche.id !== attempt.revision.parentTrancheId))
     )
       throw new Error("Project/draft mismatch");
     return attempt;

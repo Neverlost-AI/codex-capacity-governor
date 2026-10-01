@@ -72,6 +72,37 @@ const saved = async (db: AppDatabase) => {
   );
 };
 describe("T005 additive PostgreSQL snapshot repository", () => {
+  it("migrates existing evaluations and stores a direct review without a draft", async () => {
+    client = new PGlite();
+    for (const filename of [
+      "0000_sudden_doctor_octopus.sql",
+      "0001_sparkling_tyger_tiger.sql",
+      "0002_dark_ken_ellis.sql",
+      "0003_useful_professor_monster.sql",
+      "0004_mute_black_bolt.sql",
+    ])
+      await client.exec(readFileSync(`apps/web/drizzle/${filename}`, "utf8"));
+    const db = drizzle(client, { schema }) as unknown as AppDatabase;
+    await seed(db);
+    const historical = await saved(db);
+    await client.exec(readFileSync("apps/web/drizzle/0005_mighty_black_tarantula.sql", "utf8"));
+    expect(await service(db).reopen(PROJECT, historical.id)).toEqual(historical);
+    const direct = inputFixture();
+    delete (direct as { preflightDraftId?: string }).preflightDraftId;
+    direct.title = "Direct reviewed work";
+    const revision = await service(db).prepare(direct);
+    const attempt = await service(db).confirm(
+      revision,
+      "local-session:test",
+      digest(canonicalizeComposed(revision)),
+    );
+    expect(attempt.revision.input.preflightDraftId).toBeUndefined();
+    expect(await service(db).reopen(PROJECT, attempt.id)).toEqual(attempt);
+    expect((await service(db).list(PROJECT)).map((item) => item.id)).toEqual([
+      historical.id,
+      attempt.id,
+    ]);
+  });
   it("migrates populated T001/T002 tables without conversion/backfill/history change", async () => {
     client = new PGlite();
     for (const filename of [

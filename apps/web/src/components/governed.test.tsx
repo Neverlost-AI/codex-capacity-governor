@@ -45,7 +45,7 @@ const history = async (): Promise<GovernedHistory> => {
     link: {
       id: "00000000-0000-4000-8000-000000000055",
       projectId: PROJECT,
-      preflightDraftId: saved.revision.input.preflightDraftId,
+      preflightDraftId: saved.revision.input.preflightDraftId!,
       attemptId: saved.id,
       revisionId: saved.revision.id,
       receiptId: saved.receipt.id,
