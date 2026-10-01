@@ -318,6 +318,26 @@ button,
   display: grid;
   gap: 1.25rem;
 }
+.preflight-steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  list-style: none;
+  padding: 0;
+  margin: 1rem 0;
+}
+.preflight-steps li {
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 0.45rem 0.9rem;
+  color: var(--muted);
+}
+.preflight-steps [aria-current="step"] {
+  color: var(--accent);
+  border-color: var(--accent);
+  font-weight: 750;
+}
+[hidden] { display: none !important; }
 .form-section {
   padding: clamp(1.25rem, 4vw, 2rem);
 }

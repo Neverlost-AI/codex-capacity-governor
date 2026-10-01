@@ -33,7 +33,7 @@ export const createComposedRepository = (
         canonicalizeComposed(row.revision.snapshot) ||
       parsed.data.receipt.canonicalDigest !== row.revision.canonicalDigest ||
       parsed.data.revision.input.projectId !== row.revision.projectId ||
-      parsed.data.revision.input.preflightDraftId !==
+      (parsed.data.revision.input.preflightDraftId ?? null) !==
         row.revision.preflightDraftId
     )
       throw new EvidenceIntegrityError();
@@ -51,24 +51,23 @@ export const createComposedRepository = (
       )
         throw new Error("Project unavailable for owner");
       return db.transaction(async (tx) => {
-        const [draft] = await tx
-          .select()
-          .from(preflightDrafts)
-          .where(
-            eq(preflightDrafts.id, attempt.revision.input.preflightDraftId),
-          );
-        if (
+        const [draft] = attempt.revision.input.preflightDraftId
+          ? await tx.select().from(preflightDrafts).where(
+              eq(preflightDrafts.id, attempt.revision.input.preflightDraftId),
+            )
+          : [];
+        if (attempt.revision.input.preflightDraftId && (
           !draft ||
           draft.projectId !== attempt.revision.input.projectId ||
           draft.trancheId !== attempt.revision.parentTrancheId
-        )
+        ))
           throw new Error("Project/draft ownership mismatch");
         const inserted = await tx
           .insert(revisions)
           .values({
             id: attempt.revision.id,
             projectId: attempt.revision.input.projectId,
-            preflightDraftId: attempt.revision.input.preflightDraftId,
+            preflightDraftId: attempt.revision.input.preflightDraftId ?? null,
             canonicalDigest: attempt.receipt.canonicalDigest,
             snapshot: attempt.revision,
           })

@@ -52,32 +52,22 @@ export default async function ProjectPage({
       </Link>
       <header className="project-heading">
         <div>
-          <p className="eyebrow">Manual preflight draft</p>
+          <p className="eyebrow">Capacity Governor project</p>
           <h1>{result.project.name}</h1>
           {result.project.description ? (
             <p>{result.project.description}</p>
           ) : null}
         </div>
-        <span
-          className={`draft-badge ${result.preflightDraft ? "saved" : "new"}`}
-        >
-          {result.preflightDraft ? "Saved draft" : "Not yet saved"}
-        </span>
       </header>
-      <PreflightForm draft={result.preflightDraft} projectId={projectId} />
       <section aria-labelledby="composed-heading">
-        <h2 id="composed-heading">Complete capacity preflight</h2>
+        <h2 id="composed-heading">Capacity preflight</h2>
         <p>
-          The draft above is manual structural evidence, not a complete policy
-          input. No legacy unit/reset/reserve conversion occurs.
+          Start with your work, enter each required capacity window, then review
+          and confirm the exact inputs before an evaluation is saved.
         </p>
-        {result.preflightDraft ? (
-          <Link href={`/projects/${projectId}/preflight/new`}>
-            Create reviewed capacity preflight
-          </Link>
-        ) : (
-          <p>Save a manual structural draft first.</p>
-        )}
+        <Link href={`/projects/${projectId}/preflight/new`}>
+          Start capacity preflight
+        </Link>
         <h3>Historical saved evaluations</h3>
         <ul>
           {evaluations.map((attempt) => (
@@ -115,10 +105,20 @@ export default async function ProjectPage({
           ))}
         </ul>
       </section>
-      <section
-        aria-labelledby="run-history-heading"
-        className="run-history-section"
-      >
+      <details className="legacy-history">
+        <summary>Earlier manual drafts and unguided runs</summary>
+        <p>
+          These records are separate from the reviewed capacity preflight. Draft
+          amounts are not converted into capacity window evidence.
+        </p>
+        <span className={`draft-badge ${result.preflightDraft ? "saved" : "new"}`}>
+          {result.preflightDraft ? "Saved draft" : "No saved draft"}
+        </span>
+        <PreflightForm draft={result.preflightDraft} projectId={projectId} />
+        <section
+          aria-labelledby="run-history-heading"
+          className="run-history-section"
+        >
         <div className="section-heading">
           <p className="eyebrow">Factual execution evidence</p>
           <h2 id="run-history-heading">Development run history</h2>
@@ -158,7 +158,8 @@ export default async function ProjectPage({
         ) : (
           <p className="empty-state">No development runs recorded yet.</p>
         )}
-      </section>
+        </section>
+      </details>
     </div>
   );
 }

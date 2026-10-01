@@ -14,6 +14,14 @@ import {
 } from "../../application/test/composed-fixture";
 import { evaluateForecastV1 } from "../../forecast-engine/src/index";
 describe("composed transport-neutral boundaries", () => {
+  it("accepts direct input while preserving the legacy draft reference when supplied", () => {
+    const legacy = inputFixture();
+    const direct = { ...legacy };
+    delete direct.preflightDraftId;
+    expect(composedInputSchema.parse(direct).preflightDraftId).toBeUndefined();
+    expect(composedInputSchema.parse(legacy).preflightDraftId).toBe(legacy.preflightDraftId);
+    expect(composedInputSchema.safeParse({ ...legacy, preflightDraftId: null }).success).toBe(false);
+  });
   it("rejects projection set/composite/scope and rejected-forecast scope substitution", async () => {
     const h = harness();
     const revision = await h.service.prepare(inputFixture());

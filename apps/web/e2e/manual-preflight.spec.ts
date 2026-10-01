@@ -14,6 +14,7 @@ test("create project, save a manual preflight draft, and reopen it", async ({
   await page.getByRole("button", { name: "Create project" }).click();
 
   await expect(page.getByRole("heading", { name: projectName })).toBeVisible();
+  await page.getByText("Earlier manual drafts and unguided runs").click();
   await page
     .getByRole("textbox", { name: "Tranche title" })
     .fill("Manual preflight draft");
@@ -46,6 +47,7 @@ test("create project, save a manual preflight draft, and reopen it", async ({
   );
   await page.getByRole("link", { name: "Projects" }).click();
   await page.getByRole("link", { name: new RegExp(projectName) }).click();
+  await page.getByText("Earlier manual drafts and unguided runs").click();
 
   await expect(page.getByText("Saved draft")).toBeVisible();
   await expect(

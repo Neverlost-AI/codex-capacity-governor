@@ -204,12 +204,11 @@ export class LocalBoundary {
   }
   review(cookie: string, revision: ComposedRevision) {
     this.session(cookie);
-    // Editing or requesting a new review invalidates previous pending challenges for this draft.
+    // Editing or requesting a new review invalidates previous pending challenges for this project.
     for (const [id, review] of this.reviews)
       if (
         review.sessionToken === cookie &&
-        review.revision.input.preflightDraftId ===
-          revision.input.preflightDraftId &&
+        review.revision.input.projectId === revision.input.projectId &&
         !review.result &&
         !review.inFlight
       )

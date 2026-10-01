@@ -10,6 +10,7 @@ test("create an unguided run, record its outcome, reopen it, and append an amend
   await page.getByRole("link", { name: "Create project" }).click();
   await page.getByRole("textbox", { name: "Project name" }).fill(projectName);
   await page.getByRole("button", { name: "Create project" }).click();
+  await page.getByText("Earlier manual drafts and unguided runs").click();
 
   await page
     .getByRole("textbox", { name: "Tranche title" })
@@ -76,6 +77,7 @@ test("create an unguided run, record its outcome, reopen it, and append an amend
   await expect(auditHistory.getByText("Nonessential polish")).toBeVisible();
 
   await page.getByRole("link", { name: "← Project" }).click();
+  await page.getByText("Earlier manual drafts and unguided runs").click();
   await expect(
     page.getByRole("link", { name: /PARTIAL · INCONCLUSIVE/ }),
   ).toBeVisible();

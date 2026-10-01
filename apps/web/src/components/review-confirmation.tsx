@@ -44,23 +44,21 @@ export function ReviewConfirmation({
   return (
     <form onSubmit={submit} className="confirmation-form form-section">
       <CsrfField />
-      <h2>Confirm this reviewed snapshot</h2>
+      <h2>Confirm these exact inputs</h2>
       {error ? (
         <p ref={summary} tabIndex={-1} role="alert">
           {error}
         </p>
       ) : null}
       <label className="check-row">
-        <input name="work" type="checkbox" required />I explicitly confirm all
-        reviewed work inputs.
+        <input name="work" type="checkbox" required />I confirm the work description and planning details above.
       </label>
       <label className="check-row">
-        <input name="buckets" type="checkbox" required />I explicitly confirm
-        this exact required capacity window set.
+        <input name="buckets" type="checkbox" required />I confirm these are all required capacity windows and the readings are exact.
       </label>
       <p>
-        Confirmation does not refresh observation times. The separate
-        minimum-coherent-scope answer remains exactly as reviewed.
+        Confirmation does not refresh the reading times. Your answer about the
+        smallest complete scope stays as reviewed.
       </p>
       <button type="submit" disabled={pending}>
         {pending ? "Evaluating and saving…" : "Confirm, evaluate and save"}

@@ -32,7 +32,8 @@ const reset = z.discriminatedUnion("kind", [
 export const composedInputSchema = z
   .object({
     projectId: z.uuid(),
-    preflightDraftId: z.uuid(),
+    // Historical reviews retain their draft link; new reviews are entered directly.
+    preflightDraftId: z.uuid().optional(),
     repositoryReference: text,
     title: text,
     brief: text,

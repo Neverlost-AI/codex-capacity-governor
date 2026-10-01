@@ -11,7 +11,6 @@ import {
   harness,
   inputFixture,
   digest,
-  draftFixture,
   PROJECT,
 } from "../../../../packages/application/test/composed-fixture";
 import { canonicalizeComposed } from "@capacity-governor/contracts";
@@ -49,9 +48,11 @@ describe("focused complete-preflight accessible UI", () => {
     expect(screen.getByText(input.repositoryReference)).toBeVisible();
     expect(screen.getByText("Manually observed run")).toBeVisible();
     expect(screen.getByText("event-factual")).toBeVisible();
-    expect(screen.getByText(/Minimum coherent scope: No/)).toBeVisible();
+    expect(screen.getByText(/Smallest complete scope: No/)).toBeVisible();
     expect(screen.getByText(/Minimum 0.*target share 0%/)).toBeVisible();
     expect(screen.getByText("Some new pattern")).toBeVisible();
+    expect(screen.getByText("Work item reference")).toBeVisible();
+    expect(screen.getByText(input.workItems[0].workItemId)).toBeVisible();
     expect(
       screen.getByLabelText("Complete reviewed evidence").closest("details"),
     ).not.toHaveAttribute("open");
@@ -63,28 +64,27 @@ describe("focused complete-preflight accessible UI", () => {
   });
   it("activity rows preserve explicit references after window edits and map errors to retained fields", async () => {
     const user = userEvent.setup();
-    render(<ComposedForm projectId={PROJECT} draft={draftFixture()} />);
-    await user.click(
-      screen.getByRole("button", { name: "Add capacity activity" }),
-    );
+    render(<ComposedForm projectId={PROJECT} />);
+    await user.click(screen.getByRole("button", { name: "Continue to Capacity" }));
+    await user.click(screen.getByText("Known capacity activity (advanced)"));
+    await user.click(screen.getByRole("button", { name: "Add capacity activity" }));
     await user.type(screen.getByLabelText("Activity identity 1"), "keep-event");
     await user.type(
       screen.getByLabelText("Affected window evidence IDs (one per line) 1"),
       "removed-window",
     );
     await user.type(
-      screen.getByLabelText("Window evidence ID 1"),
+      screen.getByLabelText("Reading reference 1"),
       "renamed-window",
     );
-    await user.click(
-      screen.getByRole("button", { name: "Review frozen inputs" }),
-    );
+    await user.click(screen.getByRole("button", { name: "Continue to Review" }));
     expect(screen.getByLabelText("Activity identity 1")).toHaveValue(
       "keep-event",
     );
     expect(
       screen.getByLabelText("Affected window evidence IDs (one per line) 1"),
     ).toHaveValue("removed-window");
+    await user.click(screen.getByRole("button", { name: "Continue to Capacity" }));
     expect(
       screen.getByLabelText("Activity time (explicit offset) 1"),
     ).toHaveAttribute("aria-invalid", "true");
@@ -100,51 +100,48 @@ describe("focused complete-preflight accessible UI", () => {
   });
   it("keyboard entry, explicit taxonomy/UNKNOWN, multiple items/buckets and no legacy conversion", async () => {
     const user = userEvent.setup();
-    render(<ComposedForm projectId={PROJECT} draft={draftFixture()} />);
+    render(<ComposedForm projectId={PROJECT} />);
     await user.tab();
-    expect(
-      screen.getByText("Technical scope and calibration limitations"),
-    ).toHaveFocus();
+    expect(screen.getByText("Technical scope and calibration limitations")).toHaveFocus();
     await user.tab();
-    expect(screen.getByLabelText("Repository / scope reference")).toHaveFocus();
+    expect(screen.getByLabelText("Repository or scope reference")).toHaveFocus();
+    await user.click(screen.getByRole("button", { name: "Continue to Capacity" }));
+    expect(screen.getByLabelText("Available amount as shown 1")).toHaveValue("");
     expect(
-      screen.getByLabelText("Available exact decimal amount 1"),
+      screen.getByLabelText("When you saw this reading (with time offset) 1"),
     ).toHaveValue("");
+    expect(screen.getByLabelText("Unit shown 1")).toHaveValue("");
+    await user.click(screen.getByRole("button", { name: "Back to Work" }));
+    await user.click(screen.getByText(/Planning details for work item 1/));
+    expect(screen.getByLabelText("How unfamiliar is the approach? 1")).toHaveValue("");
     expect(
-      screen.getByLabelText("Observation time (explicit offset) 1"),
-    ).toHaveValue("");
-    expect(screen.getByLabelText("Available unit 1")).toHaveValue("");
-    expect(screen.getByLabelText("Novelty 1")).toHaveValue("");
-    expect(
-      screen.getByRole("combobox", { name: "Work category 1" }),
+      screen.getByRole("combobox", { name: "Type of work 1" }),
     ).toHaveValue("");
     expect(screen.getByRole("radio", { name: "Yes" })).not.toBeChecked();
     expect(screen.getByRole("radio", { name: "No" })).not.toBeChecked();
-    await user.selectOptions(screen.getByLabelText("Novelty 1"), "UNKNOWN");
-    expect(screen.getByLabelText("Novelty 1")).toHaveValue("UNKNOWN");
+    await user.selectOptions(screen.getByLabelText("How unfamiliar is the approach? 1"), "UNKNOWN");
+    expect(screen.getByLabelText("How unfamiliar is the approach? 1")).toHaveValue("UNKNOWN");
     await user.click(screen.getByRole("button", { name: "Add work item" }));
-    await user.click(
-      screen.getByRole("button", { name: "Add capacity window" }),
-    );
-    expect(screen.getByLabelText("Work item 2 ID")).toBeVisible();
-    expect(screen.getByLabelText("Window evidence ID 2")).toBeVisible();
-    expect(screen.getByText(/No legacy amount/)).toBeVisible();
+    await user.click(screen.getByRole("button", { name: "Continue to Capacity" }));
+    await user.click(screen.getByRole("button", { name: "Add capacity window" }));
+    expect(screen.getByLabelText("Work item 2 reference")).toBeInTheDocument();
+    expect(screen.getByLabelText("Reading reference 2")).toBeVisible();
+    expect(screen.getByText(/we never infer which ones are required/)).toBeVisible();
   });
   it("field error summary focuses and entered evidence remains", async () => {
     vi.stubGlobal("requestAnimationFrame", (callback: () => void) =>
       setTimeout(callback, 0),
     );
     const user = userEvent.setup();
-    render(<ComposedForm projectId={PROJECT} draft={draftFixture()} />);
+    render(<ComposedForm projectId={PROJECT} />);
     await user.type(
-      screen.getByLabelText("Repository / scope reference"),
+      screen.getByLabelText("Repository or scope reference"),
       "repo/keep",
     );
-    await user.click(
-      screen.getByRole("button", { name: "Review frozen inputs" }),
-    );
+    await user.click(screen.getByRole("button", { name: "Continue to Capacity" }));
+    await user.click(screen.getByRole("button", { name: "Continue to Review" }));
     await waitFor(() => expect(screen.getByRole("alert")).toHaveFocus());
-    expect(screen.getByLabelText("Repository / scope reference")).toHaveValue(
+    expect(screen.getByLabelText("Repository or scope reference")).toHaveValue(
       "repo/keep",
     );
     expect(document.getElementById("minimum-error")).toBeVisible();
@@ -152,6 +149,24 @@ describe("focused complete-preflight accessible UI", () => {
       "Explicitly answer Yes or No",
     );
     expect(screen.getByRole("radio", { name: "Yes" })).not.toBeChecked();
+  });
+  it("keeps invalid stop references on Work with a reachable error link", async () => {
+    const user = userEvent.setup();
+    render(<ComposedForm projectId={PROJECT} />);
+    await user.type(
+      screen.getByLabelText(/Active mandatory stop IDs/),
+      " stop-with-spaces ",
+    );
+    await user.click(screen.getByRole("button", { name: "Continue to Capacity" }));
+    await user.click(screen.getByRole("button", { name: "Continue to Review" }));
+    const stop = screen.getByLabelText(/Active mandatory stop IDs/);
+    expect(stop).toHaveAttribute("aria-invalid", "true");
+    expect(stop).toBeVisible();
+    expect(screen.getByText("1. Work")).toHaveAttribute("aria-current", "step");
+    const link = screen.getByRole("link", { name: /Required stop references/ });
+    expect(link).toHaveAttribute("href", "#composed-stops");
+    await user.click(link);
+    expect(stop).toBeVisible();
   });
   it("explicit confirmation stays checked on save failure and never reports a saved plan", async () => {
     vi.stubGlobal("requestAnimationFrame", (callback: () => void) =>
@@ -177,11 +192,11 @@ describe("focused complete-preflight accessible UI", () => {
       </LocalSessionProvider>,
     );
     await user.click(
-      screen.getByRole("checkbox", { name: /confirm all reviewed work/ }),
+      screen.getByRole("checkbox", { name: /confirm the work description/ }),
     );
     await user.click(
       screen.getByRole("checkbox", {
-        name: /confirm this exact required capacity window set/,
+        name: /confirm these are all required capacity windows/,
       }),
     );
     await user.click(
@@ -191,11 +206,11 @@ describe("focused complete-preflight accessible UI", () => {
       expect(screen.getByRole("alert")).toHaveTextContent("No saved result"),
     );
     expect(
-      screen.getByRole("checkbox", { name: /confirm all reviewed work/ }),
+      screen.getByRole("checkbox", { name: /confirm the work description/ }),
     ).toBeChecked();
     expect(
       screen.getByRole("checkbox", {
-        name: /confirm this exact required capacity window set/,
+        name: /confirm these are all required capacity windows/,
       }),
     ).toBeChecked();
     expect(

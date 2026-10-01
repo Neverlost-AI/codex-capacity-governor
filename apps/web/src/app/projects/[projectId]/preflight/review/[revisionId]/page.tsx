@@ -34,7 +34,8 @@ export default async function ReviewPage({
     );
   return (
     <div className="narrow-shell">
-      <h1>Review exact frozen inputs</h1>
+      <nav aria-label="Preflight steps"><ol className="preflight-steps"><li>1. Work</li><li>2. Capacity</li><li aria-current="step">3. Review</li></ol></nav>
+      <h1>Review your preflight</h1>
       <PlanningDisclosure />
       <ComposedReview revision={review.revision} digest={review.digest} />
       <ReviewConfirmation
@@ -42,7 +43,7 @@ export default async function ReviewPage({
         challenge={review.challenge}
       />
       <Link href={`/projects/${projectId}/preflight/new`}>
-        Edit through a new reviewed revision
+        Edit work or capacity in a new review
       </Link>
     </div>
   );

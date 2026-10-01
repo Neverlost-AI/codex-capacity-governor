@@ -58,7 +58,7 @@ export const hostedPreflightReviews = pgTable(
     ownerKey: text("owner_key").notNull(),
     sessionHash: text("session_hash").notNull(),
     projectId: uuid("project_id").notNull(),
-    draftId: uuid("draft_id").notNull(),
+    draftId: uuid("draft_id"),
     snapshot: jsonb("snapshot").$type<ComposedRevision>().notNull(),
     digest: text("digest").notNull(),
     challengeHash: text("challenge_hash").notNull(),
@@ -320,9 +320,10 @@ export const composedPreflightRevisions = pgTable(
     projectId: uuid("project_id")
       .notNull()
       .references(() => projects.id, { onDelete: "restrict" }),
-    preflightDraftId: uuid("preflight_draft_id")
-      .notNull()
-      .references(() => preflightDrafts.id, { onDelete: "restrict" }),
+    preflightDraftId: uuid("preflight_draft_id").references(
+      () => preflightDrafts.id,
+      { onDelete: "restrict" },
+    ),
     canonicalDigest: text("canonical_digest").notNull(),
     snapshot: jsonb("snapshot").$type<ComposedRevision>().notNull(),
   },

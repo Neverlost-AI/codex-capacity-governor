@@ -105,6 +105,12 @@ const setup = async (
 };
 
 describe("T006 exact manual normalization", () => {
+  it("can govern a direct reviewed preflight without a legacy draft", async () => {
+    const { attempt, service } = await setup((scope) => { delete scope.preflightDraftId; });
+    const link = await service.create(PROJECT, attempt.id, "local-session:test", "confirmation");
+    expect(link.preflightDraftId).toBeUndefined();
+    expect((await service.reopen(link.id)).link.id).toBe(link.id);
+  });
   it.each([
     ["1", "PERCENT", "100"],
     ["100", "BASIS_POINTS", "100"],

@@ -25,7 +25,7 @@ export async function POST(request: Request) {
             ? error.issues
                 .map((issue) => `${issue.path.join(".")}: ${issue.message}`)
                 .join("; ")
-            : "Review could not be prepared. Confirm the project/draft, local session and database, then retry. Inputs have not been saved as an evaluation.",
+            : "Review could not be prepared. Check the project, session and database, then try again. No evaluation was saved.",
       },
       { status: 400 },
     );

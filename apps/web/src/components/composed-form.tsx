@@ -17,7 +17,6 @@ import {
   forecastCorrectionSchema,
   policyCapacityUnitSchema,
   composedInputSchema,
-  type PreflightDraft,
 } from "@capacity-governor/contracts";
 import { CsrfField } from "./local-session";
 import { PlanningDisclosure } from "./planning-disclosure";
@@ -28,13 +27,21 @@ const fieldMessage = (message: string) =>
   message.startsWith("Invalid option") ||
   message.startsWith("Invalid discriminator")
     ? "Choose a value explicitly."
-    : message === "Invalid ISO datetime"
-      ? "Enter an ISO date and time with an explicit offset, for example 2026-09-27T12:00:00Z."
+    : message.startsWith("Too small")
+      ? "Enter a value."
       : message.includes("expected boolean")
         ? "Explicitly answer Yes or No."
-        : message.startsWith("INPUT_")
-          ? readableValue(message)
-          : message;
+      : message.startsWith("Invalid input: expected")
+        ? "Enter a valid value."
+        : message === "Duplicate identity"
+          ? "Use a different reference for each item or window."
+          : message === "Unknown affected bucket"
+            ? "This activity names a window that is not listed above."
+            : message === "Invalid ISO datetime"
+              ? "Enter an ISO date and time with an explicit offset, for example 2026-09-27T12:00:00Z."
+              : message.startsWith("INPUT_")
+                ? readableValue(message)
+                : message;
 function FieldError({ name }: { name: string }) {
   const error = useContext(FieldErrors)[name];
   return error ? (
@@ -45,25 +52,44 @@ function FieldError({ name }: { name: string }) {
 }
 
 const factors = [
-  ["category", "Work category", forecastWorkCategorySchema.options],
-  ["complexity", "Complexity", forecastComplexitySchema.options],
-  ["contextLoad", "Context load", forecastContextSchema.options],
+  ["category", "Type of work", forecastWorkCategorySchema.options],
+  ["complexity", "How difficult is it?", forecastComplexitySchema.options],
+  ["contextLoad", "How much existing context is needed?", forecastContextSchema.options],
   [
     "repositoryCondition",
-    "Repository condition",
+    "State of the codebase",
     forecastRepositorySchema.options,
   ],
-  ["dependencyChange", "Dependency change", forecastDependencySchema.options],
-  ["validationBurden", "Validation burden", forecastValidationSchema.options],
-  ["novelty", "Novelty", forecastNoveltySchema.options],
+  ["dependencyChange", "Package changes", forecastDependencySchema.options],
+  ["validationBurden", "How much checking is needed?", forecastValidationSchema.options],
+  ["novelty", "How unfamiliar is the approach?", forecastNoveltySchema.options],
   [
     "correctionExposure",
-    "Correction exposure",
+    "How likely are later fixes?",
     forecastCorrectionSchema.options,
   ],
 ] as const;
 const lines = (value: string) =>
   value.split(/\r?\n/).filter((line) => line.trim().length > 0);
+const workError = (name: string) =>
+  ["repositoryReference", "title", "brief", "acceptanceCriteria", "minimum", "workItems", "activeMandatoryStopIds"].includes(name) ||
+  name.startsWith("item.");
+const errorLabel = (name: string) => {
+  if (name === "workItems") return "Work item references";
+  if (name === "buckets") return "Required window references";
+  if (name === "knownCapacityActivities") return "Known capacity activity";
+  if (name === "activeMandatoryStopIds") return "Required stop references";
+  if (name === "minimum") return "Smallest complete scope";
+  if (name === "acceptanceCriteria") return "What must be true when the work is done";
+  const parts = name.split(".");
+  if (parts[0] === "item")
+    return `Work item ${Number(parts[1]) + 1}: ${parts.slice(2).join(" ").replace(/([A-Z])/g, " $1")}`;
+  if (parts[0] === "bucket")
+    return `Window ${Number(parts[1]) + 1}: ${parts.slice(2).join(" ").replace(/([A-Z])/g, " $1")}`;
+  if (parts[0] === "activity")
+    return `Activity ${Number(parts[1]) + 1}: ${parts.slice(2).join(" ").replace(/([A-Z])/g, " $1")}`;
+  return name.replace(/([A-Z])/g, " $1");
+};
 function TextField({
   name,
   label,
@@ -125,13 +151,8 @@ function SelectField({
     </div>
   );
 }
-export function ComposedForm({
-  projectId,
-  draft,
-}: {
-  projectId: string;
-  draft: PreflightDraft;
-}) {
+export function ComposedForm({ projectId }: { projectId: string }) {
+  const [step, setStep] = useState<"work" | "capacity">("work");
   const [items, setItems] = useState([0]);
   const [buckets, setBuckets] = useState([0]);
   const nextItem = useRef(1);
@@ -167,7 +188,6 @@ export function ComposedForm({
     try {
       const input = composedInputSchema.parse({
         projectId,
-        preflightDraftId: draft.id,
         repositoryReference: get("repositoryReference"),
         title: get("title"),
         brief: get("brief"),
@@ -314,6 +334,8 @@ export function ComposedForm({
         }
       }
       setFieldErrors(mapped);
+      if (Object.keys(mapped).some(workError)) setStep("work");
+      else setStep("capacity");
       setErrors(
         error && typeof error === "object" && "issues" in error
           ? (error.issues as { path: PropertyKey[]; message: string }[]).map(
@@ -333,12 +355,20 @@ export function ComposedForm({
         noValidate
       >
         <CsrfField />
-        <h1>Complete capacity preflight</h1>
+        <h1>New capacity preflight</h1>
+        <nav aria-label="Preflight steps">
+          <ol className="preflight-steps">
+            <li aria-current={step === "work" ? "step" : undefined}>1. Work</li>
+            <li aria-current={step === "capacity" ? "step" : undefined}>
+              2. Capacity
+            </li>
+            <li>3. Review</li>
+          </ol>
+        </nav>
         <PlanningDisclosure />
         <p>
-          Legacy draft values below are manual structural evidence. Confirm them
-          explicitly in review. No legacy amount, unit, reset or reserve is
-          converted into window evidence.
+          Describe the work once, enter each required capacity window, then
+          confirm the exact snapshot on Review.
         </p>
         <div
           ref={errorSummary}
@@ -353,9 +383,10 @@ export function ComposedForm({
                   {Object.entries(fieldErrors).map(([name, message]) => (
                     <li key={name}>
                       <a
-                        href={`#${name === "minimum" ? "minimum-yes" : name === "title" ? "composed-title" : name === "brief" ? "composed-brief" : name === "acceptanceCriteria" ? "composed-criteria" : name}`}
+                        href={`#${name === "minimum" ? "minimum-yes" : name === "title" ? "composed-title" : name === "brief" ? "composed-brief" : name === "acceptanceCriteria" ? "composed-criteria" : name === "activeMandatoryStopIds" ? "composed-stops" : name}`}
+                        onClick={() => setStep(workError(name) ? "work" : "capacity")}
                       >
-                        {name.replaceAll(".", " · ").replace(/([A-Z])/g, " $1")}
+                        {errorLabel(name)}
                         : {message}
                       </a>
                     </li>
@@ -375,6 +406,7 @@ export function ComposedForm({
             </>
           ) : null}
         </div>
+        <div hidden={step !== "work"}>
         <section
           className="form-section"
           aria-labelledby="work-description-heading"
@@ -386,42 +418,42 @@ export function ComposedForm({
           </p>
           <TextField
             name="repositoryReference"
-            label="Repository / scope reference"
+            label="Repository or scope reference"
           />
           <label htmlFor="composed-title">
-            Reviewed tranche title
+            Work title
             <input
               id="composed-title"
               name="title"
               aria-invalid={Boolean(fieldErrors.title)}
               aria-describedby={fieldErrors.title ? "title-error" : undefined}
-              defaultValue={draft.tranche.title}
+
               required
             />
             <FieldError name="title" />
           </label>
           <label htmlFor="composed-brief">
-            Reviewed brief
+            What work will be done?
             <textarea
               id="composed-brief"
               name="brief"
               aria-invalid={Boolean(fieldErrors.brief)}
               aria-describedby={fieldErrors.brief ? "brief-error" : undefined}
-              defaultValue={draft.tranche.brief}
+
               required
             />
             <FieldError name="brief" />
           </label>
           <label htmlFor="composed-exclusions">
-            Reviewed exclusions (one per line)
+            What is out of scope? (one per line)
             <textarea
               id="composed-exclusions"
               name="exclusions"
-              defaultValue={draft.tranche.explicitExclusions.join("\n")}
+
             />
           </label>
           <label htmlFor="composed-criteria">
-            Reviewed acceptance criteria (one per line)
+            What must be true when the work is done? (one per line)
             <textarea
               id="composed-criteria"
               name="criteria"
@@ -429,7 +461,7 @@ export function ComposedForm({
               aria-describedby={
                 fieldErrors.acceptanceCriteria ? "criteria-error" : undefined
               }
-              defaultValue={draft.tranche.acceptanceCriteria.join("\n")}
+
               required
             />
             {fieldErrors.acceptanceCriteria ? (
@@ -440,18 +472,20 @@ export function ComposedForm({
           </label>
         </section>
         <section aria-labelledby="items-heading">
-          <h2 id="items-heading">Reviewed work items</h2>
+          <h2 id="items-heading">Work to estimate</h2>
+          <p>Describe each distinct part of the work. Open the details to choose every planning factor, including Unknown where you cannot confirm it.</p>
           {items.map((index, position) => (
             <fieldset key={index} className="input-grid">
               <legend>Work item {position + 1}</legend>
               <TextField
                 name={`item.${index}.workItemId`}
-                label={`Work item ${position + 1} ID`}
+                label={`Work item ${position + 1} reference`}
               />
               <TextField
                 name={`item.${index}.label`}
-                label={`Work item ${position + 1} label`}
+                label={`Work item ${position + 1} description`}
               />
+              <details className="full-width" open={errors.length > 0 && step === "work" ? true : undefined}><summary>Planning details for work item {position + 1} — choose each value</summary><div className="input-grid">
               {factors.map(([key, label, options]) => (
                 <SelectField
                   key={key}
@@ -460,6 +494,7 @@ export function ComposedForm({
                   options={options}
                 />
               ))}
+              </div></details>
               {items.length > 1 ? (
                 <button
                   type="button"
@@ -479,12 +514,14 @@ export function ComposedForm({
             Add work item
           </button>
         </section>
+        <section className="form-section" aria-labelledby="scope-heading"><h2 id="scope-heading">Scope and stops</h2><label htmlFor="composed-stops">Active mandatory stop IDs, if any (one per line)<textarea id="composed-stops" name="stops" aria-invalid={Boolean(fieldErrors.activeMandatoryStopIds)} aria-describedby={fieldErrors.activeMandatoryStopIds ? "activeMandatoryStopIds-error" : undefined} /></label><FieldError name="activeMandatoryStopIds" /><fieldset><legend>Is this the smallest complete scope for this work?</legend><label><input type="radio" id="minimum-yes" name="minimum" value="yes" />Yes</label><label><input type="radio" name="minimum" value="no" />No</label><p>Choose explicitly. This is separate from confirming the required windows.</p></fieldset><FieldError name="minimum" /></section>
+        <button type="button" onClick={() => setStep("capacity")}>Continue to Capacity</button>
+        </div>
+        <div hidden={step !== "capacity"}>
         <section aria-labelledby="buckets-heading">
-          <h2 id="buckets-heading">Independent required capacity windows</h2>
+          <h2 id="buckets-heading">Required capacity windows</h2>
           <p className="field-hint">
-            Enter each required window independently. Use a factual identity and
-            profile reference; nothing is inferred. Observation and reset times
-            need an explicit ISO offset. Keep your selected units unchanged.
+            Enter every window that must govern this work. Copy each reading and its source exactly. Windows are independent; we never infer which ones are required.
           </p>
           {buckets.map((index, position) => {
             const prefix = `bucket.${index}`;
@@ -492,11 +529,11 @@ export function ComposedForm({
               <fieldset key={index} className="input-grid">
                 <legend>Required window {position + 1}</legend>
                 {[
-                  ["bucketId", "Window evidence ID"],
-                  ["providerId", "Provider ID"],
-                  ["capacityWindowId", "Capacity window ID"],
-                  ["resetCycleId", "Reset cycle ID"],
-                  ["observedAt", "Observation time (explicit offset)"],
+                  ["bucketId", "Reading reference"],
+                  ["providerId", "Provider"],
+                  ["capacityWindowId", "Window"],
+                  ["resetCycleId", "Reset cycle reference"],
+                  ["observedAt", "When you saw this reading (with time offset)"],
                 ].map(([key, label]) => (
                   <TextField
                     key={key}
@@ -506,25 +543,26 @@ export function ComposedForm({
                 ))}
                 <TextField
                   name={`${prefix}.available.amount`}
-                  label={`Available exact decimal amount ${position + 1}`}
+                  label={`Available amount as shown ${position + 1}`}
                 />
                 <SelectField
                   name={`${prefix}.available.unit`}
-                  label={`Available unit ${position + 1}`}
+                  label={`Unit shown ${position + 1}`}
                   options={policyCapacityUnitSchema.options}
                 />
                 <SelectField
                   name={`${prefix}.profile.status`}
-                  label={`Forecast profile evidence status ${position + 1}`}
+                  label={`Planning profile evidence ${position + 1}`}
                   options={["COMPLETE", "ACCEPTED_INCOMPLETE"]}
                 />
                 <TextField
                   name={`${prefix}.profile.evidenceReference`}
-                  label={`Forecast profile evidence reference ${position + 1}`}
+                  label={`Planning profile source ${position + 1}`}
                 />
+                <details className="full-width" open={errors.length > 0 && step === "capacity" ? true : undefined}><summary>Reset and other evidence for window {position + 1}</summary><div className="input-grid">
                 <SelectField
                   name={`${prefix}.reset.kind`}
-                  label={`Reset evidence kind ${position + 1}`}
+                  label={`Reset information shown ${position + 1}`}
                   options={["NONE", "UNCERTAIN", "ROLLING", "CONFIRMED"]}
                 />
                 <p>
@@ -597,6 +635,7 @@ export function ComposedForm({
                     ))}
                   </div>
                 </details>
+                </div></details>
                 {buckets.length > 1 ? (
                   <button
                     type="button"
@@ -617,6 +656,7 @@ export function ComposedForm({
             Add capacity window
           </button>
         </section>
+        <details open={errors.length > 0 && step === "capacity" ? true : undefined}><summary>Known capacity activity (advanced)</summary>
         <section aria-labelledby="activity-heading">
           <h2 id="activity-heading">Known capacity activity</h2>
           <p>
@@ -679,50 +719,12 @@ export function ComposedForm({
             Add capacity activity
           </button>
         </section>
-        <section
-          aria-labelledby="confirmation-heading"
-          className="form-section"
-        >
-          <h2 id="confirmation-heading">Scope confirmation and stops</h2>
-          <label htmlFor="composed-stops">
-            Active mandatory stop IDs (one per line)
-            <textarea id="composed-stops" name="stops" />
-          </label>
-          <fieldset>
-            <legend>Is this explicitly the minimum coherent scope?</legend>
-            <label>
-              <input
-                type="radio"
-                id="minimum-yes"
-                name="minimum"
-                value="yes"
-                aria-describedby={
-                  fieldErrors.minimum ? "minimum-error" : undefined
-                }
-              />
-              Yes
-            </label>
-            <label>
-              <input
-                type="radio"
-                name="minimum"
-                value="no"
-                aria-describedby={
-                  fieldErrors.minimum ? "minimum-error" : undefined
-                }
-              />
-              No
-            </label>
-            <p>
-              No answer is preselected. This attestation is separate from
-              confirming required window membership.
-            </p>
-          </fieldset>
-          <FieldError name="minimum" />
-        </section>
+        </details>
+        <button type="button" onClick={() => setStep("work")}>Back to Work</button>
         <button disabled={pending} type="submit">
-          {pending ? "Preparing review…" : "Review frozen inputs"}
+          {pending ? "Preparing review…" : "Continue to Review"}
         </button>
+        </div>
       </form>
     </FieldErrors.Provider>
   );

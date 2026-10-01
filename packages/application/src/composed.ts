@@ -173,23 +173,27 @@ export const createComposedService = (dependencies: ComposedDependencies) => {
     async prepare(input: unknown): Promise<ComposedRevision> {
       const parsed = composedInputSchema.parse(input);
       const project = await dependencies.projects.findById(parsed.projectId);
-      const draft = await dependencies.preflightDrafts.findById(
-        parsed.preflightDraftId,
-      );
-      if (!project || !draft || draft.projectId !== project.id)
+      const draft = parsed.preflightDraftId
+        ? await dependencies.preflightDrafts.findById(parsed.preflightDraftId)
+        : undefined;
+      if (!project || (parsed.preflightDraftId && (!draft || draft.projectId !== project.id)))
         throw new Error("Project/draft ownership mismatch");
+      // The direct flow has no stable draft-scoped correction identity. A new
+      // direct review is independent until such an identity is explicitly defined.
+      if (parsed.predecessorRevisionId && !parsed.preflightDraftId)
+        throw new Error("Predecessor is unavailable for direct preflights");
       if (parsed.predecessorRevisionId) {
         const previous = (await dependencies.composed.list(project.id))
           .map(validate)
           .find(
             (attempt) => attempt.revision.id === parsed.predecessorRevisionId,
           );
-        if (!previous || previous.revision.input.preflightDraftId !== draft.id)
+        if (!previous || previous.revision.input.preflightDraftId !== parsed.preflightDraftId)
           throw new Error("Predecessor ownership mismatch");
       }
       return composedRevisionSchema.parse({
         id: dependencies.createId(),
-        parentTrancheId: draft.tranche.id,
+        parentTrancheId: draft?.tranche.id ?? dependencies.createId(),
         input: parsed,
         forecastConfiguration: JSON.parse(
           JSON.stringify(dependencies.forecastConfiguration),
@@ -210,14 +214,15 @@ export const createComposedService = (dependencies: ComposedDependencies) => {
       const project = await dependencies.projects.findById(
         parsed.input.projectId,
       );
-      const draft = await dependencies.preflightDrafts.findById(
-        parsed.input.preflightDraftId,
-      );
+      const draft = parsed.input.preflightDraftId
+        ? await dependencies.preflightDrafts.findById(parsed.input.preflightDraftId)
+        : undefined;
       if (
         !project ||
-        !draft ||
-        draft.projectId !== project.id ||
-        draft.tranche.id !== parsed.parentTrancheId
+        (parsed.input.preflightDraftId &&
+          (!draft ||
+            draft.projectId !== project.id ||
+            draft.tranche.id !== parsed.parentTrancheId))
       )
         throw new Error("Project/draft ownership mismatch");
       const evaluationTime = dependencies.now().toISOString();

@@ -29,6 +29,15 @@ const policy = (attempt: Awaited<ReturnType<typeof evaluate>>["attempt"]) => {
   return attempt.policy;
 };
 describe("complete manual preflight composition with real engines", () => {
+  it("prepares and confirms direct reviewed work without a legacy draft", async () => {
+    const input = inputFixture();
+    delete input.preflightDraftId;
+    const { revision, attempt, service } = await evaluate(input);
+    expect(revision.input.preflightDraftId).toBeUndefined();
+    expect(revision.parentTrancheId).toBeDefined();
+    expect(policy(attempt).aggregateDecision).toBe("PROCEED");
+    expect(await service.reopen(PROJECT, attempt.id)).toEqual(attempt);
+  });
   it("inconsistent forecast is typed NOT_COMPOSABLE, never trusted browser output", async () => {
     const { attempt } = await evaluate(inputFixture());
     const corrupted = JSON.parse(JSON.stringify(attempt.forecast));
@@ -314,6 +323,25 @@ describe("complete manual preflight composition with real engines", () => {
         predecessorRevisionId: "00000000-0000-4000-8000-000000000099",
       }),
     ).rejects.toThrow("Predecessor");
+  });
+  it("rejects linking a new direct review to another direct revision as a correction", async () => {
+    const h = harness();
+    const first = inputFixture();
+    delete first.preflightDraftId;
+    const revision = await h.service.prepare(first);
+    await h.service.confirm(
+      revision,
+      "local-session:test",
+      digest(canonicalizeComposed(revision)),
+    );
+    const unrelated = inputFixture();
+    delete unrelated.preflightDraftId;
+    unrelated.title = "Different direct work";
+    unrelated.predecessorRevisionId = revision.id;
+    await expect(h.service.prepare(unrelated)).rejects.toThrow(
+      "Predecessor is unavailable for direct preflights",
+    );
+    expect(h.records.size).toBe(1);
   });
   it.each(["digest", "forecast", "policy", "receipt", "bucket"])(
     "stored %s tamper is visible integrity failure",

@@ -21,8 +21,8 @@ export default async function HomePage() {
           <p className="eyebrow">Codex-first resource governance</p>
           <h1>Bound the work before the work begins.</h1>
           <p className="hero-copy">
-            Create a project and preserve a manual preflight draft. Forecasting
-            and Governor policy are intentionally not active in this tranche.
+            Create a project, then review your work and available capacity in
+            three steps: Work, Capacity, and Review.
           </p>
         </div>
         <Link className="button" href="/projects/new">
@@ -53,8 +53,7 @@ export default async function HomePage() {
             </p>
             <h3>No projects yet</h3>
             <p>
-              Create the first project to begin a bounded manual preflight
-              draft.
+              Create your first project to start a reviewed capacity preflight.
             </p>
             <Link href="/projects/new">Create your first project →</Link>
           </div>

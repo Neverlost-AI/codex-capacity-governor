@@ -30,7 +30,10 @@ test("hosted phase one: sign-in to immutable outcome amendment with isolation an
   test.skip(process.env.CAPACITY_GOVERNOR_HOSTED_E2E_PHASE === "two");
   test.setTimeout(180_000);
   await signIn(page);
+  await expect(page.getByText("Private capacity preflight")).toBeVisible();
+  await expect(page.getByText(/three steps: Work, Capacity, and Review/)).toBeVisible();
   await page.getByRole("link", { name: "Create project" }).click();
+  await expect(page.getByText(/describe the work, enter each required/)).toBeVisible();
   const name = `Hosted founder project ${Date.now()}`;
   await page.getByLabel("Project name").fill(name);
   await page
@@ -38,22 +41,6 @@ test("hosted phase one: sign-in to immutable outcome amendment with isolation an
     .click();
   await expect(page).toHaveURL(/\/projects\/[0-9a-f-]{36}$/);
   const projectUrl = page.url();
-  await page
-    .getByLabel("Tranche title")
-    .fill("Hosted bounded development attempt");
-  await page
-    .getByLabel("Tranche brief")
-    .fill("Private hosted evidence workflow");
-  await page
-    .getByLabel(/Acceptance criteria/)
-    .fill("Reopen original and amended evidence");
-  await page.getByLabel("Available amount").fill("58");
-  await page.getByLabel("Capacity unit").fill("legacy raw units");
-  await page.getByLabel("IANA timezone").fill("America/Denver");
-  await page.getByRole("button", { name: "Save preflight draft" }).click();
-  await expect(page.getByRole("status")).toHaveText(
-    "Manual preflight draft saved.",
-  );
 
   // A second authenticated test principal cannot enumerate, read or edit this
   // project by guessing its URL. It is not part of the deployed allowlist.
@@ -71,54 +58,60 @@ test("hosted phase one: sign-in to immutable outcome amendment with isolation an
   await foreignContext.close();
 
   await page
-    .getByRole("link", { name: "Create reviewed capacity preflight" })
+    .getByRole("link", { name: "Start capacity preflight" })
     .click();
-  await page.getByLabel("Repository / scope reference").fill("repo/hosted-e2e");
-  await page.getByLabel("Work item 1 ID", { exact: true }).fill("work-1");
+  await page.getByLabel("Repository or scope reference").fill("repo/hosted-e2e");
+  await page.getByLabel("Work item 1 reference", { exact: true }).fill("work-1");
   await page
-    .getByLabel("Work item 1 label", { exact: true })
+    .getByLabel("Work item 1 description", { exact: true })
     .fill("Application item");
+  await page.getByLabel("Work title").fill("Reviewed capacity scope");
+  await page.getByLabel("What work will be done?").fill("Bounded application change");
+  await page.getByLabel("What must be true when the work is done? (one per line)").fill("Retain reviewed evidence");
+  await page.getByText("Planning details for work item 1").click();
   for (const [label, value] of [
-    ["Work category", "APPLICATION_LOGIC"],
-    ["Complexity", "MEDIUM"],
-    ["Context load", "MEDIUM"],
-    ["Repository condition", "STABLE"],
-    ["Dependency change", "EXISTING_ONLY"],
-    ["Validation burden", "STANDARD"],
-    ["Novelty", "SOME_NEW_PATTERN"],
-    ["Correction exposure", "MEDIUM"],
+    ["Type of work", "APPLICATION_LOGIC"],
+    ["How difficult is it?", "MEDIUM"],
+    ["How much existing context is needed?", "MEDIUM"],
+    ["State of the codebase", "STABLE"],
+    ["Package changes", "EXISTING_ONLY"],
+    ["How much checking is needed?", "STANDARD"],
+    ["How unfamiliar is the approach?", "SOME_NEW_PATTERN"],
+    ["How likely are later fixes?", "MEDIUM"],
   ])
     await page.getByLabel(`${label} 1`, { exact: true }).selectOption(value);
+  await page.getByRole("radio", { name: "No", exact: true }).check();
+  await page.getByRole("button", { name: "Continue to Capacity" }).click();
   for (const [label, value] of [
-    ["Window evidence ID", "short"],
-    ["Provider ID", "manual-codex"],
-    ["Capacity window ID", "5-hour"],
-    ["Reset cycle ID", "cycle-1"],
-    ["Observation time (explicit offset)", new Date().toISOString()],
-    ["Available exact decimal amount", "7800"],
-    ["Forecast profile evidence reference", "accepted profile"],
+    ["Reading reference", "short"],
+    ["Provider", "manual-codex"],
+    ["Window", "5-hour"],
+    ["Reset cycle reference", "cycle-1"],
+    ["When you saw this reading (with time offset)", new Date().toISOString()],
+    ["Available amount as shown", "7800"],
+    ["Planning profile source", "accepted profile"],
   ])
     await page.getByLabel(`${label} 1`, { exact: true }).fill(value);
   await page
-    .getByLabel("Available unit 1", { exact: true })
+    .getByLabel("Unit shown 1", { exact: true })
     .selectOption("BASIS_POINTS");
   await page
-    .getByLabel("Forecast profile evidence status 1", { exact: true })
+    .getByLabel("Planning profile evidence 1", { exact: true })
     .selectOption("COMPLETE");
+  await page.getByText("Reset and other evidence for window 1").click();
   await page
-    .getByLabel("Reset evidence kind 1", { exact: true })
+    .getByLabel("Reset information shown 1", { exact: true })
     .selectOption("NONE");
-  await page.getByRole("radio", { name: "No", exact: true }).check();
-  await page.getByRole("button", { name: "Review frozen inputs" }).click();
+  await page.getByRole("button", { name: "Continue to Review" }).click();
   await expect(
-    page.getByRole("heading", { name: "Review exact frozen inputs" }),
+    page.getByRole("heading", { name: "Review your preflight" }),
   ).toBeVisible();
   await page
-    .getByRole("checkbox", { name: /confirm all reviewed work/ })
+    .getByRole("checkbox", { name: /confirm the work description/ })
     .check();
   await page
     .getByRole("checkbox", {
-      name: /confirm this exact required capacity window set/,
+      name: /confirm these are all required capacity windows/,
     })
     .check();
   await page

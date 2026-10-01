@@ -46,7 +46,7 @@ export default async function RootLayout({
             </span>
           </Link>
           <span className="status-chip">
-            {local ? "Local manual preflight" : "Private manual preflight"}
+            {local ? "Local capacity preflight" : "Private capacity preflight"}
           </span>
         </header>
         <main>
@@ -61,8 +61,8 @@ export default async function RootLayout({
           </form>
         ) : null}
         <footer className="site-footer">
-          Manual structural drafts remain separate from reviewed capacity
-          preflight evidence. No automatic execution is performed.
+          Earlier manual drafts remain separate from reviewed capacity
+          preflights. No work starts automatically.
         </footer>
       </body>
     </html>
