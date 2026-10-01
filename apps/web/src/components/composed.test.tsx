@@ -51,6 +51,8 @@ describe("focused complete-preflight accessible UI", () => {
     expect(screen.getByText(/Smallest complete scope: No/)).toBeVisible();
     expect(screen.getByText(/Minimum 0.*target share 0%/)).toBeVisible();
     expect(screen.getByText("Some new pattern")).toBeVisible();
+    expect(screen.getByText("Work item reference")).toBeVisible();
+    expect(screen.getByText(input.workItems[0].workItemId)).toBeVisible();
     expect(
       screen.getByLabelText("Complete reviewed evidence").closest("details"),
     ).not.toHaveAttribute("open");
@@ -147,6 +149,24 @@ describe("focused complete-preflight accessible UI", () => {
       "Explicitly answer Yes or No",
     );
     expect(screen.getByRole("radio", { name: "Yes" })).not.toBeChecked();
+  });
+  it("keeps invalid stop references on Work with a reachable error link", async () => {
+    const user = userEvent.setup();
+    render(<ComposedForm projectId={PROJECT} />);
+    await user.type(
+      screen.getByLabelText(/Active mandatory stop IDs/),
+      " stop-with-spaces ",
+    );
+    await user.click(screen.getByRole("button", { name: "Continue to Capacity" }));
+    await user.click(screen.getByRole("button", { name: "Continue to Review" }));
+    const stop = screen.getByLabelText(/Active mandatory stop IDs/);
+    expect(stop).toHaveAttribute("aria-invalid", "true");
+    expect(stop).toBeVisible();
+    expect(screen.getByText("1. Work")).toHaveAttribute("aria-current", "step");
+    const link = screen.getByRole("link", { name: /Required stop references/ });
+    expect(link).toHaveAttribute("href", "#composed-stops");
+    await user.click(link);
+    expect(stop).toBeVisible();
   });
   it("explicit confirmation stays checked on save failure and never reports a saved plan", async () => {
     vi.stubGlobal("requestAnimationFrame", (callback: () => void) =>

@@ -46,6 +46,10 @@ export function ComposedReview({
           <div className="form-card" key={item.workItemId}>
             <h3>{item.label}</h3>
             <dl className="summary-grid">
+              <div>
+                <dt>Work item reference</dt>
+                <dd>{item.workItemId}</dd>
+              </div>
               {Object.entries(item)
                 .filter(([key]) => key !== "workItemId" && key !== "label")
                 .map(([key, value]) => (

@@ -72,12 +72,13 @@ const factors = [
 const lines = (value: string) =>
   value.split(/\r?\n/).filter((line) => line.trim().length > 0);
 const workError = (name: string) =>
-  ["repositoryReference", "title", "brief", "acceptanceCriteria", "minimum", "workItems"].includes(name) ||
+  ["repositoryReference", "title", "brief", "acceptanceCriteria", "minimum", "workItems", "activeMandatoryStopIds"].includes(name) ||
   name.startsWith("item.");
 const errorLabel = (name: string) => {
   if (name === "workItems") return "Work item references";
   if (name === "buckets") return "Required window references";
   if (name === "knownCapacityActivities") return "Known capacity activity";
+  if (name === "activeMandatoryStopIds") return "Required stop references";
   if (name === "minimum") return "Smallest complete scope";
   if (name === "acceptanceCriteria") return "What must be true when the work is done";
   const parts = name.split(".");
@@ -382,7 +383,7 @@ export function ComposedForm({ projectId }: { projectId: string }) {
                   {Object.entries(fieldErrors).map(([name, message]) => (
                     <li key={name}>
                       <a
-                        href={`#${name === "minimum" ? "minimum-yes" : name === "title" ? "composed-title" : name === "brief" ? "composed-brief" : name === "acceptanceCriteria" ? "composed-criteria" : name}`}
+                        href={`#${name === "minimum" ? "minimum-yes" : name === "title" ? "composed-title" : name === "brief" ? "composed-brief" : name === "acceptanceCriteria" ? "composed-criteria" : name === "activeMandatoryStopIds" ? "composed-stops" : name}`}
                         onClick={() => setStep(workError(name) ? "work" : "capacity")}
                       >
                         {errorLabel(name)}
@@ -513,7 +514,7 @@ export function ComposedForm({ projectId }: { projectId: string }) {
             Add work item
           </button>
         </section>
-        <section className="form-section" aria-labelledby="scope-heading"><h2 id="scope-heading">Scope and stops</h2><label htmlFor="composed-stops">Active mandatory stop IDs, if any (one per line)<textarea id="composed-stops" name="stops" /></label><fieldset><legend>Is this the smallest complete scope for this work?</legend><label><input type="radio" id="minimum-yes" name="minimum" value="yes" />Yes</label><label><input type="radio" name="minimum" value="no" />No</label><p>Choose explicitly. This is separate from confirming the required windows.</p></fieldset><FieldError name="minimum" /></section>
+        <section className="form-section" aria-labelledby="scope-heading"><h2 id="scope-heading">Scope and stops</h2><label htmlFor="composed-stops">Active mandatory stop IDs, if any (one per line)<textarea id="composed-stops" name="stops" aria-invalid={Boolean(fieldErrors.activeMandatoryStopIds)} aria-describedby={fieldErrors.activeMandatoryStopIds ? "activeMandatoryStopIds-error" : undefined} /></label><FieldError name="activeMandatoryStopIds" /><fieldset><legend>Is this the smallest complete scope for this work?</legend><label><input type="radio" id="minimum-yes" name="minimum" value="yes" />Yes</label><label><input type="radio" name="minimum" value="no" />No</label><p>Choose explicitly. This is separate from confirming the required windows.</p></fieldset><FieldError name="minimum" /></section>
         <button type="button" onClick={() => setStep("capacity")}>Continue to Capacity</button>
         </div>
         <div hidden={step !== "capacity"}>

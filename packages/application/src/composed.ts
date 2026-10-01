@@ -178,6 +178,10 @@ export const createComposedService = (dependencies: ComposedDependencies) => {
         : undefined;
       if (!project || (parsed.preflightDraftId && (!draft || draft.projectId !== project.id)))
         throw new Error("Project/draft ownership mismatch");
+      // The direct flow has no stable draft-scoped correction identity. A new
+      // direct review is independent until such an identity is explicitly defined.
+      if (parsed.predecessorRevisionId && !parsed.preflightDraftId)
+        throw new Error("Predecessor is unavailable for direct preflights");
       if (parsed.predecessorRevisionId) {
         const previous = (await dependencies.composed.list(project.id))
           .map(validate)

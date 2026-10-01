@@ -324,6 +324,25 @@ describe("complete manual preflight composition with real engines", () => {
       }),
     ).rejects.toThrow("Predecessor");
   });
+  it("rejects linking a new direct review to another direct revision as a correction", async () => {
+    const h = harness();
+    const first = inputFixture();
+    delete first.preflightDraftId;
+    const revision = await h.service.prepare(first);
+    await h.service.confirm(
+      revision,
+      "local-session:test",
+      digest(canonicalizeComposed(revision)),
+    );
+    const unrelated = inputFixture();
+    delete unrelated.preflightDraftId;
+    unrelated.title = "Different direct work";
+    unrelated.predecessorRevisionId = revision.id;
+    await expect(h.service.prepare(unrelated)).rejects.toThrow(
+      "Predecessor is unavailable for direct preflights",
+    );
+    expect(h.records.size).toBe(1);
+  });
   it.each(["digest", "forecast", "policy", "receipt", "bucket"])(
     "stored %s tamper is visible integrity failure",
     async (field) => {
